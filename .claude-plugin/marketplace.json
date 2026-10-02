@@ -1,0 +1,14 @@
+{
+  "name": "artifact-hub",
+  "description": "Project Hub for Claude Code: your own index of every artifact you publish.",
+  "owner": {
+    "name": "Suresh Kumar"
+  },
+  "plugins": [
+    {
+      "name": "artifact-hub",
+      "source": "./",
+      "description": "Keeps Project Hub — one index page of every artifact you publish, grouped by project — up to date."
+    }
+  ]
+}
