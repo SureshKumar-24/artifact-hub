@@ -7,7 +7,8 @@ description: Keeps Project Hub, the user's own index page of every artifact they
 
 Project Hub is one artifact that lists every page the user has published, grouped by
 project. The promise it makes: **a page once listed is never lost**, even when the
-gallery stops showing it.
+gallery stops showing it. The plugin backs that promise with a local list,
+`~/.claude/artifact-hub/pages.json`, which it writes itself at every publish.
 
 The user's settings are in `~/.claude/artifact-hub/hub.json`:
 
@@ -44,15 +45,19 @@ the hub correct on its own, without relying on any earlier step having happened.
 
 1. `Artifact` `action: "read"` with `hubUrl`. Build on the file it returns.
 2. `Artifact` `action: "list"`, `scope: "mine"`, `limit: 50`.
-3. For every listed page that is not in `PROJECTS`, add a row. For pages already there,
-   update the title and date if they changed.
-4. **Never remove a row because it is missing from the listing.** The listing shows only
+3. Read `~/.claude/artifact-hub/pages.json` if it exists. The plugin writes one entry
+   there for every page published while it is installed (`url`, `title`, `folder`,
+   `first`, `last`), so it also holds pages too old to appear in the listing.
+4. For every page in the listing or in that file that is not in `PROJECTS`, add a row.
+   For pages already there, update the title and date if they changed. An entry's
+   `folder` is the folder it was published from: use it to pick the project.
+5. **Never remove a row because it is missing from the listing.** The listing shows only
    the 50 most recently updated pages, so an absent row is old, not deleted. Remove a
    row only when the user says that page is gone.
-5. Never add the hub itself as a row.
-6. Republish with `url` set to `hubUrl`. Never publish the hub without `url`: that
+6. Never add the hub itself as a row.
+7. Republish with `url` set to `hubUrl`. Never publish the hub without `url`: that
    creates a second hub.
-7. Report in two or three lines: how many added, how many updated, how many kept from
+8. Report in two or three lines: how many added, how many updated, how many kept from
    before, and any page placed under "Other" so the user can correct it.
 
 ## Recording one page (right after a publish)

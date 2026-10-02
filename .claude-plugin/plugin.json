@@ -1,11 +1,17 @@
 {
   "name": "artifact-hub",
-  "description": "Keeps Project Hub — one index page of every artifact you publish, grouped by project — up to date. /artifact-hub:setup creates it; each later publish is recorded; /artifact-hub:hub rebuilds it.",
-  "version": "1.0.0",
+  "description": "Never lose a page you published: every artifact is saved to a local list and filed, by project, on one index page (Project Hub).",
+  "version": "1.1.0",
   "author": {
     "name": "Suresh Kumar"
   },
   "license": "MIT",
   "homepage": "https://github.com/SureshKumar-24/artifact-hub",
-  "repository": "https://github.com/SureshKumar-24/artifact-hub"
+  "repository": "https://github.com/SureshKumar-24/artifact-hub",
+  "keywords": [
+    "artifacts",
+    "index",
+    "organize",
+    "hooks"
+  ]
 }

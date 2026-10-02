@@ -1,20 +1,10 @@
 # artifact-hub
 
-A Claude Code plugin that keeps your own index of every page you publish.
+Never lose a page you published with Claude Code: every artifact is saved to a list on your machine and filed, by project, on one index page.
 
-Claude's artifact gallery is one flat list of recent pages. Older pages drop out of
-view, and nothing separates one project from another. This plugin gives you **Project
-Hub**: one artifact that lists all your published pages, grouped by project, with a
-search box. A page once listed stays listed.
+![Project Hub: published pages grouped by project, with a search box](docs/hub.png)
 
-## What it does
-
-- **Setup** - `/artifact-hub:setup` reads your gallery, proposes how to group the pages
-  into projects, and publishes your hub once you agree.
-- **Rebuild** - `/artifact-hub:hub` brings the hub up to date from the gallery. It adds
-  what is new and never removes what is already there.
-- **Automatic** - each time Claude publishes a page, the plugin reminds Claude to record
-  it, filed under the project of the folder you are working in.
+*The screenshot shows example pages.*
 
 ## Install
 
@@ -23,50 +13,86 @@ search box. A page once listed stays listed.
 /plugin install artifact-hub@artifact-hub
 ```
 
-Then run `/artifact-hub:setup` once.
+Then run `/artifact-hub:setup` once. To pin this exact release instead of the latest
+code, add `@v1.1.0` to the first command.
 
 To try it without installing: `claude --plugin-dir path/to/artifact-hub`.
+
+## Why
+
+Claude's artifact gallery is one flat list of recent pages. Older pages drop out of
+view, and if you no longer have the link, the page is hard to get back. Nothing
+separates one project from another.
+
+With this plugin:
+
+- **Every link is kept.** The moment a page is published, its link, title and folder
+  are written to a plain file on your machine. This is done by the plugin itself, so it
+  does not depend on Claude remembering anything.
+- **One page shows everything.** Your Project Hub lists all your pages under their
+  projects, each with a line saying what it is, and a search box across all of them.
+- **You do nothing extra.** Publish as usual. The new page is filed under the project
+  of the folder you are working in.
+
+## How to use it
+
+| When | What to do | What happens |
+|---|---|---|
+| Once | `/artifact-hub:setup` | Claude reads your gallery, proposes how to group your pages into projects, and publishes your hub when you agree. |
+| Every publish | Nothing | The link is saved locally and Claude adds the page to your hub. |
+| Any time | `/artifact-hub:hub` | Rebuilds the hub from the gallery and the local list. Adds what is new, never removes what is there. |
+
+## What it runs, reads and sends
+
+A plugin can run code on your machine, so here is all of it.
+
+- **Runs:** one hook, on the `PostToolUse` event for the `Artifact` tool. It starts
+  `hooks/on-artifact.js` (86 lines, plain Node.js, no dependencies) directly, with no
+  shell in between. Nothing runs at session start.
+- **Reads:** the result of the Artifact tool call, the `<title>` of the file that was
+  just published, and your hub settings. During setup or a rebuild, Claude reads the
+  list of your own artifacts through its own Artifact tool.
+- **Writes:** two files in `~/.claude/artifact-hub/`: `pages.json` (the list of your
+  published links) and `hub.json` (your hub's address and project rules). And your hub
+  artifact.
+- **Sends:** nothing. No network request, no server, no analytics, no account. Your hub
+  is a private artifact in your own Claude account and stays private unless you share it.
+
+See [SECURITY.md](SECURITY.md) for how to check this yourself.
 
 ## What it costs
 
 - Nothing at session start: no extra context, no startup step.
 - One reminder of about 80 words, only in a turn where Claude publishes an artifact.
-- Recording a page is one read and one republish of the hub.
-
-## What it runs, reads and sends
-
-- **Runs:** one small Node script (`hooks/on-artifact.js`, about 50 lines, readable)
-  after an Artifact tool call. It is started directly, with no shell in between. It
-  reads the tool's result and your hub settings and prints a reminder. It makes no
-  network request, runs no other program and changes no setting. It needs Node.js on
-  your PATH.
-- **Reads:** the list of your own artifacts, through Claude's own Artifact tool, when
-  you run setup or a rebuild.
-- **Writes:** `~/.claude/artifact-hub/hub.json` (your hub's address and project rules)
-  and your hub artifact.
-- **Sends:** nothing. There is no server, no analytics and no account. Your hub is a
-  private artifact in your own Claude account, and it stays private unless you share it.
+- Adding a page to the hub is one read and one republish of the hub.
 
 ## Limits
 
-- Needs a plan that can publish artifacts from Claude Code.
+- Needs a plan that can publish artifacts from Claude Code, and Node.js on your PATH.
 - Works in Claude Code only. Pages made in the claude.ai chat app are picked up when
   you run `/artifact-hub:hub`.
-- The gallery listing shows the 50 most recently updated pages, so older pages have to
-  be added by name the first time. After that they stay in the hub.
-- The automatic step is a reminder to Claude, not a direct write. If a session ends
-  right after a publish, run `/artifact-hub:hub` to catch up.
+- Pages published before you installed the plugin come from the gallery listing, which
+  shows the 50 most recently updated. Older ones have to be added by name once.
+- Adding a page to the hub is done by Claude after a reminder. If a session ends right
+  after a publish, the link is still in `pages.json`; run `/artifact-hub:hub` to put
+  it on the hub.
 - If Claude adds folders to the gallery itself, you will no longer need this.
 
 ## Uninstall
 
 `/plugin uninstall artifact-hub`, then delete `~/.claude/artifact-hub/` if you no
-longer want the saved address. Your hub artifact stays until you delete it yourself.
+longer want the saved list. Your hub artifact stays until you delete it yourself.
 
 ## Privacy
 
-This plugin collects no data. See "What it runs, reads and sends" above.
+This plugin collects no data and contacts no server. Everything it stores is in
+`~/.claude/artifact-hub/` on your machine and in your own Claude account.
+
+## Contributing
+
+Issues and pull requests are welcome. The whole plugin is a hook script, two skills and
+a page template, so most changes are small. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence
 
-MIT
+MIT. Not made by or affiliated with Anthropic.
