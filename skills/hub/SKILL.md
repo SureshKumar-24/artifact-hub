@@ -54,13 +54,14 @@ the hub correct on its own, without relying on any earlier step having happened.
 2. `Artifact` `action: "list"`, `scope: "mine"`, `limit: 50`.
 3. Read `~/.claude/artifact-hub/pages.json` if it exists. The plugin writes one entry
    there for every page published while it is installed (`url`, `title`, `folder`,
-   `first`, `last`), so it also holds pages too old to appear in the listing.
+   `first`, `last`, and `deleted` once the page was deleted), so it also holds pages too
+   old to appear in the listing. Skip entries marked `deleted`, and remove their rows.
 4. For every page in the listing or in that file that is not in `PROJECTS`, add a row.
    For pages already there, update the title and date if they changed. An entry's
    `folder` is the folder it was published from: use it to pick the project.
 5. **Never remove a row because it is missing from the listing.** The listing shows only
    the 50 most recently updated pages, so an absent row is old, not deleted. Remove a
-   row only when the user says that page is gone.
+   row only when the user says that page is gone or `pages.json` marks it `deleted`.
 6. Never add the hub itself as a row.
 7. Republish with `url` set to `hubUrl`. Never publish the hub without `url`: that
    creates a second hub.
@@ -73,6 +74,18 @@ Same as a rebuild, but only for the page just published: read the hub, add or up
 that one row, republish to the same URL, and tell the user in one line which project it
 went under. If anything about the hub looks out of date while you are there, do a full
 rebuild instead.
+
+## Finding a page
+
+When the user cannot find a page ("where is my pricing page?"), look in the hub's
+`PROJECTS` and in `pages.json` for the words they gave, and answer with the title, its
+folder and the full link. If several match, list them. If none match, run a rebuild and
+look again before saying it is not there.
+
+## When a page is deleted
+
+Remove its row from the hub, republish, and say so in one line. Do not delete any
+artifact yourself as part of hub upkeep; only the user decides that.
 
 ## Which project a page belongs to
 

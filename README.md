@@ -1,5 +1,7 @@
 # artifact-hub
 
+[![test](https://github.com/SureshKumar-24/artifact-hub/actions/workflows/test.yml/badge.svg)](https://github.com/SureshKumar-24/artifact-hub/actions/workflows/test.yml)
+
 Folders for your Claude artifacts: every page you publish from Claude Code is saved to a list on your machine and filed into project folders and subfolders on one index page.
 
 ![Project Hub: a folder tree of projects and subfolders on the left, the open folder's pages on the right](docs/hub.png)
@@ -14,7 +16,7 @@ Folders for your Claude artifacts: every page you publish from Claude Code is sa
 ```
 
 Then run `/artifact-hub:setup` once. To pin this exact release instead of the latest
-code, add `@v1.2.0` to the first command.
+code, add `@v1.3.0` to the first command.
 
 To try it without installing: `claude --plugin-dir path/to/artifact-hub`.
 
@@ -42,6 +44,8 @@ With this plugin:
 | Once | `/artifact-hub:setup` | Claude reads your gallery, proposes how to group your pages into projects, and publishes your hub when you agree. |
 | Every publish | Nothing | The link is saved locally and Claude adds the page to your hub. |
 | Any time | Ask: "make a folder Reports inside Shop" | Claude moves the pages, keeps every row, and remembers the rule for new pages. |
+| Any time | Ask: "where is my pricing page?" | Claude finds it on the hub or in the saved list and gives you the link. |
+| You delete a page | Nothing | Its row is taken off the hub. |
 | Any time | `/artifact-hub:hub` | Rebuilds the hub from the gallery and the local list. Adds what is new, never removes what is there. |
 
 ## What it runs, reads and sends
@@ -49,7 +53,7 @@ With this plugin:
 A plugin can run code on your machine, so here is all of it.
 
 - **Runs:** one hook, on the `PostToolUse` event for the `Artifact` tool. It starts
-  `hooks/on-artifact.js` (86 lines, plain Node.js, no dependencies) directly, with no
+  `hooks/on-artifact.js` (121 lines, plain Node.js, no dependencies) directly, with no
   shell in between. Nothing runs at session start.
 - **Reads:** the result of the Artifact tool call, the `<title>` of the file that was
   just published, and your hub settings. During setup or a rebuild, Claude reads the
@@ -93,7 +97,7 @@ This plugin collects no data and contacts no server. Everything it stores is in
 
 ## Contributing
 
-Issues and pull requests are welcome. The whole plugin is a hook script, two skills and
+Issues and pull requests are welcome. Run the tests with `node --test test/`. The whole plugin is a hook script, two skills and
 a page template, so most changes are small. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence

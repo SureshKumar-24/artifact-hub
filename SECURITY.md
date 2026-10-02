@@ -13,12 +13,15 @@ The script:
 - writes `~/.claude/artifact-hub/pages.json` and `~/.claude/artifact-hub/.offered`;
 - prints one JSON object for Claude to read.
 
+Its behaviour is covered by `test/hook.test.js`, run on Linux, macOS and Windows for
+every change.
+
 It does not open a network connection, start another program, read environment
 variables or credentials, or change any Claude Code setting or permission.
 
 ## Check it yourself
 
-The script is 86 lines: [hooks/on-artifact.js](hooks/on-artifact.js). These should
+The script is 121 lines: [hooks/on-artifact.js](hooks/on-artifact.js). These should
 all print nothing:
 
 ```
@@ -33,7 +36,7 @@ its own Artifact tool and to read and write the two files above, nothing else.
 To avoid picking up future changes without reviewing them, install a tagged release:
 
 ```
-/plugin marketplace add SureshKumar-24/artifact-hub@v1.2.0
+/plugin marketplace add SureshKumar-24/artifact-hub@v1.3.0
 ```
 
 ## Report a problem

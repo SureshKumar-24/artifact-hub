@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0
+
+- Deleted pages: when you delete an artifact, it is marked in the saved list and its row
+  is taken off the hub.
+- Finding a page: ask Claude where a page is and it answers from the hub and the saved
+  list.
+- The project folder is now the repository root, not the subfolder you happened to be in.
+- Setup uses the pages already saved since install, not only the gallery listing.
+- The script ignores other tools whose names start with "Artifact", falls back to the
+  file name when a page has no title, and can no longer interrupt a turn on an error.
+- Automated tests, run on Linux, macOS and Windows.
+
 ## 1.2.0
 
 - Folders and subfolders. The hub is now a folder tree: a folder per project, subfolders

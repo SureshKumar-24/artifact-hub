@@ -9,7 +9,10 @@ Do this once per user.
 
 1. If `~/.claude/artifact-hub/hub.json` already exists and has a `hubUrl`, the hub is
    set up. Say so, give the link, and offer a rebuild (the `hub` skill) instead.
-2. `Artifact` `action: "list"`, `scope: "mine"`, `limit: 50`.
+2. `Artifact` `action: "list"`, `scope: "mine"`, `limit: 50`. Also read
+   `~/.claude/artifact-hub/pages.json` if it exists: the plugin has been saving every
+   publish there since it was installed. Include those pages too (not ones marked
+   `deleted`), using each entry's `folder` as a strong hint for its project.
 3. Work out the projects from the titles: pages that share a leading name or an obvious
    subject belong together. Propose the list to the user in a short table (project name,
    number of pages, two example titles) and ask them to confirm or rename. Pages you
