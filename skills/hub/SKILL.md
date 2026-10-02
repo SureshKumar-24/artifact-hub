@@ -5,8 +5,8 @@ description: Keeps Project Hub, the user's own index page of every artifact they
 
 # Project Hub
 
-Project Hub is one artifact that lists every page the user has published, grouped by
-project. The promise it makes: **a page once listed is never lost**, even when the
+Project Hub is one artifact that lists every page the user has published, in folders:
+a folder per project, with subfolders inside it to any depth. The promise it makes: **a page once listed is never lost**, even when the
 gallery stops showing it. The plugin backs that promise with a local list,
 `~/.claude/artifact-hub/pages.json`, which it writes itself at every publish.
 
@@ -17,7 +17,8 @@ The user's settings are in `~/.claude/artifact-hub/hub.json`:
   "hubUrl": "https://claude.ai/artifact/…",
   "hubTitle": "Project Hub",
   "projects": [
-    { "id": "shop", "name": "Shop", "folders": ["shop-web", "shop-api"], "match": ["shop", "checkout"] }
+    { "id": "shop", "name": "Shop", "folders": ["shop-web", "shop-api"], "match": ["shop", "checkout"],
+      "subfolders": [ { "path": "Marketing / SEO", "match": ["seo", "keyword"] } ] }
   ]
 }
 ```
@@ -31,9 +32,15 @@ array):
 
 ```js
 { id: 'shop', name: 'Shop', about: 'One line on what the project is', shelves: [
-  ['Shelf name', [ ['Page title', '<artifact id>', 'What it is, in a few plain words', '3 Oct'] ]]
+  ['Marketing / SEO', [ ['Page title', '<artifact id>', 'What it is, in a few plain words', '3 Oct'] ]]
 ]}
 ```
+
+The first item of each `shelves` entry is a **folder path inside the project**, parts
+separated by ` / `: `'Marketing / SEO'` is the folder SEO inside Marketing inside Shop.
+`'All pages'` means the project folder itself. The page draws the tree from these paths,
+so creating a subfolder is just using a new path, and a folder exists only while it has
+pages.
 
 The artifact id is the last part of the page's link. Only that array changes; leave the
 styles and the rest of the script alone.
@@ -85,6 +92,25 @@ automatic next time.
 
 Write each row's description yourself in plain words (what the page is for), under 12
 words.
+
+## Subfolders
+
+- Within a project, use the first `subfolders` rule in `hub.json` whose `match` words
+  appear in the title; otherwise put the page in the project folder (`'All pages'`).
+- Suggest subfolders only when a folder holds more than about eight pages, and group by
+  what the pages are about (a product area, a client, a kind of document). Two or three
+  levels is plenty; do not create a folder for one page.
+- The user can ask in plain words: "make a folder Reports inside Shop", "move the SEO
+  pages into Shop / Marketing", "rename that folder", "put this at the top level". Do it
+  by changing the paths, keep every row, and save a `subfolders` rule so new pages follow.
+- Removing a folder moves its pages to the parent folder. It never deletes rows.
+
+## Upgrading an older hub
+
+If the hub you read has no `id="tree"` element, it uses the old layout. Take
+`${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`, put the hub's existing `PROJECTS` array
+into it unchanged, keep the hub's `<title>` and `<h1>`, and republish to the same URL.
+Tell the user the hub now has folders.
 
 ## Changing the rules
 

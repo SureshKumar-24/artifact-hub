@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+- Folders and subfolders. The hub is now a folder tree: a folder per project, subfolders
+  to any depth, a count on each folder, breadcrumbs, and a link straight to any folder.
+- Ask Claude to create, rename or move folders in plain words; rules are saved so new
+  pages land in the right subfolder.
+- Existing hubs keep all their rows and are upgraded to the new layout on the next
+  rebuild.
+
 ## 1.1.0
 
 - Every published link is now saved by the plugin itself to

@@ -1,7 +1,7 @@
 <title>Project Hub</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: project buttons and a search box on top; below, the chosen project's pages on shelves. One page replaces the gallery. */
+/* Layout: a folder tree on the left (projects, then subfolders to any depth), the open folder's pages on the right, one search box across everything. */
 :root {
   --bg: #f3f5f6; --surface: #ffffff; --ink: #17232b; --muted: #5b6b75; --line: #d6dde1;
   --accent: #0b6b70; --accent-soft: #dcefee; --on-accent: #ffffff;
@@ -15,27 +15,43 @@
 :root[data-theme="dark"] { --bg: #10181c; --surface: #18232a; --ink: #e6edf0; --muted: #98a8b1; --line: #2c3a42; --accent: #5fc4c2; --accent-soft: #173538; --on-accent: #0c1a1c; color-scheme: dark; }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
-.wrap { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; display: flex; flex-direction: column; gap: 24px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; display: flex; flex-direction: column; gap: 24px; }
 h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
 h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.01em; }
 h2 { font-size: 21px; font-weight: 600; }
 h3 { font-size: 12.5px; font-family: var(--mono); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
 p { margin: 0; max-width: 66ch; }
 .lede { color: var(--muted); margin-top: 6px; }
-.controls { display: flex; flex-direction: column; gap: 12px; position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); padding-block: 10px; z-index: 2; border-bottom: 1px solid var(--line); }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { font: inherit; font-size: 14px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); cursor: pointer; display: inline-flex; align-items: baseline; gap: 6px; }
-.chip small { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.chip:hover { border-color: var(--accent); }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.chip[aria-pressed="true"] small { color: var(--on-accent); }
 .search { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .search input { flex: 1 1 240px; min-width: 0; font: inherit; padding: 9px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
 .search span { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.project { display: flex; flex-direction: column; gap: 14px; }
-.project > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-.project > header span { color: var(--muted); font-size: 14px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px 28px; align-items: start; }
+.side { min-width: 0; }
+.side summary { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); cursor: pointer; padding-block: 4px; }
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree ul { padding-left: 16px; border-left: 1px solid var(--line); margin-left: 11px; }
+.node { display: flex; align-items: center; gap: 2px; }
+.caret { flex: 0 0 22px; height: 28px; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; padding: 0; border-radius: 4px; }
+.caret:hover { color: var(--ink); }
+.caret[aria-expanded="true"] { transform: rotate(90deg); }
+.spacer { flex: 0 0 22px; }
+.folder { flex: 1 1 auto; min-width: 0; font: inherit; font-size: 14.5px; text-align: left; border: 0; background: transparent; color: var(--ink); cursor: pointer; padding: 5px 8px; border-radius: 5px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.folder span { overflow-wrap: anywhere; }
+.folder small { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.folder:hover { background: var(--accent-soft); }
+.folder[aria-current="true"] { background: var(--accent); color: var(--on-accent); font-weight: 500; }
+.folder[aria-current="true"] small { color: var(--on-accent); }
+.main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; font-size: 14px; color: var(--muted); }
+.crumbs button { font: inherit; border: 0; background: transparent; color: var(--accent); cursor: pointer; padding: 0; text-decoration: underline; }
+.crumbs b { font-family: var(--display); font-size: 21px; font-weight: 600; color: var(--ink); }
+.about { color: var(--muted); font-size: 14px; }
+.subs { display: flex; flex-wrap: wrap; gap: 8px; }
+.sub { font: inherit; font-size: 14px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); cursor: pointer; display: inline-flex; align-items: baseline; gap: 8px; }
+.sub::before { content: ''; width: 13px; height: 10px; border-radius: 2px; background: var(--accent); align-self: center; box-shadow: -0px -3px 0 -1px var(--accent); opacity: 0.75; }
+.sub small { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sub:hover { border-color: var(--accent); }
 .shelf { display: flex; flex-direction: column; gap: 8px; }
 .rows { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
 .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; padding: 11px 16px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
@@ -45,23 +61,32 @@ p { margin: 0; max-width: 66ch; }
 .row .what { grid-column: 1; color: var(--muted); font-size: 14px; }
 .row .when { grid-row: 1; grid-column: 2; font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; align-self: center; font-variant-numeric: tabular-nums; }
 .note { border-left: 3px solid var(--accent); padding: 2px 0 2px 14px; color: var(--muted); }
+@media (min-width: 780px) {
+  .layout { grid-template-columns: 250px minmax(0, 1fr); }
+  .side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow-y: auto; }
+  .side summary { list-style: none; cursor: default; pointer-events: none; }
+  .side summary::-webkit-details-marker { display: none; }
+}
 </style>
 
 <div class="wrap">
   <header>
     <h1>Project Hub</h1>
-    <p class="lede">All your pages in one place, sorted by project. Pick a project, or search across everything. Each row opens that page in a new tab.</p>
+    <p class="lede">All your pages in one place, in folders. Open a folder, or search across everything. Each row opens that page in a new tab.</p>
   </header>
 
-  <div class="controls">
-    <div class="chips" id="chips" role="group" aria-label="Project"></div>
-    <div class="search">
-      <input type="search" id="q" placeholder="Search every project" aria-label="Search pages">
-      <span id="n"></span>
-    </div>
+  <div class="search">
+    <input type="search" id="q" placeholder="Search every folder" aria-label="Search pages">
+    <span id="n"></span>
   </div>
 
-  <div id="out" style="display:flex;flex-direction:column;gap:36px"></div>
+  <div class="layout">
+    <details class="side" id="side" open>
+      <summary>Folders</summary>
+      <ul class="tree" id="tree"></ul>
+    </details>
+    <div class="main" id="out"></div>
+  </div>
 
   <p class="note">This page is kept up to date by the artifact-hub plugin. Every page listed here stays private to you until you share it.</p>
 </div>
@@ -73,54 +98,118 @@ p { margin: 0; max-width: 66ch; }
   var PROJECTS = [];
   // HUB-DATA-END
 
-  var KEY = 'project-hub.project.v1';
-  var chips = document.getElementById('chips'), out = document.getElementById('out'), q = document.getElementById('q'), n = document.getElementById('n');
-  var current = 'all';
-  // a bare #project-id in the link opens that project; otherwise the last one you chose
-  var hash = (location.hash || '').replace('#', '');
-  if (PROJECTS.some(function (p) { return p.id === hash; })) current = hash;
-  else { try { var s = localStorage.getItem(KEY); if (s === 'all' || PROJECTS.some(function (p) { return p.id === s; })) current = s; } catch (e) { /* no storage: start on All */ } }
-
+  // A shelf name is a folder path inside its project: 'Marketing / SEO' is the folder SEO
+  // inside Marketing. 'All pages' (or an empty name) means the project folder itself.
+  var KEY = 'project-hub.folder.v2';
+  var tree = document.getElementById('tree'), out = document.getElementById('out'), q = document.getElementById('q'), n = document.getElementById('n'), side = document.getElementById('side');
   function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text !== undefined) x.textContent = text; return x; }
-  function count(p) { return p.shelves.reduce(function (t, s) { return t + s[1].length; }, 0); }
-  var total = PROJECTS.reduce(function (t, p) { return t + count(p); }, 0);
+  function slug(t) { return String(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'x'; }
 
-  function chip(id, name, num) {
-    var b = el('button', 'chip'); b.type = 'button'; b.id = 'chip-' + id;
-    b.appendChild(document.createTextNode(name)); b.appendChild(el('small', '', String(num)));
-    b.setAttribute('aria-pressed', String(current === id));
-    b.addEventListener('click', function () { current = id; try { localStorage.setItem(KEY, id); } catch (e) { /* not saved */ } render(); });
-    return b;
+  var root = { name: 'All folders', key: 'all', kids: [], pages: [], up: null, about: '' }, byKey = { all: root };
+  function child(parent, name, key) {
+    for (var i = 0; i < parent.kids.length; i++) if (parent.kids[i].name.toLowerCase() === name.toLowerCase()) return parent.kids[i];
+    var k = key || (parent === root ? slug(name) : parent.key + '.' + slug(name));
+    while (byKey[k]) k += '-2';
+    var node = { name: name, key: k, kids: [], pages: [], up: parent, about: '' };
+    parent.kids.push(node); byKey[k] = node; return node;
+  }
+  PROJECTS.forEach(function (p) {
+    var pn = child(root, p.name, slug(p.id || p.name)); pn.about = p.about || '';
+    (p.shelves || []).forEach(function (s) {
+      var node = pn;
+      String(s[0] || '').split('/').map(function (t) { return t.trim(); }).filter(function (t) { return t && t.toLowerCase() !== 'all pages'; })
+        .forEach(function (part) { node = child(node, part); });
+      (s[1] || []).forEach(function (pg) { node.pages.push(pg); });
+    });
+  });
+  function count(node) { return node.kids.reduce(function (t, k) { return t + count(k); }, node.pages.length); }
+  function trail(node) { var t = []; for (var x = node; x; x = x.up) t.unshift(x); return t; }
+  var total = count(root), open = {};
+
+  var current = root;
+  // a bare #folder in the link opens that folder; otherwise the last one you opened
+  var hash = (location.hash || '').replace('#', '');
+  if (byKey[hash]) current = byKey[hash];
+  else { try { var saved = localStorage.getItem(KEY); if (saved && byKey[saved]) current = byKey[saved]; } catch (e) { /* no storage: start on All */ } }
+
+  function go(node) {
+    current = node; q.value = '';
+    try { localStorage.setItem(KEY, node.key); } catch (e) { /* not saved */ }
+    if (window.matchMedia && !window.matchMedia('(min-width: 780px)').matches) side.open = false;
+    render();
+  }
+
+  function branch(node, list) {
+    var li = el('li'), line = el('div', 'node');
+    if (node.kids.length) {
+      var c = el('button', 'caret', '▶'); c.type = 'button';
+      c.setAttribute('aria-expanded', String(!!open[node.key])); c.setAttribute('aria-label', (open[node.key] ? 'Close ' : 'Open ') + node.name);
+      c.addEventListener('click', function () { open[node.key] = !open[node.key]; render(); });
+      line.appendChild(c);
+    } else line.appendChild(el('span', 'spacer'));
+    var b = el('button', 'folder'); b.type = 'button'; b.id = 'f-' + node.key;
+    b.appendChild(el('span', '', node.name)); b.appendChild(el('small', '', String(count(node))));
+    if (node === current) b.setAttribute('aria-current', 'true');
+    b.addEventListener('click', function () { go(node); });
+    line.appendChild(b); li.appendChild(line);
+    if (node.kids.length && open[node.key]) { var ul = el('ul'); node.kids.forEach(function (k) { branch(k, ul); }); li.appendChild(ul); }
+    list.appendChild(li);
+  }
+
+  function rowsOf(pages, term, label) {
+    var rows = el('div', 'rows'), any = 0;
+    pages.forEach(function (pg) {
+      if (term && (pg[0] + ' ' + pg[2] + ' ' + label).toLowerCase().indexOf(term) < 0) return;
+      any++;
+      var a = el('a', 'row'); a.href = A + pg[1]; a.target = '_blank'; a.rel = 'noopener';
+      a.appendChild(el('b', '', pg[0])); a.appendChild(el('span', 'when', pg[3])); a.appendChild(el('span', 'what', pg[2]));
+      rows.appendChild(a);
+    });
+    return any ? { box: rows, n: any } : null;
   }
 
   function render() {
-    chips.textContent = '';
-    chips.appendChild(chip('all', 'All projects', total));
-    PROJECTS.forEach(function (p) { chips.appendChild(chip(p.id, p.name, count(p))); });
     var term = q.value.trim().toLowerCase(), shown = 0;
+    trail(current).forEach(function (x) { open[x.key] = true; });
+    tree.textContent = ''; branch(root, tree);
     out.textContent = '';
-    PROJECTS.forEach(function (p) {
-      // a search looks across every project; without one, only the chosen project shows
-      if (!term && current !== 'all' && current !== p.id) return;
-      var sec = el('section', 'project'), any = false;
-      var head = el('header'); head.appendChild(el('h2', '', p.name)); if (p.about) head.appendChild(el('span', '', p.about));
-      sec.appendChild(head);
-      p.shelves.forEach(function (s) {
-        var rows = el('div', 'rows'), has = false;
-        s[1].forEach(function (pg) {
-          if (term && (pg[0] + ' ' + pg[2] + ' ' + s[0] + ' ' + p.name).toLowerCase().indexOf(term) < 0) return;
-          has = true; any = true; shown++;
-          var a = el('a', 'row'); a.href = A + pg[1]; a.target = '_blank'; a.rel = 'noopener';
-          a.appendChild(el('b', '', pg[0])); a.appendChild(el('span', 'when', pg[3])); a.appendChild(el('span', 'what', pg[2]));
-          rows.appendChild(a);
-        });
-        if (!has) return;
-        var shelf = el('div', 'shelf'); if (p.shelves.length > 1) shelf.appendChild(el('h3', '', s[0])); shelf.appendChild(rows); sec.appendChild(shelf);
-      });
-      if (any) out.appendChild(sec);
+    var base = term ? root : current;
+
+    var crumbs = el('div', 'crumbs');
+    if (term) crumbs.appendChild(el('b', '', 'Search results'));
+    else trail(current).forEach(function (x, i, all) {
+      if (i === all.length - 1) { crumbs.appendChild(el('b', '', x.name)); return; }
+      var b = el('button', '', x.name); b.type = 'button'; b.addEventListener('click', function () { go(x); });
+      crumbs.appendChild(b); crumbs.appendChild(el('span', '', '/'));
     });
-    if (!shown) out.appendChild(el('p', 'note', total ? 'No page matches "' + q.value.trim() + '".' : 'No pages listed yet. Ask Claude to run the hub rebuild.'));
-    n.textContent = term ? shown + ' of ' + total + ' pages, all projects' : shown + ' pages';
+    out.appendChild(crumbs);
+    if (!term && current.about) out.appendChild(el('p', 'about', current.about));
+
+    if (!term && current.kids.length) {
+      var subs = el('div', 'subs');
+      current.kids.forEach(function (k) {
+        var b = el('button', 'sub'); b.type = 'button';
+        b.appendChild(document.createTextNode(k.name)); b.appendChild(el('small', '', String(count(k))));
+        b.addEventListener('click', function () { go(k); }); subs.appendChild(b);
+      });
+      out.appendChild(subs);
+    }
+
+    // the open folder's own pages first, then each folder below it under its path
+    (function walk(node) {
+      var names = trail(node).slice(1).map(function (x) { return x.name; });
+      var r = rowsOf(node.pages, term, names.join(' '));
+      if (r) {
+        shown += r.n;
+        var shelf = el('div', 'shelf'), rel = trail(node).slice(trail(base).length).map(function (x) { return x.name; }).join(' / ');
+        if (rel) shelf.appendChild(el('h3', '', rel));
+        shelf.appendChild(r.box); out.appendChild(shelf);
+      }
+      node.kids.forEach(walk);
+    })(base);
+
+    if (!shown) out.appendChild(el('p', 'note', term ? 'No page matches "' + q.value.trim() + '".' : total ? 'This folder is empty.' : 'No pages listed yet. Ask Claude to run the hub rebuild.'));
+    n.textContent = term ? shown + ' of ' + total + ' pages, all folders' : shown + (shown === 1 ? ' page' : ' pages');
   }
   q.addEventListener('input', render);
   render();

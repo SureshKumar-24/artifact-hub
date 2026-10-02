@@ -1,7 +1,7 @@
 {
   "name": "artifact-hub",
-  "description": "Never lose a page you published: every artifact is saved to a local list and filed, by project, on one index page (Project Hub).",
-  "version": "1.1.0",
+  "description": "Folders for your Claude artifacts: every page you publish is saved to a local list and filed into project folders and subfolders on one index page (Project Hub).",
+  "version": "1.2.0",
   "author": {
     "name": "Suresh Kumar"
   },
@@ -10,6 +10,7 @@
   "repository": "https://github.com/SureshKumar-24/artifact-hub",
   "keywords": [
     "artifacts",
+    "folders",
     "index",
     "organize",
     "hooks"

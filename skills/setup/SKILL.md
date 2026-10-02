@@ -17,15 +17,18 @@ Do this once per user.
    clearly names a project.
 4. Copy `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html` to a working file. Fill the
    `PROJECTS` array between `HUB-DATA-START` and `HUB-DATA-END` with one entry per
-   project. Within a project, split pages into two to four shelves by kind (for example
-   plans, research, reports) only when it has more than six pages; otherwise use one
-   shelf named "All pages". Each row is
+   project. Each `shelves` entry is a folder path inside the project (see the
+   `hub` skill). Split a project into two to four subfolders by subject only when it has
+   more than eight pages, nesting (`'Area / Topic'`) only where a subfolder would itself
+   be crowded; otherwise use one entry named "All pages". Show the proposed folders in
+   the table you ask the user to confirm. Each row is
    `['Page title', '<artifact id>', 'What it is, under 12 plain words', '3 Oct']`.
 5. Publish it with `Artifact` (no `url`, icon `folder`). The page's `<title>` is
    "Project Hub" unless the user wants another name.
 6. Write `~/.claude/artifact-hub/hub.json` with the published link as `hubUrl`, the title
    as `hubTitle`, and for each project an `id` (lowercase, no spaces), its `name`,
-   `match` (the lowercase title words that identify it) and `folders` (the name of the
+   `match` (the lowercase title words that identify it), `subfolders` (one
+   `{ "path", "match" }` rule per subfolder you created) and `folders` (the name of the
    git repository or working folder for that project, when the user tells you or the
    current folder obviously belongs to it; otherwise an empty list).
 7. Tell the user: the link, how many pages are listed, that it is private to them, that

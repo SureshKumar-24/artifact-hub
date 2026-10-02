@@ -1,8 +1,8 @@
 # artifact-hub
 
-Never lose a page you published with Claude Code: every artifact is saved to a list on your machine and filed, by project, on one index page.
+Folders for your Claude artifacts: every page you publish from Claude Code is saved to a list on your machine and filed into project folders and subfolders on one index page.
 
-![Project Hub: published pages grouped by project, with a search box](docs/hub.png)
+![Project Hub: a folder tree of projects and subfolders on the left, the open folder's pages on the right](docs/hub.png)
 
 *The screenshot shows example pages.*
 
@@ -14,7 +14,7 @@ Never lose a page you published with Claude Code: every artifact is saved to a l
 ```
 
 Then run `/artifact-hub:setup` once. To pin this exact release instead of the latest
-code, add `@v1.1.0` to the first command.
+code, add `@v1.2.0` to the first command.
 
 To try it without installing: `claude --plugin-dir path/to/artifact-hub`.
 
@@ -29,8 +29,9 @@ With this plugin:
 - **Every link is kept.** The moment a page is published, its link, title and folder
   are written to a plain file on your machine. This is done by the plugin itself, so it
   does not depend on Claude remembering anything.
-- **One page shows everything.** Your Project Hub lists all your pages under their
-  projects, each with a line saying what it is, and a search box across all of them.
+- **Folders and subfolders.** Your Project Hub shows a folder tree: one folder per
+  project, subfolders inside to any depth, a count on each, and a search box across all
+  of them. Reorganise by telling Claude: "move the SEO pages into Shop / Marketing".
 - **You do nothing extra.** Publish as usual. The new page is filed under the project
   of the folder you are working in.
 
@@ -40,6 +41,7 @@ With this plugin:
 |---|---|---|
 | Once | `/artifact-hub:setup` | Claude reads your gallery, proposes how to group your pages into projects, and publishes your hub when you agree. |
 | Every publish | Nothing | The link is saved locally and Claude adds the page to your hub. |
+| Any time | Ask: "make a folder Reports inside Shop" | Claude moves the pages, keeps every row, and remembers the rule for new pages. |
 | Any time | `/artifact-hub:hub` | Rebuilds the hub from the gallery and the local list. Adds what is new, never removes what is there. |
 
 ## What it runs, reads and sends
@@ -76,6 +78,7 @@ See [SECURITY.md](SECURITY.md) for how to check this yourself.
 - Adding a page to the hub is done by Claude after a reminder. If a session ends right
   after a publish, the link is still in `pages.json`; run `/artifact-hub:hub` to put
   it on the hub.
+- The folders exist on your hub page only. They do not change Claude's own gallery.
 - If Claude adds folders to the gallery itself, you will no longer need this.
 
 ## Uninstall
