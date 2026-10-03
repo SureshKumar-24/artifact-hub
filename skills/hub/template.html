@@ -212,6 +212,8 @@ p { margin: 0; max-width: 66ch; }
     n.textContent = term ? shown + ' of ' + total + ' pages, all folders' : shown + (shown === 1 ? ' page' : ' pages');
   }
   q.addEventListener('input', render);
+  // following a #folder link while the page is open
+  window.addEventListener('hashchange', function () { var k = (location.hash || '').replace('#', ''); if (byKey[k] && byKey[k] !== current) go(byKey[k]); });
   render();
 })();
 </script>
