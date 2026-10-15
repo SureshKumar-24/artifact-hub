@@ -24,7 +24,7 @@ variables or credentials, or change any Claude Code setting or permission.
 
 ## Check it yourself
 
-The scripts are 137, 36 and 50 lines: [on-artifact.js](hooks/on-artifact.js), [on-stop.js](hooks/on-stop.js), [on-session.js](hooks/on-session.js). These should
+The scripts are 137, 36 and 56 lines: [on-artifact.js](hooks/on-artifact.js), [on-stop.js](hooks/on-stop.js), [on-session.js](hooks/on-session.js). These should
 all print nothing:
 
 ```
