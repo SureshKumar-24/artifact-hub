@@ -12,9 +12,9 @@ Every page you publish from Claude Code is saved to a list on your machine and f
 ![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 ![network calls](https://img.shields.io/badge/network%20calls-0-brightgreen)
 
-![Project Hub: a folder tree of projects and subfolders on the left, the open folder's pages on the right](docs/hub.png)
+![Project Hub: a folder tree of projects and subfolders on the left, the pages of each project as cards on the right, each with a drawn cover for its kind of page](docs/hub.png)
 
-<sub>The screenshot shows example pages, in the page design before 1.4.0.</sub>
+<sub>The screenshot shows example pages in the gallery view (1.5.0). Covers are drawn from the title, not screenshots.</sub>
 
 </div>
 
@@ -51,7 +51,7 @@ Then run this once:
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add `@v1.4.0` to the first command |
+| Install a fixed, reviewed version | Add `@v1.5.0` to the first command |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | It is one script, two instruction files and a page template |
 
@@ -71,13 +71,15 @@ Claude's artifact gallery is one flat list of recent pages.
 |---|---|
 | **Every link is kept** | The moment a page is published, its link, title and project folder are written to a plain file on your machine. The plugin does this itself, so it does not depend on Claude remembering. |
 | **Folders and subfolders** | One index page, your Project Hub, shows a folder tree: a folder per project, each with its own colour, subfolders to any depth, a count on each. |
+| **Gallery or list** | See your pages as cards, each with a drawn cover for its kind of page (document, report, code, design, slides), or as a dense list. One switch, remembered. Same search, folders and sorting in both. |
+| **Details** | The ⓘ on any page (or `i`) opens a panel with its description, folder, date, the full link to copy, and open, pin and show-folder buttons. Only what the hub knows, nothing invented. |
 | **Search** | One box searches titles, descriptions and folders at once, forgives typos, puts the best match first and highlights what matched. Pick a folder to search inside it. |
-| **Pins and recent pages** | Pin the pages you keep going back to; the ones you opened last are listed first. Kept in your browser only. |
-| **Quick to use** | Keyboard shortcuts (`/` to search, arrows to move, Enter to open, `?` for the rest), copy a link in one click, sort by recent, updated or A–Z, compact rows, light or dark. Works on a phone, with a folder drawer. |
+| **Pins and Continue working** | Pin the pages you keep going back to; the ones you opened last wait under "Continue working". Kept in your browser only. |
+| **Quick to use** | Keyboard shortcuts (`/` to search, arrows to move, Enter to open, `i` for details, `v` to switch views, `?` for the rest), copy a link in one click, sort by recent, updated or A–Z, compact rows, light or dark. Works on a phone, with a folder drawer and touch-size buttons. |
 | **Nothing extra to do** | Publish as usual. The page is filed under the project of the repository you are working in. |
 | **Deleted pages are cleaned up** | Delete an artifact and its row leaves the hub. |
 | **Find by asking** | "Where is my pricing page?" gets you the link. |
-| **Private** | The hub is a private artifact in your own Claude account. Nothing leaves your machine except through Claude's own publish. |
+| **Private** | The hub is a private artifact in your own Claude account. Nothing leaves your machine except through Claude's own publish. The hub lists links: copying one does not change who can open that page. |
 
 ## How it works
 
@@ -165,6 +167,7 @@ Check it yourself in a minute: [SECURITY.md](SECURITY.md). The script's behaviou
 - **Claude Code only.** Pages made in the claude.ai chat app are picked up when you run `/artifact-hub:hub`.
 - **Pages from before you installed** come from the gallery listing, which shows the 50 most recently updated. Older ones have to be added by name once.
 - **The folders live on your hub page.** They do not change Claude's own gallery.
+- **Covers are drawn, not screenshots.** The hub holds a title, a description, a date and a link per page, never the page itself, so a card's cover is a symbol for the kind of page read from its title. Real thumbnails would need a safe way to capture a private page; there is none today, so the hub does not pretend.
 - **Filing is done by Claude** after a reminder. The saved list is the safety net; a rebuild catches up.
 - **Two sessions publishing at the same instant** could miss one saved link. A rebuild picks it up from the gallery.
 - If Claude adds folders to the gallery itself, you will no longer need this.
@@ -175,6 +178,18 @@ Check it yourself in a minute: [SECURITY.md](SECURITY.md). The script's behaviou
 <summary><b>Can other people see my hub?</b></summary>
 
 No. It is private to you, like any artifact, unless you share it yourself. Each page it links to keeps its own sharing setting.
+</details>
+
+<details>
+<summary><b>Gallery or list: which should I use?</b></summary>
+
+The gallery is the default on a wide screen: cards with a cover and two lines of description make similar pages easier to tell apart. The list is the default on phones and tablets, and the better choice when you know the title and want to scan fast; press `v` to switch any time. Both show the same pages in the same order.
+</details>
+
+<details>
+<summary><b>Why is the cover a symbol and not a picture of the page?</b></summary>
+
+Because the hub never reads your pages. It knows each page's title, description, date and link, nothing more, and it says so in the details panel. Showing a made-up picture would be worse than an honest symbol.
 </details>
 
 <details>
@@ -214,7 +229,7 @@ No. It is an independent open-source plugin.
 | A page is not on the hub | `/artifact-hub:hub` |
 | A page went to the wrong folder | Tell Claude where it belongs; the rule is saved |
 | Nothing happens after a publish | Check `node --version` works in your terminal, and that the plugin is enabled in `/plugin` |
-| The hub still has the old flat layout | Run `/artifact-hub:hub` once; it upgrades the layout and keeps every row |
+| The hub still has the old flat layout, or no gallery switch | Run `/artifact-hub:hub` once; it moves the hub to the current page design and keeps every row, pin and folder link |
 | A second hub appeared | Tell Claude which one to keep; the other can be deleted from the gallery |
 
 Anything else: [open an issue](https://github.com/SureshKumar-24/artifact-hub/issues).

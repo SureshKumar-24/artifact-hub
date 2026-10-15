@@ -59,6 +59,11 @@ when the user asks for a colour, or to keep a project's colour when you reorder 
 The artifact id is the last part of the page's link. Only that array changes; leave the
 styles and the rest of the script alone.
 
+The page draws a cover for each row from the words in its title (Document, Report, Code,
+Design, Slides, or plain Page) and says so on the page; it never fetches or shows the
+page's content. A clear title and a plain description are what make a page easy to
+recognise, so write both with care.
+
 ## Rebuild (the main job)
 
 Run this whenever asked, and whenever you are unsure the hub is current. It must leave
@@ -134,13 +139,15 @@ words.
 
 ## Upgrading an older hub
 
-If the hub you read has no `data-hub-template="2"` attribute, it uses an older page
-design (a hub with no `id="tree"` element does not have folders yet either). Take
-`${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`, put the hub's existing `PROJECTS` array
-into it unchanged, keep the hub's `<title>` and `<h1>`, and republish to the same URL.
-Tell the user in one line what changed: folders, if it had none, or the new page (search,
-pins, recent pages, keyboard shortcuts, dark mode). Folder links (`#folder`) and the
-folder the viewer last opened carry over.
+If the hub you read has no `data-hub-template="3"` attribute, it uses an older page
+design (`data-hub-template="2"` is the 1.4 list page; a hub with no `id="tree"` element
+does not have folders yet either). Take `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`,
+put the hub's existing `PROJECTS` array into it unchanged, keep the hub's `<title>` and
+`<h1>`, and republish to the same URL. Tell the user in one line what changed: folders,
+if it had none; otherwise the new page (a gallery of cards or a list, a details panel for
+each page, search, pins, "Continue working", keyboard shortcuts, dark mode). Folder links
+(`#folder`), pins, recently opened pages and the folder the viewer last opened carry over,
+because the data and the browser keys are unchanged.
 
 ## Changing the rules
 

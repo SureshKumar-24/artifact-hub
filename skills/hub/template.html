@@ -5,12 +5,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Project Hub. Layout: a folder sidebar (a rail of project dots on tablets, a drawer on phones)
-   and one ranked, grouped list of pages under a sticky search header. Every colour is a token
-   below: light first, then dark for "follow system", then dark again for the manual dark theme. */
+   and one ranked, grouped set of pages under a sticky search header, shown as a gallery of
+   cards or as a dense list. Every colour is a token below: light first, then dark for
+   "follow system", then dark again for the manual dark theme. */
 :root {
   --bg: #F7F6F2; --surface: #FFFFFF; --raised: #FFFFFF; --ink: #1D1C1A; --muted: #6A6760; --line: #E4E1DA;
   --accent: #0E7468; --accent-soft: #E2F0EC; --focus: #0E7468; --hover: #EFEDE7; --mark: #C6E3DA; --on-accent: #FFFFFF;
   --scrim: rgb(29 28 26 / 0.32); --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.06);
+  --lift: 0 2px 6px rgb(0 0 0 / 0.06), 0 12px 32px rgb(0 0 0 / 0.08);
   --c-teal: #0E7468; --c-indigo: #4F4FC9; --c-amber: #9A5B00; --c-rose: #B3364F;
   --c-green: #2F7A2A; --c-violet: #8239B0; --c-sky: #0B6FA4; --c-clay: #A0472A;
   --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -21,7 +23,7 @@
   :root:not([data-theme="light"]) {
     --bg: #131312; --surface: #1A1A18; --raised: #22221F; --ink: #ECEAE4; --muted: #A19E96; --line: #2D2C29;
     --accent: #5CC4B3; --accent-soft: #17302B; --focus: #5CC4B3; --hover: #20201E; --mark: #245047; --on-accent: #0D1A17;
-    --scrim: rgb(0 0 0 / 0.55); --shadow: none;
+    --scrim: rgb(0 0 0 / 0.55); --shadow: none; --lift: 0 12px 32px rgb(0 0 0 / 0.5);
     --c-teal: #5CC4B3; --c-indigo: #9DA2F5; --c-amber: #E5B04F; --c-rose: #F08CA0;
     --c-green: #7DCB72; --c-violet: #C99BF0; --c-sky: #6FC0EE; --c-clay: #EE9C78; color-scheme: dark;
   }
@@ -29,7 +31,7 @@
 :root[data-theme="dark"] {
   --bg: #131312; --surface: #1A1A18; --raised: #22221F; --ink: #ECEAE4; --muted: #A19E96; --line: #2D2C29;
   --accent: #5CC4B3; --accent-soft: #17302B; --focus: #5CC4B3; --hover: #20201E; --mark: #245047; --on-accent: #0D1A17;
-  --scrim: rgb(0 0 0 / 0.55); --shadow: none;
+  --scrim: rgb(0 0 0 / 0.55); --shadow: none; --lift: 0 12px 32px rgb(0 0 0 / 0.5);
   --c-teal: #5CC4B3; --c-indigo: #9DA2F5; --c-amber: #E5B04F; --c-rose: #F08CA0;
   --c-green: #7DCB72; --c-violet: #C99BF0; --c-sky: #6FC0EE; --c-clay: #EE9C78; color-scheme: dark;
 }
@@ -47,7 +49,7 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 
 /* ---- Frame: phone first (one column, drawer), a rail from 640px, the full sidebar from 1024px */
 .app { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100vh; }
-.main { min-width: 0; width: 100%; max-width: 944px; padding: 0 max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); }
+.main { min-width: 0; width: 100%; max-width: 1120px; padding: 0 max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); }
 .rail { display: none; }
 .side { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; width: min(85vw, 320px); overflow-y: auto; overscroll-behavior: contain;
   background: var(--surface); border-right: 1px solid var(--line); box-shadow: var(--shadow);
@@ -68,7 +70,7 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
   .rail, .scrim { display: none; }
   .side { position: sticky; z-index: auto; align-self: start; height: 100vh; width: auto; transform: none; visibility: visible; transition: none; box-shadow: none; }
   .main { padding-left: 32px; padding-right: max(32px, env(safe-area-inset-right, 0px)); }
-  .subs { display: none !important; } /* the sidebar tree already shows them */
+  .app.at-root .subs { display: none; } /* at the top level the sidebar tree already lists the projects */
 }
 
 /* ---- Rail (tablet): project dots, names in tooltips */
@@ -89,7 +91,7 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 .item:hover { background: var(--hover); }
 .item[aria-current="true"] { background: var(--accent-soft); font-weight: 500; }
 .item .l { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.item small, .subs small, .sec-h small { font: 400 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.item small, .subs small, .sec-h small, .ctx small { font: 400 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .caret { flex: none; width: 20px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
 .caret:hover { color: var(--ink); }
 .caret svg { width: 12px; height: 12px; transition: transform var(--ease); }
@@ -97,10 +99,11 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 .caret-sp { flex: none; width: 20px; }
 @media (max-width: 1023px) { .item { min-height: 40px; } }
 
-/* ---- Intro and the sticky header: search, sort, density, theme, shortcuts */
-.intro { padding: 32px 0 16px; }
+/* ---- Intro and the sticky header: search, sort, view, density, theme, shortcuts */
+.intro { padding: 28px 0 14px; }
 h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
-.lede { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+.lede { margin: 4px 0 0; color: var(--muted); max-width: 64ch; }
+@media (hover: none) { .lede .keys { display: none; } }
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
 .search { position: relative; flex: 1 1 240px; min-width: 0; display: flex; align-items: center; }
@@ -111,60 +114,69 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .search kbd { position: absolute; right: 10px; pointer-events: none; }
 .search input:not(:placeholder-shown) + kbd { display: none; }
-.tools { display: flex; align-items: center; gap: 4px; }
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
-.seg button { height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; white-space: nowrap; }
+.seg button { height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
 .seg button:hover { color: var(--ink); }
 .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); font-weight: 500; }
+.seg.views button { padding: 0 8px; }
 .ib { width: 36px; height: 36px; flex: none; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; display: inline-grid; place-items: center; font-weight: 600; }
 .ib:hover, .ib[aria-pressed="true"] { background: var(--hover); color: var(--ink); }
+.gallery #density { display: none; } /* density is a list setting */
 @media (max-width: 639px) {
   .search input { font-size: 16px; } /* 16px stops iOS zooming in on focus */
   .tools { width: 100%; }
-  .seg { flex: 1 1 auto; } .seg button { flex: 1 1 0; }
+  .seg.sorts { flex: 1 1 160px; } .seg.sorts button { flex: 1 1 0; justify-content: center; }
+  .seg.views button span { display: none; }
 }
 @media (hover: none) { .search kbd { display: none; } }
 
-/* ---- Filter chip, page count, subfolders */
+/* ---- Context: the open folder (name, note, count, subfolders) or the page count at the top level */
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 0 0; min-height: 40px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; height: 28px; padding: 0 4px 0 12px; border-radius: 999px; background: var(--accent-soft); font-size: 13px; }
-.chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chip button { width: 22px; height: 22px; flex: none; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
-.chip button:hover { color: var(--ink); background: var(--surface); }
+.ctx { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+.ctx .dot { width: 10px; height: 10px; }
+.ctx h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx .up { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctx button { width: 26px; height: 26px; flex: none; padding: 0; border: 0; border-radius: 999px; background: var(--accent-soft); color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.ctx button:hover { color: var(--ink); background: var(--hover); }
 .count { margin-left: auto; font: 400 12px/1.4 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .about { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; }
 .subs { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 .subs button { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; cursor: pointer; }
 .subs button:hover { border-color: var(--accent); }
 
-/* ---- The list: groups with sticky headers; quiet rows split by hairlines, no card per row */
+/* ---- Groups: sticky headers under the search header, whatever its measured height */
 #list { outline: none; }
 .sec { padding-bottom: 8px; }
 .sec-h { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--head-h)); z-index: 2; display: flex; align-items: center; gap: 8px;
-  padding: 18px 0 8px; background: var(--bg); font-size: 18px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
+  padding: 18px 0 8px; background: var(--bg); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
 .sec-h > span:not(.dot) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
+.active mark { background: var(--mark); }
+.acts button, .acts a, .more { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.acts button:hover, .acts a:hover, .more:hover { color: var(--ink); background: var(--surface); }
+.acts [aria-pressed="true"] { color: var(--c-amber); }
+.acts [aria-pressed="true"] svg { fill: currentColor; }
+
+/* ---- List: quiet rows split by hairlines, no card per row */
 .row { position: relative; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; column-gap: 12px;
   min-height: 52px; margin: 0 -12px; padding: 6px 12px; border-radius: 6px;
   content-visibility: auto; contain-intrinsic-size: auto 52px; scroll-margin: calc(var(--head-h) + 60px) 0 16px; }
 .row::before { content: ''; position: absolute; left: 12px; right: 12px; top: 0; border-top: 1px solid var(--line); }
 .sec-h + .row::before, .row.active::before, .row.active + .row::before, .row.show::before, .row.show + .row::before { border-color: transparent; }
 .row.active, .row.show { --hover: var(--accent-soft); background: var(--accent-soft); }
-#list:focus-visible .row.active { box-shadow: inset 0 0 0 2px var(--focus); }
+#list:focus-visible .active { box-shadow: inset 0 0 0 2px var(--focus); }
 .row .dot { align-self: start; margin-top: 7px; }
 .txt { min-width: 0; display: flex; flex-direction: column; gap: 1px; color: inherit; text-decoration: none; outline: none; }
-.txt::after { content: ''; position: absolute; inset: 0; border-radius: 6px; } /* the whole row is the link */
+.txt::after { content: ''; position: absolute; inset: 0; border-radius: inherit; } /* the whole row or card is the link */
 .title { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row.pinned .title::after { content: ' \2605'; color: var(--c-amber); font-size: 11px; }
+.pinned .title::after { content: ' \2605'; color: var(--c-amber); font-size: 11px; }
 .desc { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .desc:has(.path:empty + .dtext:empty) { display: none; }
 .path:not(:empty) + .dtext:not(:empty)::before { content: '\00A0\00B7\00A0'; }
 .when { min-width: 44px; font: 400 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
 /* row actions sit just left of the date and appear on hover, keyboard focus or the ⋯ button */
-.acts { position: absolute; z-index: 1; right: 60px; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; padding-left: 8px; visibility: hidden; background: var(--hover); }
-.acts button, .acts a, .more { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
-.acts button:hover, .acts a:hover, .more:hover { color: var(--ink); background: var(--surface); }
-.acts [aria-pressed="true"] { color: var(--c-amber); }
-.acts [aria-pressed="true"] svg { fill: currentColor; }
+.row .acts { position: absolute; z-index: 1; right: 60px; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; padding-left: 8px; visibility: hidden; background: var(--hover); }
 .more { display: none; position: relative; z-index: 1; }
 .row.active .acts, .row.show .acts, .row:focus-within .acts { visibility: visible; }
 @media (hover: hover) {
@@ -175,42 +187,99 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 @media (hover: none), (max-width: 639px) {
   .row { grid-template-columns: 8px minmax(0, 1fr) auto 32px; column-gap: 8px; }
   .more { display: grid; }
-  .acts { right: 44px; }
+  .row .acts { right: 44px; }
   .acts button, .acts a, .more { width: 36px; height: 36px; }
 }
-mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
-.row.active mark { background: var(--mark); }
-
 /* Compact density: one 32px line, title then description */
 .compact .row { min-height: 32px; padding-top: 0; padding-bottom: 0; contain-intrinsic-size: auto 32px; }
 .compact .row .dot { align-self: center; margin-top: 0; }
-.compact .txt { flex-direction: row; align-items: baseline; gap: 10px; }
-.compact .title { flex: 0 1 auto; max-width: 75%; }
-.compact .desc { flex: 1 1 0; min-width: 0; }
-@media (max-width: 639px) { .compact .row { min-height: 44px; } .compact .desc { display: none; } }
+.compact .row .txt { flex-direction: row; align-items: baseline; gap: 10px; }
+.compact .row .title { flex: 0 1 auto; max-width: 75%; }
+.compact .row .desc { flex: 1 1 0; min-width: 0; }
+@media (max-width: 639px) { .compact .row { min-height: 44px; } .compact .row .desc { display: none; } }
 
-/* ---- Empty state, footer note, toast, shortcut sheet */
+/* ---- Gallery: cards on a responsive grid. The cover is a drawn placeholder (a kind icon on a
+   tint of the project colour), never a screenshot: the hub holds links, not page content. */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 2px 0 6px; }
+@media (min-width: 640px) { .grid { grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); gap: 14px; } }
+.card { position: relative; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+  box-shadow: var(--shadow); transition: box-shadow var(--ease), border-color var(--ease), transform var(--ease);
+  content-visibility: auto; contain-intrinsic-size: auto 232px; scroll-margin: calc(var(--head-h) + 60px) 0 16px; }
+.card.active { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.cover { position: relative; display: grid; place-items: center; height: 84px; border-radius: 9px 9px 0 0; border-bottom: 1px solid var(--line);
+  background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 10%, var(--surface)); color: var(--dot, var(--accent)); }
+@media (min-width: 640px) { .cover { height: 104px; } }
+.cover svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.kind { position: absolute; left: 10px; bottom: 8px; font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.card .txt { flex: 1 1 auto; gap: 4px; padding: 10px 12px 8px; }
+.card .title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; }
+.card .desc { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.35; }
+.card .desc .path { display: none; } /* the folder is in the footer instead */
+.card .desc:has(.dtext:empty) { display: none; }
+.card .path:not(:empty) + .dtext:not(:empty)::before { content: none; }
+.card .foot { display: flex; align-items: center; gap: 8px; padding: 0 12px 10px; font-size: 12px; color: var(--muted); }
+.card .foot .where { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .when { min-width: 0; }
+.card .acts { position: absolute; z-index: 1; top: 8px; right: 8px; display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); visibility: hidden; }
+.card.active .acts, .card:focus-within .acts { visibility: visible; }
+.card .more { display: none; }
+@media (hover: hover) {
+  .card:hover { border-color: var(--accent); box-shadow: var(--lift); transform: translateY(-1px); }
+  .card:hover .acts { visibility: visible; }
+}
+@media (hover: none) { /* no hover: the actions are always there, at touch size */
+  .card .acts { visibility: visible; position: static; justify-content: flex-end; margin: 0 8px 6px; padding: 0; border: 0; box-shadow: none; background: transparent; }
+  .card .acts button, .card .acts a { width: 36px; height: 36px; }
+}
+@media (max-width: 639px) { .card .desc { display: none !important; } .card .txt { padding: 8px 10px 6px; } .card .foot { padding: 0 10px 8px; } }
+
+/* ---- Empty state, footer note, toast, dialogs (shortcuts, details) */
 .empty { padding: 48px 0; text-align: center; color: var(--muted); }
 .empty p { margin: 0 auto 16px; max-width: 46ch; overflow-wrap: anywhere; }
 .btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.btn { min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); cursor: pointer; text-decoration: none; }
+.btn:hover { border-color: var(--accent); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn[aria-pressed="true"] { background: var(--accent-soft); }
 .note { margin: 32px 0 0; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 .toast { position: fixed; z-index: 50; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
   display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px); padding: 8px 14px; border-radius: 8px;
   background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: var(--shadow); }
 .toast:empty { display: none; }
 .toast input { min-width: 0; width: 220px; padding: 4px 6px; border: 0; border-radius: 4px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
-dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); color: var(--ink); box-shadow: var(--shadow); }
+dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); color: var(--ink); box-shadow: var(--lift); }
 dialog::backdrop { background: var(--scrim); }
 .sheet { padding: 20px 24px; }
 .sheet h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
 .sheet dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0 0 16px; font-size: 14px; }
 .sheet dt { white-space: nowrap; } .sheet dd { margin: 0; color: var(--muted); }
+/* Details: a side panel from 640px, a bottom sheet on phones */
+#inspector { width: 100%; max-width: 100%; max-height: min(88vh, 100% - 24px); margin: auto 0 0; border-radius: 14px 14px 0 0; border-bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (min-width: 640px) {
+  #inspector { width: min(400px, 100vw - 32px); max-height: 100%; height: 100%; margin: 0 0 0 auto; border-radius: 0; border: 0; border-left: 1px solid var(--line); }
+}
+.insp { display: flex; flex-direction: column; gap: 14px; padding: 20px 24px max(20px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; max-height: inherit; }
+.insp-h { display: flex; align-items: center; gap: 10px; }
+.insp-h .badge { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border-radius: 999px; font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--dot, var(--accent)); background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 12%, var(--surface)); }
+.insp-h .badge svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.insp-h .ib { margin-left: auto; }
+.insp h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.insp .d { margin: 0; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.insp dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin: 0; font-size: 13px; }
+.insp dt { color: var(--muted); white-space: nowrap; } .insp dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.insp dd button.lnk { padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; text-align: left; font-size: inherit; }
+.insp dd button.lnk:hover { text-decoration: underline; }
+.insp .url { display: flex; gap: 6px; }
+.insp .url input { flex: 1 1 auto; min-width: 0; height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
+.insp .row-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.insp .row-btns .primary { grid-column: 1 / -1; }
+.insp .fine { margin: 0; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 </style>
 
-<div class="app" id="app" data-hub-template="2">
+<div class="app at-root list" id="app" data-hub-template="3">
   <nav class="rail" aria-label="Projects">
     <button class="rbtn" type="button" data-menu aria-label="Open folders" aria-controls="side" aria-expanded="false" title="Folders"><span data-icon="menu"></span></button>
     <hr>
@@ -228,7 +297,7 @@ dialog::backdrop { background: var(--scrim); }
   <main class="main">
     <div class="intro">
       <h1>Project Hub</h1>
-      <p class="lede">Every page you have published, by project. Search with <kbd>/</kbd>, move with the arrow keys, press <kbd>?</kbd> for all shortcuts.</p>
+      <p class="lede">Every page you have published, by project. <span class="keys">Search with <kbd>/</kbd>, move with the arrow keys, <kbd>i</kbd> for details, <kbd>?</kbd> for all shortcuts.</span></p>
     </div>
 
     <header class="top" id="head">
@@ -240,10 +309,14 @@ dialog::backdrop { background: var(--scrim); }
         <kbd>/</kbd>
       </div>
       <div class="tools">
-        <div class="seg" role="group" aria-label="Sort pages">
+        <div class="seg sorts" role="group" aria-label="Sort pages">
           <button type="button" data-sort="recent" title="Recently opened first">Recent</button>
           <button type="button" data-sort="updated" title="Newest first, grouped by date">Updated</button>
           <button type="button" data-sort="az" title="By title">A–Z</button>
+        </div>
+        <div class="seg views" role="group" aria-label="View">
+          <button type="button" data-view="gallery" aria-pressed="false" aria-label="Gallery view" title="Gallery"><span data-icon="grid"></span><span>Gallery</span></button>
+          <button type="button" data-view="list" aria-pressed="false" aria-label="List view" title="List"><span data-icon="rows"></span><span>List</span></button>
         </div>
         <button class="ib" type="button" id="density" aria-pressed="false" aria-label="Compact rows" title="Compact rows"><span data-icon="dense"></span></button>
         <button class="ib" type="button" id="theme" aria-label="Theme"></button>
@@ -255,7 +328,7 @@ dialog::backdrop { background: var(--scrim); }
     <p class="sr" id="live" aria-live="polite"></p>
     <div id="list" role="listbox" tabindex="0" aria-label="Pages"></div>
     <div class="empty" id="empty" hidden></div>
-    <p class="note">This page is kept up to date by the artifact-hub plugin. Every page listed here stays private to you until you share it. Pins and recently opened pages are remembered in this browser only.</p>
+    <p class="note">This page is kept up to date by the artifact-hub plugin. It lists links: each page keeps its own sharing setting in Claude, and stays private to you until you share it. Pins and recently opened pages are remembered in this browser only.</p>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -264,6 +337,28 @@ dialog::backdrop { background: var(--scrim); }
     <h2 id="keys-h">Keyboard shortcuts</h2>
     <dl id="keys-list"></dl>
     <button class="btn" type="button" id="keys-close">Close</button>
+  </div>
+</dialog>
+<dialog id="inspector" aria-labelledby="insp-title">
+  <div class="insp">
+    <div class="insp-h">
+      <span class="badge" id="insp-kind"></span>
+      <button class="ib" type="button" id="insp-close" aria-label="Close details"><span data-icon="x"></span></button>
+    </div>
+    <h2 id="insp-title"></h2>
+    <p class="d" id="insp-desc"></p>
+    <dl>
+      <dt>Folder</dt><dd id="insp-where"></dd>
+      <dt>Updated</dt><dd id="insp-date"></dd>
+      <dt>Kind</dt><dd id="insp-kind-text"></dd>
+      <dt>Link</dt><dd class="url"><input readonly id="insp-url" aria-label="Page link"><button class="ib" type="button" id="insp-copy" aria-label="Copy link" title="Copy link"><span data-icon="copy"></span></button></dd>
+    </dl>
+    <div class="row-btns">
+      <a class="btn primary" id="insp-open" target="_blank" rel="noopener"><span data-icon="open"></span>Open page</a>
+      <button class="btn" type="button" id="insp-pin" aria-pressed="false"><span data-icon="star"></span><span>Pin</span></button>
+      <button class="btn" type="button" id="insp-go"><span data-icon="folder"></span>Show folder</button>
+    </div>
+    <p class="fine">Copying a link does not change who can open the page: Claude keeps each page's own sharing setting. The kind is read from the title, and the cover is drawn, not a picture of the page.</p>
   </div>
 </dialog>
 
@@ -283,13 +378,13 @@ dialog::backdrop { background: var(--scrim); }
 
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
   var K = { folder: 'project-hub.folder.v2', pins: 'project-hub.pins.v1', opened: 'project-hub.opened.v1',
-    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1' };
+    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1' };
   function getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setRaw(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not saved */ } }
   function getJSON(k, d) { try { var v = JSON.parse(getRaw(k)); return v == null ? d : v; } catch (e) { return d; } }
   function setJSON(k, v) { try { setRaw(k, JSON.stringify(v)); } catch (e) { /* not saved */ } }
 
-  // ---- Small DOM helpers and icons
+  // ---- Small DOM helpers and icons (fixed strings only; page text is never put through innerHTML)
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text !== undefined) x.textContent = text; return x; }
   function each(sel, fn) { Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
@@ -298,13 +393,17 @@ dialog::backdrop { background: var(--scrim); }
     search: '<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/>',
     menu: '<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>',
     dense: '<path d="M2.5 3.5h11M2.5 6.5h11M2.5 9.5h11M2.5 12.5h11"/>',
+    grid: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
+    rows: '<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>',
     star: '<path d="M8 1.9l1.85 3.8 4.2.6-3.05 2.95.72 4.15L8 11.45 4.28 13.4 5 9.25 1.95 6.3l4.2-.6z"/>',
     copy: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/>',
     open: '<path d="M9 2.5h4.5V7M13.5 2.5l-6 6M12 9.5v3a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/>',
+    info: '<circle cx="8" cy="8" r="5.5"/><path d="M8 7.25v3.5M8 5.2v.1"/>',
     more: '<circle cx="3.5" cy="8" r=".75"/><circle cx="8" cy="8" r=".75"/><circle cx="12.5" cy="8" r=".75"/>',
     x: '<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>',
     chev: '<path d="M6 3.5 10.5 8 6 12.5"/>',
     all: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
+    folder: '<path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/>',
     system: '<circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/>',
     light: '<circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/>',
     dark: '<path d="M13.5 9.6A5.5 5.5 0 0 1 6.4 2.5a5.5 5.5 0 1 0 7.1 7.1z"/>'
@@ -315,8 +414,37 @@ dialog::backdrop { background: var(--scrim); }
     s.innerHTML = ICONS[name] || ''; return s;
   }
   each('[data-icon]', function (x) { x.parentNode.replaceChild(icon(x.getAttribute('data-icon')), x); });
-  var html = document.documentElement, app = $('app'), list = $('list'), q = $('q'), tree = $('tree'), bar = $('bar'), empty = $('empty'), keys = $('keys');
+  var html = document.documentElement, app = $('app'), list = $('list'), q = $('q'), tree = $('tree'), bar = $('bar'), empty = $('empty'), keys = $('keys'), insp = $('inspector');
   var isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || ''), MOD = isMac ? '⌘' : 'Ctrl ';
+
+  // ---- The kind of page, read from the title (then the description) so a card can carry a
+  // meaningful symbol. It is a guess from words, and the page says so; nothing is fetched.
+  var KINDS = [
+    ['design', 'Design', /\b(ui|ux|mockups?|prototypes?|dashboards?|screens?|designs?|canvas|boards?|wireframes?|patterns?|brand|logo|theme|layout)\b/],
+    ['code', 'Code', /\b(api|apis|schema|routes?|stack|tests?|bench|code|setup|technology|tech|migration|cutover|release|deploy|build|sdk|cli)\b/],
+    ['report', 'Report', /\b(analytics|revenue|ledger|reports?|reviews?|trackers?|metrics|ga4|audits?|figures|funnel|results|numbers|stats|status)\b/],
+    ['slides', 'Slides', /\b(slides?|deck|presentation|pitch)\b/],
+    ['doc', 'Document', /\b(guides?|plans?|blueprints?|research|briefs?|notes?|playbooks?|checklists?|strategy|study|dossier|manual|scope|kit|path|queue|lists?|spec|docs?|faq|how)\b/]
+  ];
+  var KIND_ICON = {
+    design: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>',
+    code: '<path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/>',
+    report: '<path d="M4 20h16M7 17v-6M12 17V7M17 17v-3"/>',
+    slides: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M8 10h8M8 13h5"/>',
+    doc: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+    page: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'
+  };
+  function kindOf(p) {
+    var t = p.ft, d = p.fd;
+    for (var i = 0; i < KINDS.length; i++) if (KINDS[i][2].test(t)) return KINDS[i][0];
+    for (var j = 0; j < KINDS.length; j++) if (KINDS[j][2].test(d)) return KINDS[j][0];
+    return 'page';
+  }
+  function kindLabel(k) { for (var i = 0; i < KINDS.length; i++) if (KINDS[i][0] === k) return KINDS[i][1]; return 'Page'; }
+  function kindIcon(k) {
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = KIND_ICON[k] || KIND_ICON.page; return s;
+  }
 
   // ---- Text folding for search: lower case, accents dropped, one character in and one out,
   // so match positions line up with the original text for highlighting.
@@ -380,7 +508,7 @@ dialog::backdrop { background: var(--scrim); }
   PAGES.forEach(function (p) { // the search index is computed once, at load
     p.path = trail(p.node).slice(2).map(function (x) { return x.name; }).join(' / ');
     p.where = p.proj.name + (p.path ? ' / ' + p.path : '');
-    p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.fw = fold(p.where);
+    p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.fw = fold(p.where); p.kind = kindOf(p);
   });
 
   // ---- Viewer state (all optional; bad or missing values fall back to defaults)
@@ -390,6 +518,9 @@ dialog::backdrop { background: var(--scrim); }
   var sort = getRaw(K.sort); if (['recent', 'updated', 'az'].indexOf(sort) < 0) sort = 'recent';
   var theme = getRaw(K.theme); if (['system', 'light', 'dark'].indexOf(theme) < 0) theme = 'system';
   var dense = getRaw(K.density) === 'compact', stale = false;
+  // the view: what the viewer chose; before that, a gallery on a wide screen and a list elsewhere
+  var view = getRaw(K.view);
+  if (['gallery', 'list'].indexOf(view) < 0) view = window.matchMedia && matchMedia('(min-width: 1024px)').matches ? 'gallery' : 'list';
   function fromHash() { var k = (location.hash || '').replace('#', ''); try { k = decodeURIComponent(k); } catch (e) { /* keep raw */ } return byKey[k] || null; }
   var current = fromHash() || byKey[getRaw(K.folder)] || root; // a bare #folder link wins, then the last folder opened
   var collator = window.Intl && Intl.Collator ? new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' }) : { compare: function (a, b) { return a < b ? -1 : a > b ? 1 : 0; } };
@@ -409,8 +540,9 @@ dialog::backdrop { background: var(--scrim); }
   }
 
   // ---- Search: every word must match somewhere. Ranking: title prefix > title word start >
-  // inside the title > loose (fuzzy) title > description > project or folder; ties by recency.
-  var WORD = /[a-z0-9À-￿]/;
+  // inside the title > a whole word in the description or folder > inside them > loose
+  // (fuzzy) title letters, so a real word beats scattered letters; ties by recency.
+  var WORD = /[a-z0-9\u00C0-\uFFFF]/; // escaped, so the page is safe however it is served
   function wordAt(s, w) { var i = s.indexOf(w); while (i > 0 && WORD.test(s[i - 1])) i = s.indexOf(w, i + 1); return i; }
   function fuzzy(s, w) { // the letters of w in order and close together: their positions, or null
     if (w.length < 3) return null;
@@ -430,11 +562,11 @@ dialog::backdrop { background: var(--scrim); }
       if (p.ft.indexOf(w) === 0) { hit.score += 100; hit.t.push([0, w.length]); }
       else if ((i = wordAt(p.ft, w)) >= 0) { hit.score += 80; hit.t.push([i, i + w.length]); }
       else if ((i = p.ft.indexOf(w)) >= 0) { hit.score += 60; hit.t.push([i, i + w.length]); }
-      else if ((f = fuzzy(p.ft, w))) { hit.score += 50 - Math.min(10, f[f.length - 1] - f[0] + 1 - w.length); f.forEach(function (x) { hit.t.push([x, x + 1]); }); }
-      else if ((i = wordAt(p.fd, w)) >= 0) { hit.score += 35; hit.d.push([i, i + w.length]); }
-      else if ((i = p.fd.indexOf(w)) >= 0) { hit.score += 25; hit.d.push([i, i + w.length]); }
-      else if ((i = wordAt(p.fw, w)) >= 0) { hit.score += 30; hit.w.push([i, i + w.length]); }
-      else if ((i = p.fw.indexOf(w)) >= 0) { hit.score += 20; hit.w.push([i, i + w.length]); }
+      else if ((i = wordAt(p.fd, w)) >= 0) { hit.score += 45; hit.d.push([i, i + w.length]); }
+      else if ((i = wordAt(p.fw, w)) >= 0) { hit.score += 40; hit.w.push([i, i + w.length]); }
+      else if ((i = p.fd.indexOf(w)) >= 0) { hit.score += 30; hit.d.push([i, i + w.length]); }
+      else if ((i = p.fw.indexOf(w)) >= 0) { hit.score += 25; hit.w.push([i, i + w.length]); }
+      else if ((f = fuzzy(p.ft, w))) { hit.score += 20 - Math.min(10, f[f.length - 1] - f[0] + 1 - w.length); f.forEach(function (x) { hit.t.push([x, x + 1]); }); }
       else return null;
     }
     if (words.length > 1) hit.score += p.ft.indexOf(whole) === 0 ? 200 : p.ft.indexOf(whole) > 0 ? 100 : 0;
@@ -456,7 +588,7 @@ dialog::backdrop { background: var(--scrim); }
     if (at < text.length) node.appendChild(document.createTextNode(text.slice(at)));
   }
 
-  // ---- What to show: a list of sections { key, label, color, items, path }
+  // ---- What to show: a list of sections { key, label, color, items, path }, the same in both views
   function relPath(p) { // the page's folder, relative to the open filter
     if (current === root) return p.where;
     return trail(p.node).slice(trail(current).length).map(function (x) { return x.name; }).join(' / ');
@@ -470,11 +602,11 @@ dialog::backdrop { background: var(--scrim); }
       if (res.length) secs.push({ key: 'res', label: 'Best matches', items: res, path: 'rel' });
       return secs;
     }
-    if (current === root) { // pinned first, then the 8 most recently opened
+    if (current === root) { // continue working: pinned pages, then the 8 opened last (this browser only)
       var pinned = pins.map(function (id) { return byId[id]; }).filter(Boolean);
       if (pinned.length) secs.push({ key: 'pin', label: 'Pinned', items: pinned, path: 'rel' });
       var recent = recentIds(8).map(function (id) { return byId[id]; });
-      if (recent.length) secs.push({ key: 'rec', label: 'Recently opened', items: recent, path: 'rel' });
+      if (recent.length) secs.push({ key: 'rec', label: 'Continue working', items: recent, path: 'rel', about: 'Pages you opened last, remembered in this browser' });
     }
     if (sort === 'updated') { // newest first, under Today / This week / This month / Earlier
       var groups = {};
@@ -492,68 +624,93 @@ dialog::backdrop { background: var(--scrim); }
     return secs;
   }
 
-  // ---- Rows are built once per page (plus once for its Pinned / Recent copy), then reused and reordered.
-  var rowCache = {}, rowsById = {}, secCache = {}, shown = [], active = null, lastQuery = null, openRow = null;
+  // ---- Rows and cards are built once per page (plus once for a Pinned / Continue copy), then reused.
+  // Both carry the same fields (_p, _t, _d, _path, _star), so filling, selection and actions are shared.
+  var itemCache = {}, itemsById = {}, secCache = {}, shown = [], active = null, lastQuery = null, openRow = null;
   function actBtn(name, label, act) { var b = el('button'); b.type = 'button'; b.tabIndex = -1; b.title = label; b.setAttribute('aria-label', label); b.setAttribute('data-act', act); b.appendChild(icon(name)); return b; }
   function link(cls, p) { var a = el('a', cls); a.href = A + p.id; a.target = '_blank'; a.rel = 'noopener'; a.setAttribute('data-id', p.id); return a; }
-  function getRow(p, kind) {
-    var ck = kind + ':' + p.i; if (rowCache[ck]) return rowCache[ck];
-    var r = el('div', 'row c-' + p.proj.color); r.id = 'r-' + kind + '-' + p.i; r.setAttribute('role', 'option'); r.setAttribute('aria-selected', 'false');
-    var dot = el('span', 'dot'); dot.setAttribute('aria-hidden', 'true');
+  function actions(p) {
+    var acts = el('span', 'acts'), go = link('', p);
+    go.tabIndex = -1; go.title = 'Open in new tab'; go.setAttribute('aria-label', 'Open in new tab'); go.appendChild(icon('open'));
+    acts.appendChild(actBtn('star', 'Pin', 'pin')); acts.appendChild(actBtn('info', 'Details', 'info')); acts.appendChild(actBtn('copy', 'Copy link', 'copy')); acts.appendChild(go);
+    return acts;
+  }
+  function textOf(p) { // title and description, shared by rows and cards
     var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + p.date : '');
     var t = el('span', 'title', p.title), d = el('span', 'desc'), path = el('span', 'path'), dt = el('span', 'dtext');
     d.appendChild(path); d.appendChild(dt); a.appendChild(t); a.appendChild(d);
+    return { a: a, t: t, path: path, dt: dt };
+  }
+  function finish(r, p, kind, parts) {
+    r.id = 'r-' + kind + '-' + p.i; r.setAttribute('role', 'option'); r.setAttribute('aria-selected', 'false');
+    r._p = p; r._t = parts.t; r._d = parts.dt; r._path = parts.path; r._star = r.querySelector('[data-act="pin"]'); r._sig = null;
+    (itemsById[p.id] = itemsById[p.id] || []).push(r); markPin(r);
+    return r;
+  }
+  function getRow(p, kind) {
+    var ck = 'r:' + kind + ':' + p.i; if (itemCache[ck]) return itemCache[ck];
+    var r = el('div', 'row c-' + p.proj.color), parts = textOf(p);
+    var dot = el('span', 'dot'); dot.setAttribute('aria-hidden', 'true');
     var when = el('span', 'when', rel(p)); if (p.date) when.title = 'Updated ' + p.date;
-    var acts = el('span', 'acts'), star = actBtn('star', 'Pin', 'pin'), go = link('', p);
-    go.tabIndex = -1; go.title = 'Open in new tab'; go.setAttribute('aria-label', 'Open in new tab'); go.appendChild(icon('open'));
-    acts.appendChild(star); acts.appendChild(actBtn('copy', 'Copy link', 'copy')); acts.appendChild(go);
     var more = actBtn('more', 'Actions', 'more'); more.className = 'more'; more.setAttribute('aria-expanded', 'false');
-    r.appendChild(dot); r.appendChild(a); r.appendChild(when); r.appendChild(acts); r.appendChild(more);
-    r._p = p; r._t = t; r._d = dt; r._path = path; r._star = star; r._sig = null;
-    (rowsById[p.id] = rowsById[p.id] || []).push(r); markPin(r);
-    return (rowCache[ck] = r);
+    r.appendChild(dot); r.appendChild(parts.a); r.appendChild(when); r.appendChild(actions(p)); r.appendChild(more);
+    return (itemCache[ck] = finish(r, p, kind, parts));
+  }
+  function getCard(p, kind) {
+    var ck = 'c:' + kind + ':' + p.i; if (itemCache[ck]) return itemCache[ck];
+    var r = el('div', 'card c-' + p.proj.color), parts = textOf(p);
+    var cover = el('div', 'cover'); cover.setAttribute('aria-hidden', 'true'); cover.appendChild(kindIcon(p.kind)); cover.appendChild(el('span', 'kind', kindLabel(p.kind)));
+    var foot = el('div', 'foot'), where = el('span', 'where'), when = el('span', 'when', rel(p));
+    where.appendChild(el('span', 'dot')); where.appendChild(document.createTextNode(' ')); where.appendChild(el('span', 'wtext'));
+    if (p.date) when.title = 'Updated ' + p.date;
+    foot.appendChild(where); foot.appendChild(when);
+    r.appendChild(cover); r.appendChild(parts.a); r.appendChild(foot); r.appendChild(actions(p));
+    r._where = where.lastChild;
+    return (itemCache[ck] = finish(r, p, kind, parts));
   }
   function markPin(r) {
     var on = pins.indexOf(r._p.id) >= 0, label = on ? 'Unpin' : 'Pin';
     r.classList.toggle('pinned', on); r._star.setAttribute('aria-pressed', String(on)); r._star.title = label; r._star.setAttribute('aria-label', label);
   }
-  function fillRow(r, p, mode, query) { // folder label and highlights; skipped when nothing changed
+  function fillItem(r, p, mode, query) { // folder label and highlights; skipped when nothing changed
     var path = mode === 'folder' ? p.path : mode === 'rel' ? relPath(p) : '', sig = query + '\u0000' + path;
     if (r._sig === sig) return; r._sig = sig;
     var h = query ? p.hit : null;
     paint(r._t, p.title, h && h.t); paint(r._d, p.desc, h && h.d); paint(r._path, path, h && path === p.where ? h.w : null);
+    if (r._where) paint(r._where, path || p.proj.name, h && path === p.where ? h.w : null);
   }
   function getSec(s) {
     var c = secCache[s.key];
     if (!c) {
-      c = secCache[s.key] = { el: el('section', 'sec'), h: el('div', 'sec-h') };
+      c = secCache[s.key] = { el: el('section', 'sec'), h: el('div', 'sec-h'), body: el('div') };
       c.h.id = 'h-' + slug(s.key) + '-' + Object.keys(secCache).length; c.h.setAttribute('aria-hidden', 'true');
-      c.el.setAttribute('role', 'group'); c.el.setAttribute('aria-labelledby', c.h.id); c.el.appendChild(c.h);
+      c.el.setAttribute('role', 'group'); c.el.setAttribute('aria-labelledby', c.h.id); c.el.appendChild(c.h); c.el.appendChild(c.body);
     }
     c.h.textContent = '';
     if (s.color) c.h.appendChild(el('span', 'dot c-' + s.color));
     c.h.appendChild(el('span', '', s.label)); c.h.appendChild(el('small', '', '· ' + s.items.length));
     c.h.title = s.about || '';
-    while (c.el.lastChild !== c.h) c.el.removeChild(c.el.lastChild);
-    return c.el;
+    c.body.className = view === 'gallery' ? 'grid' : 'rows'; c.body.textContent = '';
+    return c;
   }
 
   function render() {
-    var query = q.value.trim(), secs = sections(query), frag = document.createDocumentFragment();
-    shown = [];
+    var query = q.value.trim(), secs = sections(query), frag = document.createDocumentFragment(), build = view === 'gallery' ? getCard : getRow;
+    var keep = active && active._p; shown = [];
     secs.forEach(function (s) {
       var sec = getSec(s), kind = s.key === 'pin' || s.key === 'rec' ? s.key : 'm';
-      s.items.forEach(function (p) { var r = getRow(p, kind); fillRow(r, p, s.path, query); sec.appendChild(r); shown.push(r); });
-      frag.appendChild(sec);
+      s.items.forEach(function (p) { var r = build(p, kind); fillItem(r, p, s.path, query); sec.body.appendChild(r); shown.push(r); });
+      frag.appendChild(sec.el);
     });
     list.textContent = ''; list.appendChild(frag);
-    // a new query starts on the best match; otherwise the active row stays if it is still listed
+    // a new query starts on the best match; otherwise the selected page stays if it is still listed
     if (query !== lastQuery) setActive(query ? shown[0] : null, false);
-    else setActive(shown.indexOf(active) >= 0 ? active : null, false);
+    else setActive(shown.indexOf(active) >= 0 ? active : firstFor(keep), false);
     if (query !== lastQuery) $('live').textContent = query ? shown.length + (shown.length === 1 ? ' page matches' : ' pages match') : '';
     lastQuery = query;
     renderBar(query); renderEmpty(query);
   }
+  function firstFor(p) { if (!p) return null; for (var i = 0; i < shown.length; i++) if (shown[i]._p === p) return shown[i]; return null; }
   function setActive(r, scroll) {
     if (active && active !== r) { active.classList.remove('active'); active.setAttribute('aria-selected', 'false'); }
     active = r || null;
@@ -563,25 +720,29 @@ dialog::backdrop { background: var(--scrim); }
       if (scroll) active.scrollIntoView({ block: 'nearest' });
     } else { q.removeAttribute('aria-activedescendant'); list.removeAttribute('aria-activedescendant'); }
   }
-  function move(d) { // next / previous row, wrapping around
+  function move(d) { // next / previous page in reading order (the gallery is walked as one list), wrapping around
     if (!shown.length) return;
     var i = shown.indexOf(active);
     i = i < 0 ? (d > 0 ? 0 : shown.length - 1) : (i + d + shown.length) % shown.length;
     setActive(shown[i], true);
   }
-  function jump(d) { // first row of the next / previous group
+  function jump(d) { // first page of the next / previous group
     var secs = Array.prototype.slice.call(list.children); if (!secs.length) return;
-    var i = active ? secs.indexOf(active.parentNode) : -1, n = i < 0 ? (d > 0 ? 0 : secs.length - 1) : Math.min(secs.length - 1, Math.max(0, i + d));
-    setActive(secs[n].querySelector('.row'), true);
+    var i = active ? secs.indexOf(active.parentNode.parentNode) : -1, n = i < 0 ? (d > 0 ? 0 : secs.length - 1) : Math.min(secs.length - 1, Math.max(0, i + d));
+    setActive(secs[n].querySelector('[role="option"]'), true);
   }
 
-  // ---- Filter chip, page count, subfolders (phones and tablets), empty state
+  // ---- Context bar: the open folder with its note and subfolders, the page count, the empty state
   function renderBar(query) {
-    bar.textContent = '';
+    bar.textContent = ''; app.classList.toggle('at-root', current === root);
     if (current !== root) {
-      var chip = el('span', 'chip'), x = el('button'); x.type = 'button'; x.setAttribute('aria-label', 'Remove filter, show all projects'); x.title = 'Show all projects'; x.appendChild(icon('x'));
+      var ctx = el('div', 'ctx'), up = trail(current).slice(1, -1).map(function (n) { return n.name; }).join(' / ');
+      ctx.appendChild(el('span', 'dot c-' + current.proj.color));
+      if (up) ctx.appendChild(el('span', 'up', up + ' /'));
+      ctx.appendChild(el('h2', '', current.name));
+      var x = el('button'); x.type = 'button'; x.setAttribute('aria-label', 'Leave this folder, show all projects'); x.title = 'Show all projects'; x.appendChild(icon('x'));
       x.addEventListener('click', function () { go(root); });
-      chip.appendChild(el('span', '', 'in ' + trail(current).slice(1).map(function (n) { return n.name; }).join(' / '))); chip.appendChild(x); bar.appendChild(chip);
+      ctx.appendChild(x); bar.appendChild(ctx);
     }
     var total = under(current).length;
     bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
@@ -590,7 +751,7 @@ dialog::backdrop { background: var(--scrim); }
       var subs = el('div', 'subs');
       current.kids.forEach(function (k) {
         var b = el('button'); b.type = 'button';
-        if (k.up === root) b.appendChild(el('span', 'dot c-' + k.color));
+        if (k.up === root) b.appendChild(el('span', 'dot c-' + k.color)); else b.appendChild(icon('folder'));
         b.appendChild(el('span', '', k.name)); b.appendChild(el('small', '', String(under(k).length)));
         b.addEventListener('click', function () { go(k); }); subs.appendChild(b);
       });
@@ -671,7 +832,7 @@ dialog::backdrop { background: var(--scrim); }
   }
   function copy(p) { // clipboard first; if refused, show the link selected so it can be copied by hand
     var url = A + p.id;
-    function byHand() { toast('Press ' + MOD + 'C to copy', url); }
+    function byHand() { if (insp.open) { $('insp-url').focus(); $('insp-url').select(); toast('Press ' + MOD + 'C to copy'); } else toast('Press ' + MOD + 'C to copy', url); }
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { toast('Copied'); }, byHand);
       else byHand();
@@ -680,12 +841,18 @@ dialog::backdrop { background: var(--scrim); }
   function togglePin(p) {
     var k = pins.indexOf(p.id);
     if (k >= 0) pins.splice(k, 1); else pins.unshift(p.id);
-    setJSON(K.pins, pins); (rowsById[p.id] || []).forEach(markPin);
-    toast(k >= 0 ? 'Unpinned' : 'Pinned'); renderSide(); render();
+    setJSON(K.pins, pins); (itemsById[p.id] || []).forEach(markPin);
+    toast(k >= 0 ? 'Unpinned' : 'Pinned'); renderSide(); render(); if (insp.open && inspected === p) fillInspector(p);
   }
   function setSort(s) {
     sort = s; setRaw(K.sort, s);
     each('[data-sort]', function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-sort') === s)); });
+  }
+  function setView(v, save) {
+    view = v; if (save) setRaw(K.view, v);
+    app.classList.toggle('gallery', v === 'gallery'); app.classList.toggle('list', v !== 'gallery');
+    each('[data-view]', function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === v)); });
+    if (openRow) { openRow.classList.remove('show'); openRow = null; }
   }
   function setDense(on) { dense = on; app.classList.toggle('compact', on); $('density').setAttribute('aria-pressed', String(on)); }
   function applyTheme() { // no attribute = follow the system; the button cycles system, light, dark
@@ -705,22 +872,53 @@ dialog::backdrop { background: var(--scrim); }
     each('[data-menu]', function (b) { b.setAttribute('aria-expanded', 'false'); });
     if (focusBack && lastMenu) lastMenu.focus();
   }
-  function openKeys() { if (keys.open) return; if (keys.showModal) keys.showModal(); else keys.setAttribute('open', ''); }
-  function closeKeys() { if (keys.close) keys.close(); else keys.removeAttribute('open'); }
-  [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages'], ['Enter', 'Open the page (new tab)'],
-    [MOD + '↑  ' + MOD + '↓', 'Previous / next group'], ['Home  End', 'First / last page (in the list)'],
-    ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['Esc', 'Clear the search, then leave it'], ['?', 'This list']]
+  function showDialog(d) { if (d.open) return; if (d.showModal) d.showModal(); else d.setAttribute('open', ''); }
+  function hideDialog(d) { if (d.close) d.close(); else d.removeAttribute('open'); }
+
+  // ---- Details: what the hub knows about one page, and nothing it does not. Modal, so Esc
+  // closes it and focus goes back to where it came from (the list keeps its selected page).
+  var inspected = null, inspFrom = null;
+  function fillInspector(p) {
+    var badge = $('insp-kind'); badge.textContent = ''; badge.className = 'badge c-' + p.proj.color; badge.appendChild(kindIcon(p.kind)); badge.appendChild(document.createTextNode(kindLabel(p.kind)));
+    $('insp-title').textContent = p.title;
+    $('insp-desc').textContent = p.desc; $('insp-desc').hidden = !p.desc;
+    var where = $('insp-where'); where.textContent = '';
+    trail(p.node).slice(1).forEach(function (n, i) {
+      if (i) where.appendChild(document.createTextNode(' / '));
+      var b = el('button', 'lnk', n.name); b.type = 'button'; b.addEventListener('click', function () { hideDialog(insp); go(n); }); where.appendChild(b);
+    });
+    $('insp-date').textContent = p.date ? p.date + (age(p) === Infinity ? '' : ' · ' + rel(p)) : 'not recorded';
+    $('insp-kind-text').textContent = kindLabel(p.kind) + ' (from the title)';
+    $('insp-url').value = A + p.id; $('insp-open').href = A + p.id; $('insp-open').setAttribute('data-id', p.id);
+    var on = pins.indexOf(p.id) >= 0, pb = $('insp-pin'); pb.setAttribute('aria-pressed', String(on)); pb.lastChild.textContent = on ? 'Pinned' : 'Pin';
+  }
+  function inspect(p, from) {
+    inspected = p; inspFrom = from || document.activeElement; fillInspector(p); showDialog(insp);
+    $('insp-close').focus();
+  }
+  insp.addEventListener('close', function () { var f = inspFrom; inspFrom = null; if (f && f.focus && document.contains(f)) f.focus(); else list.focus({ preventScroll: true }); });
+  insp.addEventListener('click', function (e) { if (e.target === insp) hideDialog(insp); }); // a click on the backdrop
+  $('insp-close').addEventListener('click', function () { hideDialog(insp); });
+  $('insp-copy').addEventListener('click', function () { if (inspected) copy(inspected); });
+  $('insp-pin').addEventListener('click', function () { if (inspected) togglePin(inspected); });
+  $('insp-go').addEventListener('click', function () { if (inspected) { var n = inspected.node; hideDialog(insp); go(n); } });
+  $('insp-url').addEventListener('focus', function () { this.select(); });
+
+  [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
+    ['i', 'Details of the page'], [MOD + '↑  ' + MOD + '↓', 'Previous / next group'], ['Home  End', 'First / last page (in the list)'],
+    ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['v', 'Gallery or list'], ['Esc', 'Close, then clear the search, then leave it'], ['?', 'This list']]
     .forEach(function (k) { $('keys-list').appendChild(el('dt')).appendChild(el('kbd', '', k[0])); $('keys-list').appendChild(el('dd', '', k[1])); });
 
   // ---- Events
   q.addEventListener('input', render);
   list.addEventListener('focus', function () { if (!active && shown.length) setActive(shown[0], true); });
   list.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('[data-act]'), r = b && b.closest('.row');
+    var b = e.target.closest && e.target.closest('[data-act]'), r = b && b.closest('[role="option"]');
     if (!r) return;
     var act = b.getAttribute('data-act');
     if (act === 'pin') togglePin(r._p);
     else if (act === 'copy') copy(r._p);
+    else if (act === 'info') { setActive(r, false); inspect(r._p, b); }
     else if (act === 'more') { // phones: the ⋯ button shows the row's actions
       if (openRow && openRow !== r) { openRow.classList.remove('show'); openRow.querySelector('.more').setAttribute('aria-expanded', 'false'); }
       var on = !r.classList.contains('show'); r.classList.toggle('show', on); b.setAttribute('aria-expanded', String(on)); openRow = on ? r : null;
@@ -732,25 +930,27 @@ dialog::backdrop { background: var(--scrim); }
     var m = e.target.closest && e.target.closest('[data-menu]'); if (m) { if (app.classList.contains('nav-open')) closeNav(true); else openNav(m); }
   });
   document.addEventListener('auxclick', function (e) { var a = e.button === 1 && e.target.closest && e.target.closest('a[data-id]'); if (a) record(a.getAttribute('data-id')); });
-  // Recent is refreshed when the viewer comes back from the opened page, not under their cursor
+  // Continue working is refreshed when the viewer comes back from the opened page, not under their cursor
   function refresh() { if (stale && !document.hidden) { stale = false; renderSide(); render(); } }
   window.addEventListener('focus', refresh); document.addEventListener('visibilitychange', refresh);
   $('scrim').addEventListener('click', function () { closeNav(true); });
   each('[data-sort]', function (b) { b.addEventListener('click', function () { setSort(b.getAttribute('data-sort')); render(); }); });
+  each('[data-view]', function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view'), true); render(); }); });
   $('density').addEventListener('click', function () { setDense(!dense); setRaw(K.density, dense ? 'compact' : 'comfortable'); });
   $('theme').addEventListener('click', function () { theme = theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system'; setRaw(K.theme, theme); applyTheme(); });
-  $('help').addEventListener('click', openKeys);
-  $('keys-close').addEventListener('click', closeKeys);
-  keys.addEventListener('click', function (e) { if (e.target === keys) closeKeys(); }); // a click on the backdrop
+  $('help').addEventListener('click', function () { showDialog(keys); });
+  $('keys-close').addEventListener('click', function () { hideDialog(keys); });
+  keys.addEventListener('click', function (e) { if (e.target === keys) hideDialog(keys); }); // a click on the backdrop
   window.addEventListener('hashchange', function () { var n = fromHash(); if (n && n !== current) go(n); });
 
   document.addEventListener('keydown', function (e) {
-    if (keys.open || e.isComposing) return; // the shortcut sheet handles its own Esc
+    if (keys.open || insp.open || e.isComposing) return; // an open dialog handles its own Esc
     var t = e.target, inSearch = t === q, inList = t === list, mod = e.metaKey || e.ctrlKey;
     var typing = !inSearch && t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
     if (mod && !e.altKey && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); q.focus(); q.select(); return; }
     if (e.key === 'Escape') {
       if (app.classList.contains('nav-open')) { e.preventDefault(); closeNav(true); }
+      else if (openRow) { openRow.classList.remove('show'); openRow.querySelector('.more').setAttribute('aria-expanded', 'false'); openRow = null; }
       else if (inSearch) { e.preventDefault(); if (q.value) { q.value = ''; render(); } else q.blur(); }
       else if (inList) q.focus();
       return;
@@ -765,14 +965,16 @@ dialog::backdrop { background: var(--scrim); }
     if (mod || e.altKey) return;
     // single-key shortcuts; never while typing in a field
     if (e.key === '/') { e.preventDefault(); q.focus(); q.select(); }
-    else if (e.key === '?') { e.preventDefault(); openKeys(); }
+    else if (e.key === '?') { e.preventDefault(); showDialog(keys); }
     else if (e.key === 'j' || e.key === 'k') {
       e.preventDefault();
-      if (!inList) { var had = active; list.focus({ preventScroll: true }); if (!had) return; } // focusing the list picks the first row
+      if (!inList) { var had = active; list.focus({ preventScroll: true }); if (!had) return; } // focusing the list picks the first page
       move(e.key === 'j' ? 1 : -1);
     }
     else if (e.key === 'c' && active) copy(active._p);
     else if (e.key === 'p' && active) togglePin(active._p);
+    else if (e.key === 'i' && active) { e.preventDefault(); inspect(active._p, inList ? list : null); }
+    else if (e.key === 'v') { setView(view === 'gallery' ? 'list' : 'gallery', true); render(); }
   });
 
   // sticky group headers sit just under the sticky search header, whatever its height
@@ -781,6 +983,6 @@ dialog::backdrop { background: var(--scrim); }
   if (window.ResizeObserver) new ResizeObserver(measure).observe(head); else window.addEventListener('resize', measure);
   measure();
 
-  applyTheme(); setSort(sort); setDense(dense); renderSide(); render();
+  applyTheme(); setSort(sort); setView(view, false); setDense(dense); renderSide(); render();
 })();
 </script>

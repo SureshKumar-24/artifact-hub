@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.5.0
+
+- Gallery or list: a switch next to the sort buttons (or press `v`). The gallery shows
+  each page as a card with a drawn cover: a symbol for the kind of page, read from the
+  words in its title (Document, Report, Code, Design, Slides, or Page), on a tint of the
+  project colour. Covers are drawn, not screenshots: the hub keeps links, not page
+  content, and the page says so. The gallery is the default on wide screens, the list
+  elsewhere; the choice is remembered in the browser (`project-hub.view.v1`).
+- Details for every page (the ⓘ button, or `i`): title, description, folder as links,
+  the updated date as stored, the full link to copy, and open, pin and "Show folder"
+  buttons. A side panel on desktop, a sheet on phones; `Esc` closes it and focus goes
+  back where it was. It shows only what the hub knows, and says that copying a link does
+  not change who can open the page.
+- "Continue working" at the top of All pages: the pages opened last, after the pinned
+  ones. Same data as before (this browser only), new name.
+- Inside a folder, a heading with the project colour, its note, the page count and
+  subfolder shortcuts, at every width.
+- Search ranking: a whole word found in the description or the folder now beats a loose
+  letter-by-letter match in the title, so "seo" finds the SEO folder's pages before pages
+  whose titles merely contain those letters spread out.
+- On phones and tablets, card actions (pin, details, copy, open) are always visible at
+  touch size; on desktop they appear on hover or when the card is selected.
+- Keyboard: `i` for details, `v` to switch views; the gallery is walked in reading order
+  with the same keys as the list.
+- The template is `data-hub-template="3"`; a 1.4 hub moves to it on the next rebuild
+  with every row, pin, recent page and folder link kept.
+- More template tests: the view switch, the details panel, no embeds or fetches, page
+  text never passed through `innerHTML`, every browser key guarded.
+
 ## 1.4.0
 
 - New hub page design: a calm, quick index with a sticky search box, one list grouped by
