@@ -76,7 +76,10 @@ the hub correct on its own, without relying on any earlier step having happened.
    `first`, `last`, and `deleted` once the page was deleted), so it also holds pages too
    old to appear in the listing. An entry with `type: 'doc'` is a document made with the
    Claude Docs connector; it is a row like any other. Skip entries marked `deleted`, and
-   remove their rows.
+   remove their rows. An entry with `replacedBy` is a page that was published again under
+   the same title from a session without its link: keep one row, pointing at the newer
+   page, and keep the description; the old link still opens, so mention it to the user
+   only if they ask.
 4. For every page in the listing or in that file that is not in `PROJECTS`, add a row.
    For pages already there, update the title and date if they changed. An entry's
    `folder` is the folder it was published from: use it to pick the project.

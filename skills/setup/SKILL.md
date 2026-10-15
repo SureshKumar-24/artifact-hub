@@ -37,6 +37,8 @@ Do this once per user.
    git repository or working folder for that project, when the user tells you or the
    current folder obviously belongs to it; otherwise an empty list).
 7. Tell the user: the link, how many pages are listed, that it is private to them, that
-   only the 50 most recently updated pages could be read (older ones can be added by
-   name), and that new pages will now be added automatically. Offer once to pin it to
-   their sidebar; pin only if they say yes.
+   only the 50 most recently updated pages could be read, and that new pages will now be
+   added automatically. Offer once to pin it to their sidebar; pin only if they say yes.
+8. Ask once whether they still have links to older pages (a chat, a note, a shared
+   message): paste them, and each is read for its title and filed. Mention that opening
+   an old page once also brings it back into Claude's gallery, so a later rebuild sees it.

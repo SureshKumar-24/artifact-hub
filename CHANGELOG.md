@@ -27,6 +27,16 @@
   Subfolder chips scroll sideways too.
 - The intro sentence under the title is gone: the pages start right under the search
   box. The shortcuts are still one `?` away.
+- A second hook, on `Stop`: if a page was published this turn and the hub was not
+  republished, Claude gets one reminder to file it. Once per page, never repeated.
+- Replaced pages: a new page with the title of a known page is marked as replacing it
+  (`replacedBy` in the saved list; nothing is removed), and Claude is told to update the
+  existing row instead of adding one. This is what happens when a page is published again
+  from a session that lost its link.
+- New `find` skill: "where is my pricing page?" answers with the folder and link, and
+  offers to read the page so the next publish updates it instead of making a new one.
+- Setup asks once for links to pages from before the install, and notes that opening an
+  old page brings it back into Claude's gallery.
 - Documents made with the Claude Docs connector are saved and filed like pages (the hook
   now also watches that connector's call that creates a document; edits are ignored).
 - "Copy for Claude Code" in the details panel: one line with the page's link to paste into

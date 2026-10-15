@@ -94,6 +94,38 @@ test('a new Claude Doc is saved and filed like a page; edits to an existing doc 
   assert.strictEqual(h.pages().length, 1);
 });
 
+test('a new page with the title of a known page is marked as replacing it, and Claude is told', () => {
+  const h = home(); h.hub(`${A}HUB000`);
+  h.run({ tool_input: { title: 'Pricing page' }, tool_response: published('AAA111') });
+  const out = h.run({ tool_input: { title: 'Pricing page' }, tool_response: published('BBB222') });
+  assert.match(out, new RegExp(`same title as ${A}AAA111`));
+  const pages = h.pages();
+  assert.strictEqual(pages.length, 2, 'the old entry is kept');
+  assert.strictEqual(pages[0].replacedBy, `${A}BBB222`);
+  assert.strictEqual(pages[1].replacedBy, undefined);
+  assert.strictEqual(h.run({ tool_input: { title: 'Pricing page' }, tool_response: published('BBB222') }).includes('same title'), false, 'a republish of the new page is not a replacement');
+});
+
+const STOP = path.join(__dirname, '..', 'hooks', 'on-stop.js');
+function stop(h, lastMessage) {
+  const r = spawnSync(process.execPath, [STOP], { input: JSON.stringify({ hook_event_name: 'Stop', last_assistant_message: lastMessage }), env: { ...process.env, HOME: h.dir, USERPROFILE: h.dir }, encoding: 'utf8' });
+  assert.strictEqual(r.status, 0);
+  return r.stdout ? JSON.parse(r.stdout).hookSpecificOutput.additionalContext : '';
+}
+
+test('at the end of a turn, a page that was published but not filed gets one reminder', () => {
+  const h = home(); h.hub(`${A}HUB000`);
+  h.run({ tool_input: { title: 'One' }, tool_response: published('AAA111') });
+  assert.match(stop(h, 'Done, the file is written.'), /AAA111.*was not recorded/);
+  assert.strictEqual(stop(h, 'Done, the file is written.'), '', 'only once');
+  h.run({ tool_input: { title: 'Two' }, tool_response: published('BBB222') });
+  assert.strictEqual(stop(h, 'Published, and the hub was updated under Shop.'), '', 'Claude said it filed it');
+  h.run({ tool_input: { title: 'Three' }, tool_response: published('CCC333') });
+  h.run({ tool_input: { url: `${A}HUB000` }, tool_response: published('HUB000') }); // the hub's republish clears it
+  assert.strictEqual(stop(h, 'Done.'), '');
+  assert.strictEqual(stop(home(), 'Done.'), '', 'nothing pending, nothing said');
+});
+
 test('a damaged list is replaced, not crashed on', () => {
   const h = home(); fs.mkdirSync(h.store, { recursive: true }); fs.writeFileSync(path.join(h.store, 'pages.json'), '{broken');
   h.run({ tool_input: {}, tool_response: published('AAA111') });

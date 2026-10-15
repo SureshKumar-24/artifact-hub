@@ -110,7 +110,8 @@ There are two layers, on purpose:
 | Once | `/artifact-hub:setup` | Claude reads your gallery, proposes projects and folders, and publishes your hub when you agree. |
 | Every publish | Nothing | The link is saved and the page is filed on your hub. |
 | You delete a page | Nothing | Its row is taken off the hub. |
-| You cannot find a page | Ask: "where is my pricing page?" | Claude answers with the title, folder and link. |
+| You cannot find a page | Ask: "where is my pricing page?" or `/artifact-hub:find pricing` | Claude answers with the title, folder and link, and offers to open the page so your next publish updates it instead of making a new one. |
+| You publish a page again from a new session | Nothing | The hub keeps one row, pointing at the new page; the old link still opens. |
 | You want to reorganise | Ask: "move the SEO pages into Shop / Marketing" | Claude moves them and remembers the rule. |
 | Any time | `/artifact-hub:hub` | Rebuilds the hub from the gallery and the saved list. Adds what is new, never removes what is there. |
 
@@ -154,9 +155,9 @@ A plugin can run code on your machine, so here is all of it.
 
 | | |
 |---|---|
-| **Runs** | One hook, on the `PostToolUse` event for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document). It starts `hooks/on-artifact.js` (128 lines, plain Node.js, no dependencies) directly, with no shell in between. Nothing runs at session start. |
-| **Reads** | The result of that tool call, the `<title>` of the file just published (or the new document's name), and your hub settings. During setup or a rebuild, Claude reads the list of your own artifacts through its own Artifact tool. |
-| **Writes** | Two files in `~/.claude/artifact-hub/`: `pages.json` (your published links) and `hub.json` (your hub's address and folder rules). And your hub artifact. |
+| **Runs** | Two hooks. `PostToolUse` for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document) starts `hooks/on-artifact.js` (137 lines). `Stop` starts `hooks/on-stop.js` (36 lines), which only speaks when a page published that turn was not filed. Plain Node.js, no dependencies, no shell in between. Nothing runs at session start. |
+| **Reads** | The result of that tool call, the `<title>` of the file just published (or the new document's name), Claude's last message of the turn, and your hub settings. During setup or a rebuild, Claude reads the list of your own artifacts through its own Artifact tool. |
+| **Writes** | Two files in `~/.claude/artifact-hub/`: `pages.json` (your published links) and `hub.json` (your hub's address and folder rules), plus a small `.pending` marker between a publish and its filing. And your hub artifact. |
 | **Sends** | Nothing. No network request, no server, no analytics, no account. |
 
 Check it yourself in a minute: [SECURITY.md](SECURITY.md). The script's behaviour is covered by tests that run on Linux, macOS and Windows for every change.
@@ -249,8 +250,9 @@ Issues and pull requests are welcome. The whole plugin is small:
 
 ```
 .claude-plugin/   plugin and marketplace manifests
-hooks/            hooks.json and on-artifact.js (the only code that runs)
+hooks/            hooks.json, on-artifact.js and on-stop.js (the only code that runs)
 skills/hub/       rebuild, filing, folders; template.html is the hub page
+skills/find/      find a page by a few words and hand its link to the session
 skills/setup/     first-time setup
 test/             node --test test/
 ```

@@ -15,6 +15,7 @@ const path = require('path');
 const DIR = path.join(os.homedir(), '.claude', 'artifact-hub');
 const CONFIG = path.join(DIR, 'hub.json');
 const PAGES = path.join(DIR, 'pages.json');
+const PENDING = path.join(DIR, '.pending'); // a page asked to be filed; cleared by the hub's republish or by on-stop.js
 const LINK = /https:\/\/claude\.ai\/(?:code\/)?artifact\/[A-Za-z0-9_-]+/;
 const DOCS = 'mcp__claude_ai_Claude_Docs__batch';
 
@@ -93,17 +94,24 @@ function main(raw) {
   const found = response.match(LINK);
   if (!found) return;
   const url = found[0];
-  // the hub's own republish is not a page to record, and must not ask for another hub update
-  if (hub && hub.hubUrl && idOf(url) === idOf(hub.hubUrl)) return;
+  // the hub's own republish is not a page to record, and must not ask for another hub update;
+  // it also means the pending page was filed
+  if (hub && hub.hubUrl && idOf(url) === idOf(hub.hubUrl)) { try { fs.unlinkSync(PENDING); } catch { /* none pending */ } return; }
 
   const folder = projectFolder(event.cwd);
   const title = newDoc ? (typeof newDoc.name === 'string' && newDoc.name.trim()) || null
     : input.file_path ? titleOf(String(input.file_path)) : input.title || null;
+  // a new page with the title of a known page is most likely that page published again from a
+  // session that had lost the link; the old entry is marked, never removed, and Claude is told
+  let replaced = null;
   const saved = update((list, now) => {
     const hit = list.find((p) => idOf(p.url) === idOf(url));
-    if (hit) { hit.last = now; delete hit.deleted; if (title) hit.title = title; if (folder) hit.folder = folder; }
-    else list.push({ url, title: title || null, folder: folder || null, first: now, last: now, ...(newDoc ? { type: 'doc' } : {}) });
+    if (hit) { hit.last = now; delete hit.deleted; if (title) hit.title = title; if (folder) hit.folder = folder; return; }
+    const twin = title && list.find((p) => p.title === title && !p.deleted && !p.replacedBy);
+    if (twin) { twin.replacedBy = url; replaced = twin.url; }
+    list.push({ url, title: title || null, folder: folder || null, first: now, last: now, ...(newDoc ? { type: 'doc' } : {}) });
   });
+  try { fs.writeFileSync(PENDING, JSON.stringify({ url, title, at: Date.now() })); } catch { /* read-only home */ }
 
   if (!hubName) {
     // mention setup once a day at most, so someone who does not want a hub is not nagged
@@ -119,6 +127,7 @@ function main(raw) {
     `[artifact-hub] A ${newDoc ? 'document was just created' : 'page was just published'}${saved ? ' and its link saved locally' : ''}. Before ending this turn, record it in ${hubName} ` +
     `by following the artifact-hub:hub skill ("Recording one page"): read the hub, add or update this page's row in the right folder` +
     `${projects ? ` (projects: ${projects})` : ''}, republish the hub to the same URL, and tell the user in one line that the hub was updated. ` +
+    `${replaced ? `It has the same title as ${replaced}, which was most likely this page published again without its link: if so, change that row's id to the new page instead of adding a row, and tell the user the old link still works. ` : ''}` +
     `Skip this only if the user said not to record this page.`,
   );
 }
