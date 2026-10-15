@@ -77,7 +77,7 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 | **Gallery or list** | See your pages as cards, each with a drawn cover for its kind of page (document, report, code, design, slides), or as a dense list. One switch, remembered. Same search, folders and sorting in both. |
 | **Details** | The ⓘ on any page (or `i`) opens a panel with its description, folder, date, the full link to copy, and open, pin and show-folder buttons. Only what the hub knows, nothing invented. |
 | **Keep working on a page** | "Copy for Claude Code" in the details panel gives you one line to paste into a new session, with the link, so Claude updates that page instead of making another. |
-| **Your list, in a file** | "Download this list as Markdown" at the bottom saves every folder, title, description and link, made in your browser. Nothing is sent anywhere. |
+| **Your list, in a file** | "Copy this list as Markdown" at the bottom puts every folder, title, description and link on your clipboard, to paste into a note or a message. Nothing is sent anywhere. |
 | **Search** | One box searches titles, descriptions and folders at once, forgives typos, puts the best match first and highlights what matched. Pick a folder to search inside it. |
 | **Pins and Continue working** | Pin the pages you keep going back to; the ones you opened last wait under "Continue working". Kept in your browser only. At session start, Claude also knows the last pages you published from the repository you are in. |
 | **Status** | Say "mark the pricing page final" or "archive the old logo page", or pick it in the details panel: a small label on the page and a filter chip per status (draft, review, final, archived). Archived pages stay in the hub, out of the way. |

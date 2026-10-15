@@ -294,7 +294,7 @@ mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
   display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px); padding: 8px 14px; border-radius: 8px;
   background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: var(--shadow); }
 .toast:empty { display: none; }
-.toast input { min-width: 0; width: 220px; padding: 4px 6px; border: 0; border-radius: 4px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
+.toast input { min-width: 0; width: 220px; max-width: 60vw; padding: 4px 6px; border: 0; border-radius: 4px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
 dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); color: var(--ink); box-shadow: var(--lift); }
 dialog::backdrop { background: var(--scrim); }
 .sheet { padding: 20px 24px; }
@@ -383,7 +383,7 @@ button.lnk:hover { text-decoration: underline; }
     <p class="sr" id="live" aria-live="polite"></p>
     <div id="list" role="listbox" tabindex="0" aria-label="Pages"></div>
     <div class="empty" id="empty" hidden></div>
-    <p class="note">This page is kept up to date by the artifact-hub plugin. It lists links: each page keeps its own sharing setting in Claude, and stays private to you until you share it. Pins and recently opened pages are remembered in this browser only. <button class="lnk" type="button" id="export" title="A Markdown file of every folder, title, description and link on this page">Download this list as Markdown</button></p>
+    <p class="note">This page is kept up to date by the artifact-hub plugin. It lists links: each page keeps its own sharing setting in Claude, and stays private to you until you share it. Pins and recently opened pages are remembered in this browser only. <button class="lnk" type="button" id="export" title="Every folder, title, description and link on this page, as Markdown, to paste anywhere">Copy this list as Markdown</button></p>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -1094,7 +1094,7 @@ button.lnk:hover { text-decoration: underline; }
   $('insp-go').addEventListener('click', function () { if (inspected) { var n = inspected.node; hideDialog(insp); go(n); } });
   // one line to paste into a new Claude Code session: with the link, Claude updates this page instead of making another
   $('insp-prompt').addEventListener('click', function () { if (inspected) copyText('Update my artifact "' + inspected.title + '" at ' + A + inspected.id + ' (read it first with the Artifact tool, then publish to the same URL).', 'Copied: paste it into Claude Code'); });
-  // the whole list as Markdown, made in the browser and saved by it; nothing is sent anywhere
+  // the whole list as Markdown, made in the browser; nothing is sent anywhere
   $('export').addEventListener('click', function () {
     var lines = ['# ' + document.title, ''];
     root.kids.forEach(function (pn) {
@@ -1106,11 +1106,8 @@ button.lnk:hover { text-decoration: underline; }
       })(pn, 0);
       lines.push('');
     });
-    try {
-      var blob = new Blob([lines.join('\n') + '\n'], { type: 'text/markdown' }), a = el('a'), url = URL.createObjectURL(blob);
-      a.href = url; a.download = slug(document.title) + '.md'; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function () { URL.revokeObjectURL(url); }, 1000); toast('Downloaded ' + PAGES.length + ' links');
-    } catch (e) { toast('Could not save the file in this browser'); }
+    // the viewer does not let a page save files, so the text goes to the clipboard (or a box to copy from)
+    copyText(lines.join('\n') + '\n', 'Copied ' + PAGES.length + ' links as Markdown');
   });
   $('insp-url').addEventListener('focus', function () { this.select(); });
   $('insp-status').addEventListener('change', function () { if (inspected) { setStatus(inspected, this.value); fillInspector(inspected); } });

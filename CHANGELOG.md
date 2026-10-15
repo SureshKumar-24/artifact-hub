@@ -73,7 +73,7 @@
 - "Copy for Claude Code" in the details panel: one line with the page's link to paste into
   a new session, so Claude updates that page instead of publishing a duplicate (the most
   common way pages get lost, from what people report).
-- "Download this list as Markdown" at the bottom of the page: every folder, title,
+- "Copy this list as Markdown" at the bottom of the page: every folder, title,
   description and link, written by the browser into a file; nothing is sent anywhere.
 - Fixed: a project's branch in the folder tree could not be closed while you were inside
   that project (every redraw forced it open). It opens once when you enter the folder,
