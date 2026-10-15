@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-// Runs after every Artifact tool call.
+// Runs after every Artifact tool call, and after a Claude Docs call that creates a document.
 //   publish -> saves the page's link in ~/.claude/artifact-hub/pages.json (a plain local
 //              list written by this script, so a link is kept even if nothing else
 //              happens) and reminds Claude to file the page on the user's Project Hub;
+//   new doc -> the same, for a document made with the Claude Docs connector;
 //   delete  -> marks that page as deleted in the list and reminds Claude to take its row
 //              off the hub.
-// Everything else (read, list, pin, asset uploads, the hub's own republish) is ignored.
-// It makes no network request and starts no other program.
+// Everything else (read, list, pin, asset uploads, edits to an existing doc, the hub's own
+// republish) is ignored. It makes no network request and starts no other program.
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -15,6 +16,7 @@ const DIR = path.join(os.homedir(), '.claude', 'artifact-hub');
 const CONFIG = path.join(DIR, 'hub.json');
 const PAGES = path.join(DIR, 'pages.json');
 const LINK = /https:\/\/claude\.ai\/(?:code\/)?artifact\/[A-Za-z0-9_-]+/;
+const DOCS = 'mcp__claude_ai_Claude_Docs__batch';
 
 const say = (text) =>
   process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: text } }));
@@ -64,9 +66,13 @@ function main(raw) {
   let event = {};
   try { event = JSON.parse(raw || '{}'); } catch { return; }
   // the matcher also lets through tools whose name merely starts with "Artifact"
-  if (event.tool_name && event.tool_name !== 'Artifact') return;
+  const isDoc = event.tool_name === DOCS;
+  if (event.tool_name && event.tool_name !== 'Artifact' && !isDoc) return;
   const input = event.tool_input || {};
-  const action = input.action || 'publish';
+  // a Docs call counts only when it creates a document; edits to an existing one carry an id
+  const newDoc = isDoc && input.container && input.container.create ? input.container.create : null;
+  if (isDoc && !newDoc) return;
+  const action = isDoc ? 'publish' : input.action || 'publish';
   const response = typeof event.tool_response === 'string' ? event.tool_response : JSON.stringify(event.tool_response || '');
   const hub = readJson(CONFIG, null);
   const hubName = hub && hub.hubUrl ? `${hub.hubTitle || 'Project Hub'} (${hub.hubUrl})` : null;
@@ -91,11 +97,12 @@ function main(raw) {
   if (hub && hub.hubUrl && idOf(url) === idOf(hub.hubUrl)) return;
 
   const folder = projectFolder(event.cwd);
-  const title = input.file_path ? titleOf(String(input.file_path)) : input.title || null;
+  const title = newDoc ? (typeof newDoc.name === 'string' && newDoc.name.trim()) || null
+    : input.file_path ? titleOf(String(input.file_path)) : input.title || null;
   const saved = update((list, now) => {
     const hit = list.find((p) => idOf(p.url) === idOf(url));
     if (hit) { hit.last = now; delete hit.deleted; if (title) hit.title = title; if (folder) hit.folder = folder; }
-    else list.push({ url, title: title || null, folder: folder || null, first: now, last: now });
+    else list.push({ url, title: title || null, folder: folder || null, first: now, last: now, ...(newDoc ? { type: 'doc' } : {}) });
   });
 
   if (!hubName) {
@@ -109,7 +116,7 @@ function main(raw) {
 
   const projects = (hub.projects || []).map((p) => p.name).join(', ');
   say(
-    `[artifact-hub] A page was just published${saved ? ' and its link saved locally' : ''}. Before ending this turn, record it in ${hubName} ` +
+    `[artifact-hub] A ${newDoc ? 'document was just created' : 'page was just published'}${saved ? ' and its link saved locally' : ''}. Before ending this turn, record it in ${hubName} ` +
     `by following the artifact-hub:hub skill ("Recording one page"): read the hub, add or update this page's row in the right folder` +
     `${projects ? ` (projects: ${projects})` : ''}, republish the hub to the same URL, and tell the user in one line that the hub was updated. ` +
     `Skip this only if the user said not to record this page.`,

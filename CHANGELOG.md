@@ -27,6 +27,8 @@
   Subfolder chips scroll sideways too.
 - The intro sentence under the title is gone: the pages start right under the search
   box. The shortcuts are still one `?` away.
+- Documents made with the Claude Docs connector are saved and filed like pages (the hook
+  now also watches that connector's call that creates a document; edits are ignored).
 - "Copy for Claude Code" in the details panel: one line with the page's link to paste into
   a new session, so Claude updates that page instead of publishing a duplicate (the most
   common way pages get lost, from what people report).

@@ -2,8 +2,9 @@
 
 ## What this plugin can do
 
-It registers one hook: `PostToolUse`, matcher `Artifact`. The hook starts
-`hooks/on-artifact.js` with Node.js in exec form (no shell). There is no
+It registers one hook: `PostToolUse`, matcher `Artifact|mcp__claude_ai_Claude_Docs__batch`
+(the Artifact tool, and the Claude Docs connector call that creates a document). The hook
+starts `hooks/on-artifact.js` with Node.js in exec form (no shell). There is no
 `SessionStart` hook, no MCP server, no agent and no dependency to install.
 
 The script:
@@ -21,7 +22,7 @@ variables or credentials, or change any Claude Code setting or permission.
 
 ## Check it yourself
 
-The script is 121 lines: [hooks/on-artifact.js](hooks/on-artifact.js). These should
+The script is 128 lines: [hooks/on-artifact.js](hooks/on-artifact.js). These should
 all print nothing:
 
 ```

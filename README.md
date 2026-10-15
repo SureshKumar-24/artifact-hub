@@ -81,7 +81,7 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 | **Search** | One box searches titles, descriptions and folders at once, forgives typos, puts the best match first and highlights what matched. Pick a folder to search inside it. |
 | **Pins and Continue working** | Pin the pages you keep going back to; the ones you opened last wait under "Continue working". Kept in your browser only. |
 | **Quick to use** | Keyboard shortcuts (`/` to search, arrows to move, Enter to open, `i` for details, `v` to switch views, `?` for the rest), copy a link in one click, sort by recent, updated or A–Z, compact rows, light or dark. Works on a phone, with a folder drawer and touch-size buttons. |
-| **Nothing extra to do** | Publish as usual. The page is filed under the project of the repository you are working in. |
+| **Nothing extra to do** | Publish as usual. The page is filed under the project of the repository you are working in. A document made with the Claude Docs connector is filed the same way. |
 | **Deleted pages are cleaned up** | Delete an artifact and its row leaves the hub. |
 | **Find by asking** | "Where is my pricing page?" gets you the link. |
 | **Private** | The hub is a private artifact in your own Claude account. Nothing leaves your machine except through Claude's own publish. The hub lists links: copying one does not change who can open that page. |
@@ -154,8 +154,8 @@ A plugin can run code on your machine, so here is all of it.
 
 | | |
 |---|---|
-| **Runs** | One hook, on the `PostToolUse` event for the `Artifact` tool. It starts `hooks/on-artifact.js` (121 lines, plain Node.js, no dependencies) directly, with no shell in between. Nothing runs at session start. |
-| **Reads** | The result of the Artifact tool call, the `<title>` of the file just published, and your hub settings. During setup or a rebuild, Claude reads the list of your own artifacts through its own Artifact tool. |
+| **Runs** | One hook, on the `PostToolUse` event for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document). It starts `hooks/on-artifact.js` (128 lines, plain Node.js, no dependencies) directly, with no shell in between. Nothing runs at session start. |
+| **Reads** | The result of that tool call, the `<title>` of the file just published (or the new document's name), and your hub settings. During setup or a rebuild, Claude reads the list of your own artifacts through its own Artifact tool. |
 | **Writes** | Two files in `~/.claude/artifact-hub/`: `pages.json` (your published links) and `hub.json` (your hub's address and folder rules). And your hub artifact. |
 | **Sends** | Nothing. No network request, no server, no analytics, no account. |
 

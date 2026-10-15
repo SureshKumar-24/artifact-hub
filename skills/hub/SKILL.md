@@ -74,7 +74,9 @@ the hub correct on its own, without relying on any earlier step having happened.
 3. Read `~/.claude/artifact-hub/pages.json` if it exists. The plugin writes one entry
    there for every page published while it is installed (`url`, `title`, `folder`,
    `first`, `last`, and `deleted` once the page was deleted), so it also holds pages too
-   old to appear in the listing. Skip entries marked `deleted`, and remove their rows.
+   old to appear in the listing. An entry with `type: 'doc'` is a document made with the
+   Claude Docs connector; it is a row like any other. Skip entries marked `deleted`, and
+   remove their rows.
 4. For every page in the listing or in that file that is not in `PROJECTS`, add a row.
    For pages already there, update the title and date if they changed. An entry's
    `folder` is the folder it was published from: use it to pick the project.

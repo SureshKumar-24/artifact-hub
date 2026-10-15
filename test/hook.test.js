@@ -84,6 +84,16 @@ test('reads, lists, asset uploads, failed publishes, other tools and junk are ig
   assert.strictEqual(fs.existsSync(path.join(h.store, 'pages.json')), false);
 });
 
+test('a new Claude Doc is saved and filed like a page; edits to an existing doc are ignored', () => {
+  const h = home(); h.hub(`${A}HUB000`);
+  const docs = 'mcp__claude_ai_Claude_Docs__batch';
+  const out = h.run({ tool_name: docs, tool_input: { container: { kind: 'project', create: { name: 'Quarter plan', doc: {} } }, batch: [] }, tool_response: `Created. Open it at ${A}DOC001 .` });
+  assert.match(out, /document was just created.*Recording one page/);
+  assert.deepStrictEqual(h.pages().map((p) => [p.url, p.title, p.type]), [[`${A}DOC001`, 'Quarter plan', 'doc']]);
+  assert.strictEqual(h.run({ tool_name: docs, tool_input: { container: { kind: 'project', id: 'DOC001' }, batch: [] }, tool_response: `Updated ${A}DOC001` }), '');
+  assert.strictEqual(h.pages().length, 1);
+});
+
 test('a damaged list is replaced, not crashed on', () => {
   const h = home(); fs.mkdirSync(h.store, { recursive: true }); fs.writeFileSync(path.join(h.store, 'pages.json'), '{broken');
   h.run({ tool_input: {}, tool_response: published('AAA111') });
