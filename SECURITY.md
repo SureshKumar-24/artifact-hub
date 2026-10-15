@@ -30,7 +30,7 @@ all print nothing:
 grep -nE "require\\('(http|https|net|dgram|child_process|tls)'\\)|fetch\\(|process\\.env" hooks/*.js
 ```
 
-The two skills are plain instructions in `skills/*/SKILL.md`. They ask Claude to use
+The three skills are plain instructions in `skills/*/SKILL.md`. They ask Claude to use
 its own Artifact tool and to read and write the two files above, nothing else.
 
 ## Install a fixed version
