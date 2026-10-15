@@ -1,6 +1,6 @@
 {
   "name": "artifact-hub",
-  "description": "Project Hub for Claude Code: your own index of every artifact you publish.",
+  "description": "Artifact Hub for Claude Code: every artifact you publish, filed into project folders on one private, searchable index page.",
   "owner": {
     "name": "Suresh Kumar"
   },
