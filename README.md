@@ -80,7 +80,9 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 | **Your list, in a file** | "Download this list as Markdown" at the bottom saves every folder, title, description and link, made in your browser. Nothing is sent anywhere. |
 | **Search** | One box searches titles, descriptions and folders at once, forgives typos, puts the best match first and highlights what matched. Pick a folder to search inside it. |
 | **Pins and Continue working** | Pin the pages you keep going back to; the ones you opened last wait under "Continue working". Kept in your browser only. At session start, Claude also knows the last pages you published from the repository you are in. |
-| **Status** | Say "mark the pricing page final" or "archive the old logo page": a small label on the page and a filter chip per status (draft, review, final, archived). Archived pages stay in the hub, out of the way. |
+| **Status** | Say "mark the pricing page final" or "archive the old logo page", or pick it in the details panel: a small label on the page and a filter chip per status (draft, review, final, archived). Archived pages stay in the hub, out of the way. |
+| **Move pages on the page** | "Move to" in the details panel puts a page in another folder at once, marked "Unsaved". One button copies the list of changes for Claude to write into the hub, so the data has one owner. |
+| **Exact times** | Each row keeps the time it was published; the page shows "3w" and, on hover or in details, the day and time. |
 | **Your colours** | Each project has a colour; the dot next to an open project offers eight swatches. |
 | **Quick to use** | Keyboard shortcuts (`/` to search, arrows to move, Enter to open, `i` for details, `v` to switch views, `?` for the rest), copy a link in one click, sort by recent, updated or A–Z, compact rows, light or dark. Works on a phone, with a folder drawer and touch-size buttons. |
 | **Nothing extra to do** | Publish as usual. The page is filed under the project of the repository you are working in. A document made with the Claude Docs connector is filed the same way. |

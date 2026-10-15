@@ -42,8 +42,10 @@ separated by ` / `: `'Marketing / SEO'` is the folder SEO inside Marketing insid
 so creating a subfolder is just using a new path, and a folder exists only while it has
 pages.
 
-Each row stays `[title, id, description, date]`, with the date written like `'3 Oct'`
-(no year; the page reads it as the most recent such day). A row may carry a fifth item,
+Each row stays `[title, id, description, date]`. Write the date as the exact time when
+you have it: the entry's `last` in `pages.json` (`'2026-10-16T18:42:11.000Z'`), so the
+page can show the day and the time. Otherwise write the day like `'3 Oct'` (no year; the
+page reads it as the most recent such day). A row may carry a fifth item,
 its status: `'draft'`, `'review'`, `'final'` or `'archived'`. Leave it out otherwise.
 The page shows the status as a small label, offers one filter chip per status, and hides
 archived pages unless their chip is pressed. The user sets it in plain words: "mark the
@@ -161,6 +163,17 @@ if it had none; otherwise the new page (a gallery of cards or a list, a details 
 each page, search, pins, "Continue working", keyboard shortcuts, dark mode). Folder links
 (`#folder`), pins, recently opened pages and the folder the viewer last opened carry over,
 because the data and the browser keys are unchanged.
+
+## Changes the user made on the page
+
+The hub page lets the user move a page to another folder or set its status right there.
+Those changes live in their browser until you write them: the page gives them a message
+to paste that starts "Update my Project Hub at … with these changes I made on the page"
+and lists each move and status. When you get it: read the hub, apply every line (move
+the row to the named folder path, creating the path if needed; set or clear the fifth
+item), republish to the same URL, and tell the user in one line how many changes were
+written. They then press "Discard" on the page, or reload it: a saved change matches
+the data and the marker goes away.
 
 ## Changing the rules
 

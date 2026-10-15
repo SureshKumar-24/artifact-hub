@@ -27,6 +27,15 @@
   Subfolder chips scroll sideways too.
 - The intro sentence under the title is gone: the pages start right under the search
   box. The shortcuts are still one `?` away.
+- Move and set status on the page itself: the details panel has "Move to" and "Status".
+  A change shows at once, marked "Unsaved", and a bar at the top counts the changes with
+  "Save changes with Claude" (one message to paste, listing each change) and "Discard".
+  The hub's data is written only by Claude, so nothing silently diverges.
+- Exact date and time: a row's date may be the full time stamp the plugin saved
+  (`2026-10-16T18:42:11Z`). The page keeps the short "3w" label and shows the day and
+  time on hover and in the details panel. Days like `'3 Oct'` still work.
+- The sidebar's Recent list shows 6 and says how many there are, with "all" opening the
+  full list, most recently opened first.
 - Status on a page: `draft`, `review`, `final` or `archived`, an optional fifth item in the
   row, set in plain words ("mark the pricing page final"). A small label on the page, one
   filter chip per status; archived pages stay in the hub but show only through their chip.

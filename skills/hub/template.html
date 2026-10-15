@@ -164,6 +164,11 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .s-review { background: var(--accent-soft); color: var(--c-sky); }
 .s-final { background: var(--accent-soft); color: var(--c-green); }
 .s-archived { background: var(--hover); color: var(--muted); }
+.s-unsaved { background: transparent; color: var(--c-amber); border: 1px dashed var(--c-amber); }
+.save { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--c-amber); border-radius: 10px; background: var(--surface); font-size: 14px; }
+.save > span { flex: 1 1 200px; }
+.side-h .lnk { font: 500 11px/1 var(--mono); letter-spacing: 0; text-transform: none; }
+.insp select { max-width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
 .card .tl { align-items: flex-start; }
 .card .st { margin-top: 2px; }
 .sts { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -366,6 +371,11 @@ button.lnk:hover { text-decoration: underline; }
       </div>
     </header>
 
+    <div class="save" id="save" hidden role="status">
+      <span id="save-n"></span>
+      <button class="btn primary" type="button" id="save-copy" title="Copies a message for Claude Code that writes these changes into the hub">Save changes with Claude</button>
+      <button class="btn" type="button" id="save-drop">Discard</button>
+    </div>
     <div class="bar" id="bar"></div>
     <p class="sr" id="live" aria-live="polite"></p>
     <div id="list" role="listbox" tabindex="0" aria-label="Pages"></div>
@@ -393,7 +403,8 @@ button.lnk:hover { text-decoration: underline; }
       <dt>Folder</dt><dd id="insp-where"></dd>
       <dt>Updated</dt><dd id="insp-date"></dd>
       <dt>Kind</dt><dd id="insp-kind-text"></dd>
-      <dt>Status</dt><dd><span id="insp-status"></span> <span class="hint">· ask Claude: "mark this page final"</span></dd>
+      <dt>Status</dt><dd><select id="insp-status" aria-label="Status"><option value="">None</option><option value="draft">Draft</option><option value="review">Review</option><option value="final">Final</option><option value="archived">Archived</option></select></dd>
+      <dt>Move to</dt><dd><select id="insp-move" aria-label="Move to folder"></select></dd>
       <dt>Link</dt><dd class="url"><input readonly id="insp-url" aria-label="Page link"><button class="ib" type="button" id="insp-copy" aria-label="Copy link" title="Copy link"><span data-icon="copy"></span></button></dd>
     </dl>
     <div class="row-btns">
@@ -402,6 +413,7 @@ button.lnk:hover { text-decoration: underline; }
       <button class="btn" type="button" id="insp-go"><span data-icon="folder"></span>Show folder</button>
       <button class="btn" type="button" id="insp-prompt" title="Copies a line to paste into a new Claude Code session, so Claude updates this page instead of making a new one"><span data-icon="copy"></span>Copy for Claude Code</button>
     </div>
+    <p class="fine" id="insp-unsaved" hidden>This page has changes made here (folder or status) that are not in the hub's data yet. Use "Save changes with Claude" at the top of the page.</p>
     <p class="fine">To keep working on this page in a new Claude Code session, paste the line "Copy for Claude Code" gives you: without the link, Claude makes a new page instead of updating this one. Copying a link does not change who can open the page: Claude keeps each page's own sharing setting. The kind is read from the title, and the cover is drawn, not a picture of the page.</p>
   </div>
 </dialog>
@@ -426,7 +438,7 @@ button.lnk:hover { text-decoration: underline; }
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
   var K = { folder: 'project-hub.folder.v2', pins: 'project-hub.pins.v1', opened: 'project-hub.opened.v1',
     sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1',
-    colors: 'project-hub.colors.v1', side: 'project-hub.side.v1' };
+    colors: 'project-hub.colors.v1', side: 'project-hub.side.v1', edits: 'project-hub.edits.v1' };
   function getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setRaw(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not saved */ } }
   function getJSON(k, d) { try { var v = JSON.parse(getRaw(k)); return v == null ? d : v; } catch (e) { return d; } }
@@ -514,6 +526,11 @@ button.lnk:hover { text-decoration: underline; }
     return d.getTime();
   }
   function age(p) { if (!p.t) return Infinity; var d = new Date(p.t); d.setHours(0, 0, 0, 0); return Math.round((today - d) / DAY); }
+  function exact(p) { // the full date, with the time when the row carries one (an ISO stamp from the saved list)
+    if (!p.t) return p.date || '';
+    var withTime = /T|\d:\d/.test(p.date);
+    try { return new Date(p.t).toLocaleString(undefined, withTime ? { dateStyle: 'medium', timeStyle: 'short' } : { dateStyle: 'medium' }); } catch (e) { return p.date; }
+  }
   function rel(p) { // '3d', '2w', '4mo'; the original date string stays in the tooltip
     var a = age(p);
     if (a === Infinity) return p.date || '—';
@@ -550,6 +567,7 @@ button.lnk:hover { text-decoration: underline; }
         if (!pg) return;
         var st = String(pg[4] || '').toLowerCase();
         var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''), status: STATUSES.indexOf(st) >= 0 ? st : '', node: node, proj: pn };
+        rec.home = node; rec.status0 = rec.status; // what the hub's data says, before any edit made on this page
         node.pages.push(rec); PAGES.push(rec); if (!byId[rec.id]) byId[rec.id] = rec;
       });
     });
@@ -560,11 +578,44 @@ button.lnk:hover { text-decoration: underline; }
     if (!underCache[node.key]) { var out = []; (function walk(n) { out.push.apply(out, n.pages); n.kids.forEach(walk); })(node); underCache[node.key] = out; }
     return underCache[node.key];
   }
-  PAGES.forEach(function (p) { // the search index is computed once, at load
+  function index(p) { // the search index and the folder label of one page
     p.path = trail(p.node).slice(2).map(function (x) { return x.name; }).join(' / ');
     p.where = p.proj.name + (p.path ? ' / ' + p.path : '');
     p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.fw = fold(p.where + (p.status ? ' ' + p.status : '')); p.kind = kindOf(p);
+  }
+  // ---- Edits made on this page (a page moved to another folder, a status set) live in this browser
+  // until Claude writes them into the hub's data. Each page keeps a note of what changed.
+  var edits = getJSON(K.edits, {}); if (!edits || typeof edits !== 'object') edits = {};
+  Object.keys(edits).forEach(function (id) {
+    var p = byId[id], e = edits[id];
+    if (!p || !e) { delete edits[id]; return; }
+    if (e.status !== undefined && (e.status === '' || STATUSES.indexOf(e.status) >= 0)) { p.status = e.status; p.unsaved = true; }
+    if (e.folder && byKey[e.folder] && byKey[e.folder] !== root && byKey[e.folder] !== p.node) { var to = byKey[e.folder]; p.node.pages.splice(p.node.pages.indexOf(p), 1); to.pages.push(p); p.node = to; p.proj = to.proj; p.unsaved = true; }
   });
+  PAGES.forEach(index);
+  function pathOf(node) { return trail(node).slice(1).map(function (x) { return x.name; }).join(' / '); }
+  function noteEdit(p, change) { // remember one change for this page, forget the item cache for it, redraw
+    var e = edits[p.id] || (edits[p.id] = {});
+    Object.keys(change).forEach(function (k) { e[k] = change[k]; });
+    if (e.folder && byKey[e.folder] === p.home) delete e.folder;
+    if (e.status !== undefined && e.status === p.status0) delete e.status;
+    if (!Object.keys(e).length) { delete edits[p.id]; p.unsaved = false; } else p.unsaved = true;
+    setJSON(K.edits, edits);
+    Object.keys(itemCache).forEach(function (k) { if (k.slice(k.lastIndexOf(':') + 1) === String(p.i)) delete itemCache[k]; });
+    itemsById[p.id] = []; underCache = {}; index(p); renderSide(); render();
+  }
+  function movePage(p, node) { if (node === p.node || node === root) return; p.node.pages.splice(p.node.pages.indexOf(p), 1); node.pages.push(p); p.node = node; p.proj = node.proj; noteEdit(p, { folder: node.key }); }
+  function setStatus(p, s) { p.status = s; noteEdit(p, { status: s }); }
+  function discardEdits() { edits = {}; setJSON(K.edits, edits); location.reload(); }
+  function editsText() { // one message for Claude, naming each change
+    var lines = ['Update my Project Hub at ' + location.href.split('#')[0] + ' with these changes I made on the page, then republish it to the same URL:'];
+    Object.keys(edits).forEach(function (id) {
+      var p = byId[id], e = edits[id]; if (!p) return;
+      if (e.folder && byKey[e.folder]) lines.push('- move "' + p.title + '" (' + A + id + ') to the folder ' + pathOf(byKey[e.folder]));
+      if (e.status !== undefined) lines.push('- ' + (e.status ? 'mark "' + p.title + '" (' + A + id + ') as ' + e.status : 'remove the status from "' + p.title + '" (' + A + id + ')'));
+    });
+    return lines.join('\n');
+  }
   var statusFilter = ''; // '' = every page but archived ones; a status name = only those
   function visible(p) { return statusFilter ? p.status === statusFilter : p.status !== 'archived'; }
   function countStatus(pool) { var c = {}; pool.forEach(function (p) { if (p.status) c[p.status] = (c[p.status] || 0) + 1; }); return c; }
@@ -695,9 +746,10 @@ button.lnk:hover { text-decoration: underline; }
     return acts;
   }
   function textOf(p) { // title and description, shared by rows and cards
-    var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + p.date : '') + (p.status ? '\n' + cap(p.status) : '');
+    var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + exact(p) : '') + (p.status ? '\n' + cap(p.status) : '');
     var tl = el('span', 'tl'), t = el('span', 'title', p.title), d = el('span', 'desc'), path = el('span', 'path'), dt = el('span', 'dtext');
     tl.appendChild(t); if (p.status) tl.appendChild(el('span', 'st s-' + p.status, cap(p.status)));
+    if (p.unsaved) { var u = el('span', 'st s-unsaved', 'Unsaved'); u.title = 'Changed on this page, not yet written to the hub'; tl.appendChild(u); }
     d.appendChild(path); d.appendChild(dt); a.appendChild(tl); a.appendChild(d);
     return { a: a, t: t, path: path, dt: dt };
   }
@@ -712,7 +764,7 @@ button.lnk:hover { text-decoration: underline; }
     var ck = 'r:' + kind + ':' + p.i; if (itemCache[ck]) return itemCache[ck];
     var r = el('div', 'row c-' + p.proj.color), parts = textOf(p);
     var dot = el('span', 'dot'); dot.setAttribute('aria-hidden', 'true');
-    var when = el('span', 'when', rel(p)); if (p.date) when.title = 'Updated ' + p.date;
+    var when = el('span', 'when', rel(p)); if (p.date) when.title = 'Updated ' + exact(p);
     var more = actBtn('more', 'Actions', 'more'); more.className = 'more'; more.setAttribute('aria-expanded', 'false');
     r.appendChild(dot); r.appendChild(parts.a); r.appendChild(when); r.appendChild(actions(p)); r.appendChild(more);
     return (itemCache[ck] = finish(r, p, kind, parts));
@@ -723,7 +775,7 @@ button.lnk:hover { text-decoration: underline; }
     var cover = el('div', 'cover'); cover.setAttribute('aria-hidden', 'true'); cover.appendChild(kindIcon(p.kind)); cover.appendChild(el('span', 'kind', kindLabel(p.kind)));
     var foot = el('div', 'foot'), where = el('span', 'where'), when = el('span', 'when', rel(p));
     where.appendChild(el('span', 'dot')); where.appendChild(document.createTextNode(' ')); where.appendChild(el('span', 'wtext'));
-    if (p.date) when.title = 'Updated ' + p.date;
+    if (p.date) when.title = 'Updated ' + exact(p);
     foot.appendChild(where); foot.appendChild(when);
     r.appendChild(cover); r.appendChild(parts.a); r.appendChild(foot); r.appendChild(actions(p));
     r._where = where.lastChild;
@@ -806,6 +858,8 @@ button.lnk:hover { text-decoration: underline; }
   }
   function renderBar(query) {
     bar.textContent = ''; app.classList.toggle('at-root', current === root);
+    var n = Object.keys(edits).length; $('save').hidden = !n;
+    if (n) $('save-n').textContent = n + (n === 1 ? ' change made here, not yet in the hub' : ' changes made here, not yet in the hub');
     if (current !== root) {
       var ctx = el('div', 'ctx'), up = trail(current).slice(1, -1).map(function (n) { return n.name; }).join(' / '), pn = current.proj;
       var db = el('button', 'dotbtn'); db.type = 'button'; db.title = 'Project colour'; db.setAttribute('aria-label', 'Change the colour of ' + pn.name); db.setAttribute('aria-expanded', String(swatchOpen));
@@ -886,9 +940,14 @@ button.lnk:hover { text-decoration: underline; }
     if (node.kids.length && expanded[node.key]) { var sub = el('ul'); node.kids.forEach(function (k) { branch(k, sub); }); li.appendChild(sub); }
     ul.appendChild(li);
   }
-  function pageLinks(box, label, items) {
+  function pageLinks(box, label, items, total) {
     box.textContent = ''; if (!items.length) return;
-    box.appendChild(el('h2', 'side-h', label));
+    var h = el('h2', 'side-h', label + (total > items.length ? ' · ' + items.length + ' of ' + total : ''));
+    if (total > items.length) { // the full list: every page, sorted by when you opened it
+      var all = el('button', 'lnk', 'all'); all.type = 'button'; all.title = 'Every page, most recently opened first';
+      all.addEventListener('click', function () { setSort('recent'); go(root); }); h.appendChild(document.createTextNode(' ')); h.appendChild(all);
+    }
+    box.appendChild(h);
     var ul = el('ul', 'nav');
     items.forEach(function (p) {
       var li = el('li'), a = link('item', p); a.title = p.where;
@@ -900,8 +959,8 @@ button.lnk:hover { text-decoration: underline; }
     tree.textContent = '';
     var li = el('li'), line = el('div', 'node'); line.appendChild(folderItem(root)); li.appendChild(line); tree.appendChild(li);
     root.kids.forEach(function (k) { branch(k, tree); });
-    pageLinks($('side-pins'), 'Pinned', pins.map(function (id) { return byId[id]; }).filter(Boolean));
-    pageLinks($('side-recent'), 'Recent', recentIds(5).map(function (id) { return byId[id]; }));
+    pageLinks($('side-pins'), 'Pinned', pins.map(function (id) { return byId[id]; }).filter(Boolean), 0);
+    pageLinks($('side-recent'), 'Recent', recentIds(6).map(function (id) { return byId[id]; }), recentIds(1000).length);
     var dots = $('rail-dots'); dots.textContent = '';
     [root].concat(root.kids).forEach(function (n) {
       var b = el('button', 'rbtn'); b.type = 'button';
@@ -987,8 +1046,12 @@ button.lnk:hover { text-decoration: underline; }
       if (i) where.appendChild(document.createTextNode(' / '));
       var b = el('button', 'lnk', n.name); b.type = 'button'; b.addEventListener('click', function () { hideDialog(insp); go(n); }); where.appendChild(b);
     });
-    $('insp-date').textContent = p.date ? p.date + (age(p) === Infinity ? '' : ' · ' + rel(p)) : 'not recorded';
-    $('insp-status').textContent = p.status ? cap(p.status) : 'none'; $('insp-status').className = p.status ? 's-' + p.status + ' st' : '';
+    $('insp-date').textContent = p.date ? exact(p) + (age(p) === Infinity ? '' : ' · ' + rel(p)) : 'not recorded';
+    var ss = $('insp-status'); ss.value = p.status || '';
+    var ms = $('insp-move'); ms.textContent = '';
+    var none = el('option', '', 'Keep in ' + pathOf(p.node)); none.value = p.node.key; ms.appendChild(none);
+    (function walk(n) { n.kids.forEach(function (k) { if (k !== p.node) { var o = el('option', '', pathOf(k)); o.value = k.key; ms.appendChild(o); } walk(k); }); })(root);
+    $('insp-unsaved').hidden = !p.unsaved;
     $('insp-kind-text').textContent = kindLabel(p.kind) + ' (from the title)';
     $('insp-url').value = A + p.id; $('insp-open').href = A + p.id; $('insp-open').setAttribute('data-id', p.id);
     var on = pins.indexOf(p.id) >= 0, pb = $('insp-pin'); pb.setAttribute('aria-pressed', String(on)); pb.lastChild.textContent = on ? 'Pinned' : 'Pin';
@@ -1024,6 +1087,10 @@ button.lnk:hover { text-decoration: underline; }
     } catch (e) { toast('Could not save the file in this browser'); }
   });
   $('insp-url').addEventListener('focus', function () { this.select(); });
+  $('insp-status').addEventListener('change', function () { if (inspected) { setStatus(inspected, this.value); fillInspector(inspected); } });
+  $('insp-move').addEventListener('change', function () { if (inspected && byKey[this.value]) { movePage(inspected, byKey[this.value]); fillInspector(inspected); } });
+  $('save-copy').addEventListener('click', function () { copyText(editsText(), 'Copied: paste it into Claude Code'); });
+  $('save-drop').addEventListener('click', function () { var n = Object.keys(edits).length; if (!n) return; this.textContent = 'Discard ' + n + ' change' + (n > 1 ? 's' : '') + '? Click again'; var self = this; if (self._armed) discardEdits(); else { self._armed = true; setTimeout(function () { self._armed = false; self.textContent = 'Discard'; }, 4000); } });
 
   [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
     ['i', 'Details of the page'], [MOD + '↑  ' + MOD + '↓', 'Previous / next group'], ['Home  End', 'First / last page (in the list)'],
