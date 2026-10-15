@@ -1,0 +1,17 @@
+  var PROJECTS = [
+    { id: 'shop', name: 'Shop', about: '', shelves: [
+      ['All pages', [
+        ['Shop Launch Checklist', 'Qx7rT2mVb9KdLp4sNe8Wz1', 'Steps left before the store goes live, by stage', '4 Oct'],
+        ['Shop Pricing Notes', 'Hn3YcV6uJk2PqR8tLm5Xa7', 'How the plans compare and what to test next', '10 Oct']
+      ]]
+    ]},
+    { id: 'garden', name: 'Garden app', about: 'Planner and journal', color: 'indigo', shelves: [
+      ['Planner / Engineering', [
+        ['Planner Stack Decisions', 'Bw4ZsK9mT1vNq6RcXe2Ly8', 'Technology choices', '17 Sep'],
+        ['Seasonal Calendar Audit', 'Fj8LpQ3nWc5Ya2Tk7Rv9Ux', 'What to build for small gardens, and how to scale', '3 Oct']
+      ]],
+      ['Market research', [
+        ['Planner Idea Research', 'Dt6MvR1xHs8Kb3Wq9Pn2Zy', 'Four ideas checked against products worldwide', '6 Oct']
+      ]]
+    ]}
+  ];

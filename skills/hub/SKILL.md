@@ -42,6 +42,20 @@ separated by ` / `: `'Marketing / SEO'` is the folder SEO inside Marketing insid
 so creating a subfolder is just using a new path, and a folder exists only while it has
 pages.
 
+Each row stays `[title, id, description, date]`, with the date written like `'3 Oct'`
+(no year; the page reads it as the most recent such day).
+
+A project may also have an optional `color`, one of `teal`, `indigo`, `amber`, `rose`,
+`green`, `violet`, `sky`, `clay`:
+
+```js
+{ id: 'shop', name: 'Shop', about: '…', color: 'amber', shelves: [ … ] }
+```
+
+Leave it out and the project takes the colour of its place in `PROJECTS` (first teal,
+second indigo, and so on), so colours stay fixed as long as the order does. Set it only
+when the user asks for a colour, or to keep a project's colour when you reorder projects.
+
 The artifact id is the last part of the page's link. Only that array changes; leave the
 styles and the rest of the script alone.
 
@@ -120,10 +134,13 @@ words.
 
 ## Upgrading an older hub
 
-If the hub you read has no `id="tree"` element, it uses the old layout. Take
+If the hub you read has no `data-hub-template="2"` attribute, it uses an older page
+design (a hub with no `id="tree"` element does not have folders yet either). Take
 `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`, put the hub's existing `PROJECTS` array
 into it unchanged, keep the hub's `<title>` and `<h1>`, and republish to the same URL.
-Tell the user the hub now has folders.
+Tell the user in one line what changed: folders, if it had none, or the new page (search,
+pins, recent pages, keyboard shortcuts, dark mode). Folder links (`#folder`) and the
+folder the viewer last opened carry over.
 
 ## Changing the rules
 

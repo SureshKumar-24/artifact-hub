@@ -26,6 +26,8 @@ Do this once per user.
    be crowded; otherwise use one entry named "All pages". Show the proposed folders in
    the table you ask the user to confirm. Each row is
    `['Page title', '<artifact id>', 'What it is, under 12 plain words', '3 Oct']`.
+   Leave out the optional project `color` unless the user asks for one; each project then
+   gets a fixed colour by its place in the list (see the `hub` skill).
 5. Publish it with `Artifact` (no `url`, icon `folder`). The page's `<title>` is
    "Project Hub" unless the user wants another name.
 6. Write `~/.claude/artifact-hub/hub.json` with the published link as `hubUrl`, the title

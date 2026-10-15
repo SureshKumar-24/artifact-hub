@@ -14,7 +14,7 @@ Every page you publish from Claude Code is saved to a list on your machine and f
 
 ![Project Hub: a folder tree of projects and subfolders on the left, the open folder's pages on the right](docs/hub.png)
 
-<sub>The screenshot shows example pages.</sub>
+<sub>The screenshot shows example pages, in the page design before 1.4.0.</sub>
 
 </div>
 
@@ -51,7 +51,7 @@ Then run this once:
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add `@v1.3.0` to the first command |
+| Install a fixed, reviewed version | Add `@v1.4.0` to the first command |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | It is one script, two instruction files and a page template |
 
@@ -70,8 +70,10 @@ Claude's artifact gallery is one flat list of recent pages.
 | | |
 |---|---|
 | **Every link is kept** | The moment a page is published, its link, title and project folder are written to a plain file on your machine. The plugin does this itself, so it does not depend on Claude remembering. |
-| **Folders and subfolders** | One index page, your Project Hub, shows a folder tree: a folder per project, subfolders to any depth, a count on each, breadcrumbs. |
-| **Search** | One box searches every folder at once. |
+| **Folders and subfolders** | One index page, your Project Hub, shows a folder tree: a folder per project, each with its own colour, subfolders to any depth, a count on each. |
+| **Search** | One box searches titles, descriptions and folders at once, forgives typos, puts the best match first and highlights what matched. Pick a folder to search inside it. |
+| **Pins and recent pages** | Pin the pages you keep going back to; the ones you opened last are listed first. Kept in your browser only. |
+| **Quick to use** | Keyboard shortcuts (`/` to search, arrows to move, Enter to open, `?` for the rest), copy a link in one click, sort by recent, updated or A–Z, compact rows, light or dark. Works on a phone, with a folder drawer. |
 | **Nothing extra to do** | Publish as usual. The page is filed under the project of the repository you are working in. |
 | **Deleted pages are cleaned up** | Delete an artifact and its row leaves the hub. |
 | **Find by asking** | "Where is my pricing page?" gets you the link. |

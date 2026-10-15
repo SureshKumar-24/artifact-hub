@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.4.0
+
+- New hub page design: a calm, quick index with a sticky search box, one list grouped by
+  project, and a colour per project (fixed by its order, or set with the optional `color`
+  field).
+- Search matches titles, descriptions, projects and folders, forgives typos, ranks the
+  best match first and highlights what matched. A folder can be used as a filter, shown
+  as a chip you can clear; search runs inside it.
+- Pins and recently opened pages, kept in your browser only. Row actions: pin, copy
+  link, open in a new tab (behind a ⋯ button on phones).
+- Sort by recently opened, by updated date (grouped Today / This week / This month /
+  Earlier, with relative dates like "3d"), or A–Z. Compact or comfortable rows. Light,
+  dark or follow the system.
+- Keyboard: `/` or ⌘K to search, arrows or j/k to move, Enter to open, c to copy, p to
+  pin, ? for the full list.
+- Tablets get a rail of project dots; phones get a folder drawer. No horizontal scrolling
+  at phone width.
+- Nothing changes in the data: rows are still `[title, id, description, date]`, folder
+  links (`#folder`) and the last folder opened carry over, and older hubs move to the new
+  page on the next rebuild with every row kept.
+- Tests for the page template: data markers, the artifact page contract, and that a real
+  `PROJECTS` array still runs.
+
 ## 1.3.0
 
 - Deleted pages: when you delete an artifact, it is marked in the saved list and its row
