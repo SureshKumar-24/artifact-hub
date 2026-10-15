@@ -22,6 +22,9 @@
   whose titles merely contain those letters spread out.
 - On phones and tablets, card actions (pin, details, copy, open) are always visible at
   touch size; on desktop they appear on hover or when the card is selected.
+- Phone header: one row for menu, search and the view switch, and one strip that scrolls
+  sideways for sort, density, theme and shortcuts, so nothing wraps into a stray row.
+  Subfolder chips scroll sideways too. The keyboard hints are hidden on small screens.
 - Keyboard: `i` for details, `v` to switch views; the gallery is walked in reading order
   with the same keys as the list.
 - The template is `data-hub-template="3"`; a 1.4 hub moves to it on the next rebuild

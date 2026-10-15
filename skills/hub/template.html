@@ -99,14 +99,22 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 .caret-sp { flex: none; width: 20px; }
 @media (max-width: 1023px) { .item { min-height: 40px; } }
 
-/* ---- Intro and the sticky header: search, sort, view, density, theme, shortcuts */
+/* ---- Intro and the sticky header. Phones: a search row (menu, search, view) over one strip that
+   scrolls sideways (sort, density, theme, shortcuts), so nothing wraps into a stray row. From 640px
+   the strip dissolves and everything sits on one line: search, sort, view, the rest. */
 .intro { padding: 28px 0 14px; }
 h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .lede { margin: 4px 0 0; color: var(--muted); max-width: 64ch; }
-@media (hover: none) { .lede .keys { display: none; } }
+@media (hover: none), (max-width: 639px) { .lede .keys { display: none; } }
+@media (max-width: 639px) { .intro { padding: 20px 0 10px; } h1 { font-size: 22px; } .lede { font-size: 14px; } }
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
-.search { position: relative; flex: 1 1 240px; min-width: 0; display: flex; align-items: center; }
+.strip { flex: 1 0 100%; display: flex; align-items: center; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+  margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
+.strip::-webkit-scrollbar { display: none; }
+.strip > * { flex: none; }
+@media (min-width: 640px) { .strip { display: contents; } .search { order: 0; } .seg.sorts { order: 1; } .seg.views { order: 2; } .tools { order: 3; } }
+.search { position: relative; flex: 1 1 120px; min-width: 0; display: flex; align-items: center; }
 .search > .i { position: absolute; left: 12px; color: var(--muted); pointer-events: none; }
 .search input { width: 100%; height: 40px; padding: 0 44px 0 36px; font: inherit; color: var(--ink); background: var(--surface);
   border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); -webkit-appearance: none; appearance: none; }
@@ -125,9 +133,8 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .gallery #density { display: none; } /* density is a list setting */
 @media (max-width: 639px) {
   .search input { font-size: 16px; } /* 16px stops iOS zooming in on focus */
-  .tools { width: 100%; }
-  .seg.sorts { flex: 1 1 160px; } .seg.sorts button { flex: 1 1 0; justify-content: center; }
   .seg.views button span { display: none; }
+  .seg button { height: 34px; }
 }
 @media (hover: none) { .search kbd { display: none; } }
 
@@ -144,6 +151,12 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .subs { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 .subs button { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; cursor: pointer; }
 .subs button:hover { border-color: var(--accent); }
+@media (max-width: 639px) { /* subfolder chips scroll sideways under the gutter instead of stacking */
+  .bar { padding-top: 8px; min-height: 0; }
+  .subs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
+  .subs::-webkit-scrollbar { display: none; }
+  .subs button { flex: none; min-height: 34px; }
+}
 
 /* ---- Groups: sticky headers under the search header, whatever its measured height */
 #list { outline: none; }
@@ -308,19 +321,21 @@ dialog::backdrop { background: var(--scrim); }
           aria-expanded="true" aria-autocomplete="list" autocomplete="off" spellcheck="false">
         <kbd>/</kbd>
       </div>
-      <div class="tools">
+      <div class="seg views" role="group" aria-label="View">
+        <button type="button" data-view="gallery" aria-pressed="false" aria-label="Gallery view" title="Gallery"><span data-icon="grid"></span><span>Gallery</span></button>
+        <button type="button" data-view="list" aria-pressed="false" aria-label="List view" title="List"><span data-icon="rows"></span><span>List</span></button>
+      </div>
+      <div class="strip">
         <div class="seg sorts" role="group" aria-label="Sort pages">
           <button type="button" data-sort="recent" title="Recently opened first">Recent</button>
           <button type="button" data-sort="updated" title="Newest first, grouped by date">Updated</button>
           <button type="button" data-sort="az" title="By title">A–Z</button>
         </div>
-        <div class="seg views" role="group" aria-label="View">
-          <button type="button" data-view="gallery" aria-pressed="false" aria-label="Gallery view" title="Gallery"><span data-icon="grid"></span><span>Gallery</span></button>
-          <button type="button" data-view="list" aria-pressed="false" aria-label="List view" title="List"><span data-icon="rows"></span><span>List</span></button>
+        <div class="tools">
+          <button class="ib" type="button" id="density" aria-pressed="false" aria-label="Compact rows" title="Compact rows"><span data-icon="dense"></span></button>
+          <button class="ib" type="button" id="theme" aria-label="Theme"></button>
+          <button class="ib" type="button" id="help" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
         </div>
-        <button class="ib" type="button" id="density" aria-pressed="false" aria-label="Compact rows" title="Compact rows"><span data-icon="dense"></span></button>
-        <button class="ib" type="button" id="theme" aria-label="Theme"></button>
-        <button class="ib" type="button" id="help" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
       </div>
     </header>
 
