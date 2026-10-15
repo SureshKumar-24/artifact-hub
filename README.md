@@ -61,9 +61,12 @@ Then run this once:
 
 Claude's artifact gallery is one flat list of recent pages.
 
-- Older pages drop out of view. If you no longer have the link, the page is hard to get back.
-- Nothing separates one project from another. A client report sits next to a study plan.
-- There are no folders.
+- Older pages drop out of view. If you no longer have the link, the page is hard to get back. One open Claude Code report describes the gallery and the `list` action stopping at a date, with every older page invisible until opened by its link ([anthropics/claude-code#94552](https://github.com/anthropics/claude-code/issues/94552)).
+- Nothing separates one project from another. A client report sits next to a study plan. People ask for exactly this: named groups, filed at publish time ([anthropics/claude-code#102010](https://github.com/anthropics/claude-code/issues/102010)).
+- There are no folders, and titles that made sense on the day stop making sense a month later ([one developer's account](https://dev.to/amsyeung/i-kept-losing-my-claude-artifacts-so-i-made-a-mod-3bph)).
+- Without the link, a new Claude Code session makes a new page instead of updating the old one, so duplicates pile up.
+
+Artifact Hub answers each one: every link is saved on your machine at publish time, pages are filed into project folders, each row has a plain description, and the details panel gives you a line to paste into a new session so Claude updates the right page.
 
 ## What you get
 
@@ -73,6 +76,8 @@ Claude's artifact gallery is one flat list of recent pages.
 | **Folders and subfolders** | One index page, your Project Hub, shows a folder tree: a folder per project, each with its own colour, subfolders to any depth, a count on each. |
 | **Gallery or list** | See your pages as cards, each with a drawn cover for its kind of page (document, report, code, design, slides), or as a dense list. One switch, remembered. Same search, folders and sorting in both. |
 | **Details** | The ⓘ on any page (or `i`) opens a panel with its description, folder, date, the full link to copy, and open, pin and show-folder buttons. Only what the hub knows, nothing invented. |
+| **Keep working on a page** | "Copy for Claude Code" in the details panel gives you one line to paste into a new session, with the link, so Claude updates that page instead of making another. |
+| **Your list, in a file** | "Download this list as Markdown" at the bottom saves every folder, title, description and link, made in your browser. Nothing is sent anywhere. |
 | **Search** | One box searches titles, descriptions and folders at once, forgives typos, puts the best match first and highlights what matched. Pick a folder to search inside it. |
 | **Pins and Continue working** | Pin the pages you keep going back to; the ones you opened last wait under "Continue working". Kept in your browser only. |
 | **Quick to use** | Keyboard shortcuts (`/` to search, arrows to move, Enter to open, `i` for details, `v` to switch views, `?` for the rest), copy a link in one click, sort by recent, updated or A–Z, compact rows, light or dark. Works on a phone, with a folder drawer and touch-size buttons. |

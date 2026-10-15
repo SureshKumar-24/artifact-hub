@@ -280,12 +280,12 @@ dialog::backdrop { background: var(--scrim); }
 .insp .d { margin: 0; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
 .insp dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin: 0; font-size: 13px; }
 .insp dt { color: var(--muted); white-space: nowrap; } .insp dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.insp dd button.lnk { padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; text-align: left; font-size: inherit; }
-.insp dd button.lnk:hover { text-decoration: underline; }
+button.lnk { padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; text-align: left; font-size: inherit; }
+button.lnk:hover { text-decoration: underline; }
 .insp .url { display: flex; gap: 6px; }
 .insp .url input { flex: 1 1 auto; min-width: 0; height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
 .insp .row-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.insp .row-btns .primary { grid-column: 1 / -1; }
+.insp .row-btns .primary, .insp .row-btns > :last-child { grid-column: 1 / -1; }
 .insp .fine { margin: 0; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 </style>
@@ -340,7 +340,7 @@ dialog::backdrop { background: var(--scrim); }
     <p class="sr" id="live" aria-live="polite"></p>
     <div id="list" role="listbox" tabindex="0" aria-label="Pages"></div>
     <div class="empty" id="empty" hidden></div>
-    <p class="note">This page is kept up to date by the artifact-hub plugin. It lists links: each page keeps its own sharing setting in Claude, and stays private to you until you share it. Pins and recently opened pages are remembered in this browser only.</p>
+    <p class="note">This page is kept up to date by the artifact-hub plugin. It lists links: each page keeps its own sharing setting in Claude, and stays private to you until you share it. Pins and recently opened pages are remembered in this browser only. <button class="lnk" type="button" id="export" title="A Markdown file of every folder, title, description and link on this page">Download this list as Markdown</button></p>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -369,8 +369,9 @@ dialog::backdrop { background: var(--scrim); }
       <a class="btn primary" id="insp-open" target="_blank" rel="noopener"><span data-icon="open"></span>Open page</a>
       <button class="btn" type="button" id="insp-pin" aria-pressed="false"><span data-icon="star"></span><span>Pin</span></button>
       <button class="btn" type="button" id="insp-go"><span data-icon="folder"></span>Show folder</button>
+      <button class="btn" type="button" id="insp-prompt" title="Copies a line to paste into a new Claude Code session, so Claude updates this page instead of making a new one"><span data-icon="copy"></span>Copy for Claude Code</button>
     </div>
-    <p class="fine">Copying a link does not change who can open the page: Claude keeps each page's own sharing setting. The kind is read from the title, and the cover is drawn, not a picture of the page.</p>
+    <p class="fine">To keep working on this page in a new Claude Code session, paste the line "Copy for Claude Code" gives you: without the link, Claude makes a new page instead of updating this one. Copying a link does not change who can open the page: Claude keeps each page's own sharing setting. The kind is read from the title, and the cover is drawn, not a picture of the page.</p>
   </div>
 </dialog>
 
@@ -842,14 +843,14 @@ dialog::backdrop { background: var(--scrim); }
     if (text) { var i = el('input'); i.readOnly = true; i.value = text; i.setAttribute('aria-label', 'Link to copy'); t.appendChild(i); i.focus(); i.select(); }
     toastTimer = setTimeout(function () { t.textContent = ''; }, text ? 8000 : 1500);
   }
-  function copy(p) { // clipboard first; if refused, show the link selected so it can be copied by hand
-    var url = A + p.id;
-    function byHand() { if (insp.open) { $('insp-url').focus(); $('insp-url').select(); toast('Press ' + MOD + 'C to copy'); } else toast('Press ' + MOD + 'C to copy', url); }
+  function copyText(text, done) { // clipboard first; if refused, show the text selected so it can be copied by hand
+    function byHand() { toast('Press ' + MOD + 'C to copy', text); }
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { toast('Copied'); }, byHand);
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(done || 'Copied'); }, byHand);
       else byHand();
     } catch (e) { byHand(); }
   }
+  function copy(p) { copyText(A + p.id); }
   function togglePin(p) {
     var k = pins.indexOf(p.id);
     if (k >= 0) pins.splice(k, 1); else pins.unshift(p.id);
@@ -914,6 +915,26 @@ dialog::backdrop { background: var(--scrim); }
   $('insp-copy').addEventListener('click', function () { if (inspected) copy(inspected); });
   $('insp-pin').addEventListener('click', function () { if (inspected) togglePin(inspected); });
   $('insp-go').addEventListener('click', function () { if (inspected) { var n = inspected.node; hideDialog(insp); go(n); } });
+  // one line to paste into a new Claude Code session: with the link, Claude updates this page instead of making another
+  $('insp-prompt').addEventListener('click', function () { if (inspected) copyText('Update my artifact "' + inspected.title + '" at ' + A + inspected.id + ' (read it first with the Artifact tool, then publish to the same URL).', 'Copied: paste it into Claude Code'); });
+  // the whole list as Markdown, made in the browser and saved by it; nothing is sent anywhere
+  $('export').addEventListener('click', function () {
+    var lines = ['# ' + document.title, ''];
+    root.kids.forEach(function (pn) {
+      lines.push('## ' + pn.name + (pn.about ? ' — ' + pn.about : ''), '');
+      (function walk(n, depth) {
+        if (n !== pn && n.pages.length) { if (lines[lines.length - 1] !== '') lines.push(''); lines.push('#'.repeat(Math.min(6, depth + 2)) + ' ' + trail(n).slice(2).map(function (x) { return x.name; }).join(' / '), ''); }
+        n.pages.forEach(function (p) { lines.push('- [' + p.title.replace(/[\[\]]/g, '') + '](' + A + p.id + ')' + (p.desc ? ' — ' + p.desc : '') + (p.date ? ' (' + p.date + ')' : '')); });
+        n.kids.forEach(function (k) { walk(k, depth + 1); });
+      })(pn, 0);
+      lines.push('');
+    });
+    try {
+      var blob = new Blob([lines.join('\n') + '\n'], { type: 'text/markdown' }), a = el('a'), url = URL.createObjectURL(blob);
+      a.href = url; a.download = slug(document.title) + '.md'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000); toast('Downloaded ' + PAGES.length + ' links');
+    } catch (e) { toast('Could not save the file in this browser'); }
+  });
   $('insp-url').addEventListener('focus', function () { this.select(); });
 
   [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
