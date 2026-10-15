@@ -42,8 +42,32 @@ separated by ` / `: `'Marketing / SEO'` is the folder SEO inside Marketing insid
 so creating a subfolder is just using a new path, and a folder exists only while it has
 pages.
 
-Each row stays `[title, id, description, date]`, with the date written like `'3 Oct'`
-(no year; the page reads it as the most recent such day).
+Each row stays `[title, id, description, date]`. Write the date as the exact time when
+you have it: the entry's `last` in `pages.json` (`'2026-10-16T18:42:11.000Z'`), so the
+page can show the day and the time. Otherwise write the day like `'3 Oct'` (no year; the
+page reads it as the most recent such day). A row may carry a fifth item: a status word,
+or an object when more is known:
+
+```js
+['Q4 Pitch', '<id>', 'Ten slides for the board', '2026-10-14T09:30:00.000Z', { kind: 'slides', status: 'review' }]
+['Competitor Teardown', '<id>', 'From the growth team', '12 Oct', { by: 'Priya', kind: 'doc' }]
+```
+
+- `status`: `'draft'`, `'review'`, `'final'` or `'archived'`. The page shows it as a
+  label, offers one filter chip per status, and hides archived pages unless their chip is
+  pressed. The user sets it in plain words: "mark the pricing page final", "archive the
+  old logo page" (archive, never delete: the row stays).
+- `kind`: what Claude itself knows the page to be: `'slides'`, `'design'`,
+  `'designsystem'`, `'dashboard'` or `'doc'` (a page made from one of Claude's artifact
+  types, or a Claude Docs document). A `pages.json` entry with `type: 'doc'` is `'doc'`;
+  one with `typeId` was made from a type: `Artifact` `action: "list"`, `scope: "types"`
+  names each type and its `type_url`, and the id at the end of that URL is the `typeId`.
+  Set `kind` only when known this way; without it the page reads the kind from the title
+  and says so.
+- `by`: the owner's name, for a page shared with the user (see "Pages shared with the
+  user"). Leave it out for the user's own pages.
+
+Leave the fifth item out when none of these apply.
 
 A project may also have an optional `color`, one of `teal`, `indigo`, `amber`, `rose`,
 `green`, `violet`, `sky`, `clay`:
@@ -55,9 +79,17 @@ A project may also have an optional `color`, one of `teal`, `indigo`, `amber`, `
 Leave it out and the project takes the colour of its place in `PROJECTS` (first teal,
 second indigo, and so on), so colours stay fixed as long as the order does. Set it only
 when the user asks for a colour, or to keep a project's colour when you reorder projects.
+On the page itself, the colour dot next to an open project's name offers the eight
+swatches; a choice made there is kept in that browser only, and the page says to ask you
+to make it permanent: when the user does, set `color` here.
 
 The artifact id is the last part of the page's link. Only that array changes; leave the
 styles and the rest of the script alone.
+
+The page draws a cover for each row from the words in its title (Document, Report, Code,
+Design, Slides, or plain Page) and says so on the page; it never fetches or shows the
+page's content. A clear title and a plain description are what make a page easy to
+recognise, so write both with care.
 
 ## Rebuild (the main job)
 
@@ -65,17 +97,25 @@ Run this whenever asked, and whenever you are unsure the hub is current. It must
 the hub correct on its own, without relying on any earlier step having happened.
 
 1. `Artifact` `action: "read"` with `hubUrl`. Build on the file it returns.
-2. `Artifact` `action: "list"`, `scope: "mine"`, `limit: 50`.
+2. `Artifact` `action: "list"`, `scope: "mine"`, `limit: 200` (the most it returns; it
+   says how many more exist). Then `scope: "shared"`, `limit: 200`, for pages other
+   people shared with the user.
 3. Read `~/.claude/artifact-hub/pages.json` if it exists. The plugin writes one entry
    there for every page published while it is installed (`url`, `title`, `folder`,
    `first`, `last`, and `deleted` once the page was deleted), so it also holds pages too
-   old to appear in the listing. Skip entries marked `deleted`, and remove their rows.
+   old to appear in the listing. An entry with `type: 'doc'` is a document made with the
+   Claude Docs connector; it is a row like any other. Skip entries marked `deleted`, and
+   remove their rows. An entry with `replacedBy` is a page that was published again under
+   the same title from a session without its link: keep one row, pointing at the newer
+   page, and keep the description; the old link still opens, so mention it to the user
+   only if they ask.
 4. For every page in the listing or in that file that is not in `PROJECTS`, add a row.
    For pages already there, update the title and date if they changed. An entry's
    `folder` is the folder it was published from: use it to pick the project.
-5. **Never remove a row because it is missing from the listing.** The listing shows only
-   the 50 most recently updated pages, so an absent row is old, not deleted. Remove a
-   row only when the user says that page is gone or `pages.json` marks it `deleted`.
+5. **Never remove a row because it is missing from the listing.** The listing shows the
+   most recently updated pages, up to 200, and the gallery itself has been seen to drop
+   older pages that still exist, so an absent row is old, not deleted. Remove a row only
+   when the user says that page is gone or `pages.json` marks it `deleted`.
 6. Never add the hub itself as a row.
 7. Republish with `url` set to `hubUrl`. Never publish the hub without `url`: that
    creates a second hub.
@@ -134,13 +174,54 @@ words.
 
 ## Upgrading an older hub
 
-If the hub you read has no `data-hub-template="2"` attribute, it uses an older page
-design (a hub with no `id="tree"` element does not have folders yet either). Take
-`${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`, put the hub's existing `PROJECTS` array
-into it unchanged, keep the hub's `<title>` and `<h1>`, and republish to the same URL.
-Tell the user in one line what changed: folders, if it had none, or the new page (search,
-pins, recent pages, keyboard shortcuts, dark mode). Folder links (`#folder`) and the
-folder the viewer last opened carry over.
+If the hub you read has no `data-hub-template="3"` attribute, it uses an older page
+design (`data-hub-template="2"` is the 1.4 list page; a hub with no `id="tree"` element
+does not have folders yet either). Take `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`,
+put the hub's existing `PROJECTS` array into it unchanged, keep the hub's `<title>` and
+`<h1>`, and republish to the same URL. Tell the user in one line what changed: folders,
+if it had none; otherwise the new page (a gallery of cards or a list, a details panel for
+each page, search, pins, "Continue working", keyboard shortcuts, dark mode). Folder links
+(`#folder`), pins, recently opened pages and the folder the viewer last opened carry over,
+because the data and the browser keys are unchanged.
+
+## Project notes
+
+A project may carry `note: '…'`, separate from `about`: a short line of what matters now
+("client wants v2 by November", "on hold until the audit"), under 200 characters, plain
+words. The page shows it under the project's heading. The user sets it in plain words
+("note on Shop: launch moved to 3 Nov") or on the page, whose "Save changes with Claude"
+message may contain a line like `- set the note of project Shop to: launch moved to
+3 Nov`. Put it in the `note` field, or remove the field when told to clear it.
+
+## Checking links
+
+Only when the user asks ("check my links", "are any pages gone?"). For each row,
+`Artifact` `action: "read"` with the page's link. A page that comes back not found or
+without access is marked in the row's fifth item with `gone: true` (keep every other
+field: `{ status: 'final', gone: true }`), never removed; a page that opens again on a
+later check loses the mark. Then republish the hub and report how many were checked
+and how many are gone, with their titles. This is slow, one read per page: say so, and
+ask before running it on more than 40 pages (offer one project at a time).
+
+## Pages shared with the user
+
+A team's pages can sit under the same roof. Pages from `scope: "shared"` go in a project
+named "Shared with me" (id `shared`), one subfolder per owner when there are several
+owners, each row with `by` set to the owner's name as the listing gives it. They are
+listed, never changed: the user cannot republish them, and the hub must never suggest
+they can. Ask once, the first time shared pages appear, whether the user wants them on
+the hub; remember the answer in `hub.json` as `"shared": true` or `false`.
+
+## Changes the user made on the page
+
+The hub page lets the user move a page to another folder or set its status right there.
+Those changes live in their browser until you write them: the page gives them a message
+to paste that starts "Update my Project Hub at … with these changes I made on the page"
+and lists each move and status. When you get it: read the hub, apply every line (move
+the row to the named folder path, creating the path if needed; set or clear the fifth
+item), republish to the same URL, and tell the user in one line how many changes were
+written. They then press "Discard" on the page, or reload it: a saved change matches
+the data and the marker goes away.
 
 ## Changing the rules
 

@@ -5,12 +5,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Project Hub. Layout: a folder sidebar (a rail of project dots on tablets, a drawer on phones)
-   and one ranked, grouped list of pages under a sticky search header. Every colour is a token
-   below: light first, then dark for "follow system", then dark again for the manual dark theme. */
+   and one ranked, grouped set of pages under a sticky search header, shown as a gallery of
+   cards or as a dense list. Every colour is a token below: light first, then dark for
+   "follow system", then dark again for the manual dark theme. */
 :root {
   --bg: #F7F6F2; --surface: #FFFFFF; --raised: #FFFFFF; --ink: #1D1C1A; --muted: #6A6760; --line: #E4E1DA;
   --accent: #0E7468; --accent-soft: #E2F0EC; --focus: #0E7468; --hover: #EFEDE7; --mark: #C6E3DA; --on-accent: #FFFFFF;
   --scrim: rgb(29 28 26 / 0.32); --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.06);
+  --lift: 0 2px 6px rgb(0 0 0 / 0.06), 0 12px 32px rgb(0 0 0 / 0.08);
   --c-teal: #0E7468; --c-indigo: #4F4FC9; --c-amber: #9A5B00; --c-rose: #B3364F;
   --c-green: #2F7A2A; --c-violet: #8239B0; --c-sky: #0B6FA4; --c-clay: #A0472A;
   --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -21,7 +23,7 @@
   :root:not([data-theme="light"]) {
     --bg: #131312; --surface: #1A1A18; --raised: #22221F; --ink: #ECEAE4; --muted: #A19E96; --line: #2D2C29;
     --accent: #5CC4B3; --accent-soft: #17302B; --focus: #5CC4B3; --hover: #20201E; --mark: #245047; --on-accent: #0D1A17;
-    --scrim: rgb(0 0 0 / 0.55); --shadow: none;
+    --scrim: rgb(0 0 0 / 0.55); --shadow: none; --lift: 0 12px 32px rgb(0 0 0 / 0.5);
     --c-teal: #5CC4B3; --c-indigo: #9DA2F5; --c-amber: #E5B04F; --c-rose: #F08CA0;
     --c-green: #7DCB72; --c-violet: #C99BF0; --c-sky: #6FC0EE; --c-clay: #EE9C78; color-scheme: dark;
   }
@@ -29,7 +31,7 @@
 :root[data-theme="dark"] {
   --bg: #131312; --surface: #1A1A18; --raised: #22221F; --ink: #ECEAE4; --muted: #A19E96; --line: #2D2C29;
   --accent: #5CC4B3; --accent-soft: #17302B; --focus: #5CC4B3; --hover: #20201E; --mark: #245047; --on-accent: #0D1A17;
-  --scrim: rgb(0 0 0 / 0.55); --shadow: none;
+  --scrim: rgb(0 0 0 / 0.55); --shadow: none; --lift: 0 12px 32px rgb(0 0 0 / 0.5);
   --c-teal: #5CC4B3; --c-indigo: #9DA2F5; --c-amber: #E5B04F; --c-rose: #F08CA0;
   --c-green: #7DCB72; --c-violet: #C99BF0; --c-sky: #6FC0EE; --c-clay: #EE9C78; color-scheme: dark;
 }
@@ -47,7 +49,7 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 
 /* ---- Frame: phone first (one column, drawer), a rail from 640px, the full sidebar from 1024px */
 .app { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 100vh; }
-.main { min-width: 0; width: 100%; max-width: 944px; padding: 0 max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); }
+.main { min-width: 0; width: 100%; max-width: 1120px; padding: 0 max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); }
 .rail { display: none; }
 .side { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; width: min(85vw, 320px); overflow-y: auto; overscroll-behavior: contain;
   background: var(--surface); border-right: 1px solid var(--line); box-shadow: var(--shadow);
@@ -68,8 +70,15 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
   .rail, .scrim { display: none; }
   .side { position: sticky; z-index: auto; align-self: start; height: 100vh; width: auto; transform: none; visibility: visible; transition: none; box-shadow: none; }
   .main { padding-left: 32px; padding-right: max(32px, env(safe-area-inset-right, 0px)); }
-  .subs { display: none !important; } /* the sidebar tree already shows them */
+  .app.at-root .subs { display: none; } /* at the top level the sidebar tree already lists the projects */
+  /* folded: the sidebar gives way to the rail of project dots, like on a tablet */
+  .app.folded { grid-template-columns: calc(56px + env(safe-area-inset-left, 0px)) minmax(0, 1fr); }
+  .app.folded .rail { display: flex; }
+  .app.folded .side { display: none; }
+  .app.folded.at-root .subs { display: flex; }
+  .fold { display: inline-grid; }
 }
+.fold { display: none; position: absolute; top: 8px; right: 8px; } /* .side is positioned at every width, so this sits in its corner */
 
 /* ---- Rail (tablet): project dots, names in tooltips */
 .rail-dots { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -89,7 +98,7 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 .item:hover { background: var(--hover); }
 .item[aria-current="true"] { background: var(--accent-soft); font-weight: 500; }
 .item .l { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.item small, .subs small, .sec-h small { font: 400 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.item small, .subs small, .sec-h small, .ctx small { font: 400 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .caret { flex: none; width: 20px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
 .caret:hover { color: var(--ink); }
 .caret svg { width: 12px; height: 12px; transition: transform var(--ease); }
@@ -97,13 +106,20 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 .caret-sp { flex: none; width: 20px; }
 @media (max-width: 1023px) { .item { min-height: 40px; } }
 
-/* ---- Intro and the sticky header: search, sort, density, theme, shortcuts */
-.intro { padding: 32px 0 16px; }
+/* ---- Intro and the sticky header. Phones: a search row (menu, search, view) over one strip that
+   scrolls sideways (sort, density, theme, shortcuts), so nothing wraps into a stray row. From 640px
+   the strip dissolves and everything sits on one line: search, sort, view, the rest. */
+.intro { padding: 24px 0 8px; }
 h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
-.lede { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+@media (max-width: 639px) { .intro { padding: 16px 0 6px; } h1 { font-size: 22px; } }
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
-.search { position: relative; flex: 1 1 240px; min-width: 0; display: flex; align-items: center; }
+.strip { flex: 1 0 100%; display: flex; align-items: center; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+  margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
+.strip::-webkit-scrollbar { display: none; }
+.strip > * { flex: none; }
+@media (min-width: 640px) { .strip { display: contents; } .search { order: 0; } .seg.sorts { order: 1; } .seg.views { order: 2; } .tools { order: 3; } }
+.search { position: relative; flex: 1 1 120px; min-width: 0; display: flex; align-items: center; }
 .search > .i { position: absolute; left: 12px; color: var(--muted); pointer-events: none; }
 .search input { width: 100%; height: 40px; padding: 0 44px 0 36px; font: inherit; color: var(--ink); background: var(--surface);
   border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); -webkit-appearance: none; appearance: none; }
@@ -111,60 +127,139 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .search kbd { position: absolute; right: 10px; pointer-events: none; }
 .search input:not(:placeholder-shown) + kbd { display: none; }
-.tools { display: flex; align-items: center; gap: 4px; }
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
-.seg button { height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; white-space: nowrap; }
+.seg button { height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
 .seg button:hover { color: var(--ink); }
 .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); font-weight: 500; }
+.seg.views button { padding: 0 8px; }
 .ib { width: 36px; height: 36px; flex: none; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; display: inline-grid; place-items: center; font-weight: 600; }
 .ib:hover, .ib[aria-pressed="true"] { background: var(--hover); color: var(--ink); }
+.gallery #density { display: none; } /* density is a list setting */
 @media (max-width: 639px) {
   .search input { font-size: 16px; } /* 16px stops iOS zooming in on focus */
-  .tools { width: 100%; }
-  .seg { flex: 1 1 auto; } .seg button { flex: 1 1 0; }
+  .seg.views button span { display: none; }
+  .seg button { height: 34px; }
 }
 @media (hover: none) { .search kbd { display: none; } }
 
-/* ---- Filter chip, page count, subfolders */
+/* ---- Context: the open folder (name, note, count, subfolders) or the page count at the top level */
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 0 0; min-height: 40px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; height: 28px; padding: 0 4px 0 12px; border-radius: 999px; background: var(--accent-soft); font-size: 13px; }
-.chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chip button { width: 22px; height: 22px; flex: none; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
-.chip button:hover { color: var(--ink); background: var(--surface); }
+.ctx { display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+.ctx .dot { width: 10px; height: 10px; }
+.ctx h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx .up { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctx button { width: 26px; height: 26px; flex: none; padding: 0; border: 0; border-radius: 999px; background: var(--accent-soft); color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.ctx button:hover { color: var(--ink); background: var(--hover); }
 .count { margin-left: auto; font: 400 12px/1.4 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .about { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; }
 .subs { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 .subs button { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; cursor: pointer; }
 .subs button:hover { border-color: var(--accent); }
+/* status: a small label on the page, a filter chip in the bar; one hue per status, readable in both themes */
+.tl { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.tl .title { min-width: 0; }
+.st { flex: none; font: 500 10px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--hover); color: var(--muted); }
+.s-draft { background: var(--hover); color: var(--c-amber); }
+.s-review { background: var(--accent-soft); color: var(--c-sky); }
+.s-final { background: var(--accent-soft); color: var(--c-green); }
+.s-archived { background: var(--hover); color: var(--muted); }
+.s-unsaved { background: transparent; color: var(--c-amber); border: 1px dashed var(--c-amber); }
+.s-by { background: var(--accent-soft); color: var(--accent); text-transform: none; letter-spacing: 0; }
+.kinds .stf svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.save { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--c-amber); border-radius: 10px; background: var(--surface); font-size: 14px; }
+.save > span { flex: 1 1 200px; }
+.save.selbar { border-color: var(--accent); }
+.save select { min-height: 34px; max-width: 100%; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
+/* selected pages: a check in the corner of a card, at the left of a row */
+.chk { display: none; position: absolute; z-index: 1; width: 20px; height: 20px; border-radius: 999px; background: var(--accent); color: var(--on-accent); place-items: center; pointer-events: none; }
+.chk svg { width: 12px; height: 12px; stroke-width: 2; }
+.sel .chk { display: grid; }
+.row.sel { background: var(--accent-soft); }
+.row.sel::before, .row.sel + .row::before { border-color: transparent; }
+.row .chk { left: 6px; top: 50%; transform: translateY(-50%); }
+.row.sel .dot { visibility: hidden; }
+.card.sel { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.card .chk { top: 8px; left: 8px; }
+/* since the last visit */
+.since { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; color: var(--muted); }
+.since .stf { min-height: 28px; }
+/* a project's working note */
+.pnote { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 10px; }
+.pnote .ptext { flex: 0 1 auto; min-width: 0; margin: 0; max-width: 68ch; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.pnote .addnote { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 13px; color: var(--muted); }
+.pnote .addnote:hover { color: var(--accent); text-decoration: none; }
+.pnote .addnote svg { width: 14px; height: 14px; }
+#sel select { flex: 0 1 260px; min-width: 0; }
+.pnote .ib.small { width: 28px; height: 28px; }
+.pnote textarea { flex: 1 1 100%; max-width: 68ch; min-height: 56px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: 14px/1.45 var(--sans); color: var(--ink); background: var(--surface); resize: vertical; }
+.pnote textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+/* filters: kind and status chips on one wrapping row */
+.filters { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.filters .sts { flex-basis: auto; }
+/* the empty hub: example cards, greyed and inert */
+.empty .eh { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--ink); }
+.empty .sample { text-align: left; max-width: 760px; margin: 20px auto; opacity: 0.6; pointer-events: none; filter: saturate(0.6); }
+.empty .sample .card { box-shadow: none; }
+.empty code { font: 13px var(--mono); padding: 2px 6px; border-radius: 4px; background: var(--hover); color: var(--ink); }
+[hidden] { display: none !important; } /* the page's own display rules never override hidden */
+.side-h .lnk { font: 500 11px/1 var(--mono); letter-spacing: 0; text-transform: none; }
+.insp select { max-width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
+.card .tl { align-items: flex-start; }
+.card .st { margin-top: 2px; }
+.sts { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+.stf { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; cursor: pointer; color: var(--ink); }
+.stf small { font: 400 11px/1 var(--mono); color: var(--muted); }
+.stf[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.hint { color: var(--muted); font-size: 12px; }
+/* colour swatches for the open project */
+.dotbtn { width: 28px; height: 28px; flex: none; padding: 0; border: 0; border-radius: 999px; background: transparent; cursor: pointer; display: grid; place-items: center; }
+.dotbtn:hover, .dotbtn[aria-expanded="true"] { background: var(--hover); }
+.dotbtn .dot { width: 12px; height: 12px; }
+.sw { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); max-width: 100%; }
+.swatch { width: 28px; height: 28px; padding: 0; border: 2px solid transparent; border-radius: 999px; background: var(--dot); cursor: pointer; }
+.swatch[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 2px var(--surface); }
+@media (max-width: 639px) { /* subfolder chips scroll sideways under the gutter instead of stacking */
+  .bar { padding-top: 8px; min-height: 0; }
+  .subs, .filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
+  .subs::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
+  .subs button { flex: none; min-height: 34px; }
+  .filters .sts { flex: none; flex-wrap: nowrap; }
+  .filters .stf { flex: none; min-height: 34px; }
+}
 
-/* ---- The list: groups with sticky headers; quiet rows split by hairlines, no card per row */
+/* ---- Groups: sticky headers under the search header, whatever its measured height */
 #list { outline: none; }
 .sec { padding-bottom: 8px; }
 .sec-h { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--head-h)); z-index: 2; display: flex; align-items: center; gap: 8px;
-  padding: 18px 0 8px; background: var(--bg); font-size: 18px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
+  padding: 18px 0 8px; background: var(--bg); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
 .sec-h > span:not(.dot) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
+.active mark { background: var(--mark); }
+.acts button, .acts a, .more { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.acts button:hover, .acts a:hover, .more:hover { color: var(--ink); background: var(--surface); }
+.acts [aria-pressed="true"] { color: var(--c-amber); }
+.acts [aria-pressed="true"] svg { fill: currentColor; }
+
+/* ---- List: quiet rows split by hairlines, no card per row */
 .row { position: relative; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; column-gap: 12px;
   min-height: 52px; margin: 0 -12px; padding: 6px 12px; border-radius: 6px;
   content-visibility: auto; contain-intrinsic-size: auto 52px; scroll-margin: calc(var(--head-h) + 60px) 0 16px; }
 .row::before { content: ''; position: absolute; left: 12px; right: 12px; top: 0; border-top: 1px solid var(--line); }
 .sec-h + .row::before, .row.active::before, .row.active + .row::before, .row.show::before, .row.show + .row::before { border-color: transparent; }
 .row.active, .row.show { --hover: var(--accent-soft); background: var(--accent-soft); }
-#list:focus-visible .row.active { box-shadow: inset 0 0 0 2px var(--focus); }
+#list:focus-visible .active { box-shadow: inset 0 0 0 2px var(--focus); }
 .row .dot { align-self: start; margin-top: 7px; }
 .txt { min-width: 0; display: flex; flex-direction: column; gap: 1px; color: inherit; text-decoration: none; outline: none; }
-.txt::after { content: ''; position: absolute; inset: 0; border-radius: 6px; } /* the whole row is the link */
+.txt::after { content: ''; position: absolute; inset: 0; border-radius: inherit; } /* the whole row or card is the link */
 .title { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row.pinned .title::after { content: ' \2605'; color: var(--c-amber); font-size: 11px; }
+.pinned .title::after { content: ' \2605'; color: var(--c-amber); font-size: 11px; }
 .desc { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .desc:has(.path:empty + .dtext:empty) { display: none; }
 .path:not(:empty) + .dtext:not(:empty)::before { content: '\00A0\00B7\00A0'; }
 .when { min-width: 44px; font: 400 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
 /* row actions sit just left of the date and appear on hover, keyboard focus or the ⋯ button */
-.acts { position: absolute; z-index: 1; right: 60px; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; padding-left: 8px; visibility: hidden; background: var(--hover); }
-.acts button, .acts a, .more { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
-.acts button:hover, .acts a:hover, .more:hover { color: var(--ink); background: var(--surface); }
-.acts [aria-pressed="true"] { color: var(--c-amber); }
-.acts [aria-pressed="true"] svg { fill: currentColor; }
+.row .acts { position: absolute; z-index: 1; right: 60px; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; padding-left: 8px; visibility: hidden; background: var(--hover); }
 .more { display: none; position: relative; z-index: 1; }
 .row.active .acts, .row.show .acts, .row:focus-within .acts { visibility: visible; }
 @media (hover: hover) {
@@ -175,49 +270,107 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 @media (hover: none), (max-width: 639px) {
   .row { grid-template-columns: 8px minmax(0, 1fr) auto 32px; column-gap: 8px; }
   .more { display: grid; }
-  .acts { right: 44px; }
+  .row .acts { right: 44px; }
   .acts button, .acts a, .more { width: 36px; height: 36px; }
 }
-mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
-.row.active mark { background: var(--mark); }
-
 /* Compact density: one 32px line, title then description */
 .compact .row { min-height: 32px; padding-top: 0; padding-bottom: 0; contain-intrinsic-size: auto 32px; }
 .compact .row .dot { align-self: center; margin-top: 0; }
-.compact .txt { flex-direction: row; align-items: baseline; gap: 10px; }
-.compact .title { flex: 0 1 auto; max-width: 75%; }
-.compact .desc { flex: 1 1 0; min-width: 0; }
-@media (max-width: 639px) { .compact .row { min-height: 44px; } .compact .desc { display: none; } }
+.compact .row .txt { flex-direction: row; align-items: baseline; gap: 10px; }
+.compact .row .title { flex: 0 1 auto; max-width: 75%; }
+.compact .row .desc { flex: 1 1 0; min-width: 0; }
+@media (max-width: 639px) { .compact .row { min-height: 44px; } .compact .row .desc { display: none; } }
 
-/* ---- Empty state, footer note, toast, shortcut sheet */
+/* ---- Gallery: cards on a responsive grid. The cover is a drawn placeholder (a kind icon on a
+   tint of the project colour), never a screenshot: the hub holds links, not page content. */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 2px 0 6px; }
+@media (min-width: 640px) { .grid { grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); gap: 14px; } }
+.card { position: relative; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+  box-shadow: var(--shadow); transition: box-shadow var(--ease), border-color var(--ease), transform var(--ease);
+  content-visibility: auto; contain-intrinsic-size: auto 232px; scroll-margin: calc(var(--head-h) + 60px) 0 16px; }
+.card.active { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.cover { position: relative; display: grid; place-items: center; height: 84px; border-radius: 9px 9px 0 0; border-bottom: 1px solid var(--line);
+  background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 10%, var(--surface)); color: var(--dot, var(--accent)); }
+@media (min-width: 640px) { .cover { height: 104px; } }
+.cover svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.kind { position: absolute; left: 10px; bottom: 8px; font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.card .txt { flex: 1 1 auto; gap: 4px; padding: 10px 12px 8px; }
+.card .title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; }
+.card .desc { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.35; }
+.card .desc .path { display: none; } /* the folder is in the footer instead */
+.card .desc:has(.dtext:empty) { display: none; }
+.card .path:not(:empty) + .dtext:not(:empty)::before { content: none; }
+.card .foot { display: flex; align-items: center; gap: 8px; padding: 0 12px 10px; font-size: 12px; color: var(--muted); }
+.card .foot .where { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .when { min-width: 0; }
+.card .acts { position: absolute; z-index: 1; top: 8px; right: 8px; display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); visibility: hidden; }
+.card.active .acts, .card:focus-within .acts { visibility: visible; }
+.card .more { display: none; }
+@media (hover: hover) {
+  .card:hover { border-color: var(--accent); box-shadow: var(--lift); transform: translateY(-1px); }
+  .card:hover .acts { visibility: visible; }
+}
+@media (hover: none) { /* no hover: the actions are always there, at touch size */
+  .card .acts { visibility: visible; position: static; justify-content: flex-end; margin: 0 8px 6px; padding: 0; border: 0; box-shadow: none; background: transparent; }
+  .card .acts button, .card .acts a { width: 36px; height: 36px; }
+}
+@media (max-width: 639px) { .card .desc { display: none !important; } .card .txt { padding: 8px 10px 6px; } .card .foot { padding: 0 10px 8px; } }
+
+/* ---- Empty state, footer note, toast, dialogs (shortcuts, details) */
 .empty { padding: 48px 0; text-align: center; color: var(--muted); }
 .empty p { margin: 0 auto 16px; max-width: 46ch; overflow-wrap: anywhere; }
 .btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.btn { min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); cursor: pointer; text-decoration: none; }
+.btn:hover { border-color: var(--accent); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn[aria-pressed="true"] { background: var(--accent-soft); }
 .note { margin: 32px 0 0; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 .toast { position: fixed; z-index: 50; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
   display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px); padding: 8px 14px; border-radius: 8px;
   background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: var(--shadow); }
 .toast:empty { display: none; }
-.toast input { min-width: 0; width: 220px; padding: 4px 6px; border: 0; border-radius: 4px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
-dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); color: var(--ink); box-shadow: var(--shadow); }
+.toast input { min-width: 0; width: 220px; max-width: 60vw; padding: 4px 6px; border: 0; border-radius: 4px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
+dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); color: var(--ink); box-shadow: var(--lift); }
 dialog::backdrop { background: var(--scrim); }
 .sheet { padding: 20px 24px; }
 .sheet h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
 .sheet dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0 0 16px; font-size: 14px; }
 .sheet dt { white-space: nowrap; } .sheet dd { margin: 0; color: var(--muted); }
+/* Details: a side panel from 640px, a bottom sheet on phones */
+#inspector { width: 100%; max-width: 100%; max-height: min(88vh, 100% - 24px); margin: auto 0 0; border-radius: 14px 14px 0 0; border-bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (min-width: 640px) {
+  #inspector { width: min(400px, 100vw - 32px); max-height: 100%; height: 100%; margin: 0 0 0 auto; border-radius: 0; border: 0; border-left: 1px solid var(--line); }
+}
+.insp { display: flex; flex-direction: column; gap: 14px; padding: 20px 24px max(20px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; max-height: inherit; }
+.insp-h { display: flex; align-items: center; gap: 10px; }
+.insp-h .badge { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border-radius: 999px; font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--dot, var(--accent)); background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 12%, var(--surface)); }
+.insp-h .badge svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.insp-h .ib { margin-left: auto; }
+.insp h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.insp .d { margin: 0; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.insp dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin: 0; font-size: 13px; }
+.insp dt { color: var(--muted); white-space: nowrap; } .insp dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+button.lnk { padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; text-align: left; font-size: inherit; }
+button.lnk:hover { text-decoration: underline; }
+.insp .url { display: flex; gap: 6px; }
+.insp .url input { flex: 1 1 auto; min-width: 0; height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
+.insp .row-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.insp .row-btns .primary, .insp .row-btns > :last-child { grid-column: 1 / -1; }
+.insp .fine { margin: 0; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 </style>
 
-<div class="app" id="app" data-hub-template="2">
+<div class="app at-root list" id="app" data-hub-template="3">
   <nav class="rail" aria-label="Projects">
-    <button class="rbtn" type="button" data-menu aria-label="Open folders" aria-controls="side" aria-expanded="false" title="Folders"><span data-icon="menu"></span></button>
+    <button class="rbtn" type="button" id="side-open" data-menu aria-label="Open folders" aria-controls="side" aria-expanded="false" title="Folders ([)"><span data-icon="menu"></span></button>
     <hr>
     <div class="rail-dots" id="rail-dots"></div>
   </nav>
 
   <aside class="side" id="side" aria-label="Folders">
+    <button class="ib fold" type="button" id="fold" aria-label="Hide the sidebar" title="Hide the sidebar ([)"><span data-icon="fold"></span></button>
     <div id="side-pins"></div>
     <div id="side-recent"></div>
     <h2 class="side-h">Projects</h2>
@@ -228,7 +381,6 @@ dialog::backdrop { background: var(--scrim); }
   <main class="main">
     <div class="intro">
       <h1>Project Hub</h1>
-      <p class="lede">Every page you have published, by project. Search with <kbd>/</kbd>, move with the arrow keys, press <kbd>?</kbd> for all shortcuts.</p>
     </div>
 
     <header class="top" id="head">
@@ -239,23 +391,41 @@ dialog::backdrop { background: var(--scrim); }
           aria-expanded="true" aria-autocomplete="list" autocomplete="off" spellcheck="false">
         <kbd>/</kbd>
       </div>
-      <div class="tools">
-        <div class="seg" role="group" aria-label="Sort pages">
+      <div class="seg views" role="group" aria-label="View">
+        <button type="button" data-view="gallery" aria-pressed="false" aria-label="Gallery view" title="Gallery"><span data-icon="grid"></span><span>Gallery</span></button>
+        <button type="button" data-view="list" aria-pressed="false" aria-label="List view" title="List"><span data-icon="rows"></span><span>List</span></button>
+      </div>
+      <div class="strip">
+        <div class="seg sorts" role="group" aria-label="Sort pages">
           <button type="button" data-sort="recent" title="Recently opened first">Recent</button>
           <button type="button" data-sort="updated" title="Newest first, grouped by date">Updated</button>
           <button type="button" data-sort="az" title="By title">A–Z</button>
         </div>
-        <button class="ib" type="button" id="density" aria-pressed="false" aria-label="Compact rows" title="Compact rows"><span data-icon="dense"></span></button>
-        <button class="ib" type="button" id="theme" aria-label="Theme"></button>
-        <button class="ib" type="button" id="help" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+        <div class="tools">
+          <button class="ib" type="button" id="density" aria-pressed="false" aria-label="Compact rows" title="Compact rows"><span data-icon="dense"></span></button>
+          <button class="ib" type="button" id="theme" aria-label="Theme"></button>
+          <button class="ib" type="button" id="help" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+        </div>
       </div>
     </header>
 
+    <div class="save" id="save" hidden role="status">
+      <span id="save-n"></span>
+      <button class="btn primary" type="button" id="save-copy" title="Copies a message for Claude Code that writes these changes into the hub">Save changes with Claude</button>
+      <button class="btn" type="button" id="save-drop">Discard</button>
+    </div>
+    <div class="save selbar" id="sel" hidden role="status" aria-label="Selected pages">
+      <span id="sel-n"></span>
+      <select id="sel-move" aria-label="Move the selected pages to a folder"></select>
+      <select id="sel-status" aria-label="Set the status of the selected pages"><option value="">Status…</option><option value="draft">Draft</option><option value="review">Review</option><option value="final">Final</option><option value="archived">Archived</option><option value="-">No status</option></select>
+      <button class="btn" type="button" id="sel-copy"><span data-icon="copy"></span>Copy links</button>
+      <button class="btn" type="button" id="sel-clear">Clear</button>
+    </div>
     <div class="bar" id="bar"></div>
     <p class="sr" id="live" aria-live="polite"></p>
     <div id="list" role="listbox" tabindex="0" aria-label="Pages"></div>
     <div class="empty" id="empty" hidden></div>
-    <p class="note">This page is kept up to date by the artifact-hub plugin. Every page listed here stays private to you until you share it. Pins and recently opened pages are remembered in this browser only.</p>
+    <p class="note">This page is kept up to date by the artifact-hub plugin. It lists links: each page keeps its own sharing setting in Claude, and stays private to you until you share it. Pins and recently opened pages are remembered in this browser only. <button class="lnk" type="button" id="export" title="Every folder, title, description and link on this page, as Markdown, to paste anywhere">Copy this list as Markdown</button></p>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -264,6 +434,32 @@ dialog::backdrop { background: var(--scrim); }
     <h2 id="keys-h">Keyboard shortcuts</h2>
     <dl id="keys-list"></dl>
     <button class="btn" type="button" id="keys-close">Close</button>
+  </div>
+</dialog>
+<dialog id="inspector" aria-labelledby="insp-title">
+  <div class="insp">
+    <div class="insp-h">
+      <span class="badge" id="insp-kind"></span>
+      <button class="ib" type="button" id="insp-close" aria-label="Close details"><span data-icon="x"></span></button>
+    </div>
+    <h2 id="insp-title"></h2>
+    <p class="d" id="insp-desc"></p>
+    <dl>
+      <dt>Folder</dt><dd id="insp-where"></dd>
+      <dt>Updated</dt><dd id="insp-date"></dd>
+      <dt>Kind</dt><dd id="insp-kind-text"></dd>
+      <dt>Status</dt><dd><select id="insp-status" aria-label="Status"><option value="">None</option><option value="draft">Draft</option><option value="review">Review</option><option value="final">Final</option><option value="archived">Archived</option></select></dd>
+      <dt>Move to</dt><dd><select id="insp-move" aria-label="Move to folder"></select></dd>
+      <dt>Link</dt><dd class="url"><input readonly id="insp-url" aria-label="Page link"><button class="ib" type="button" id="insp-copy" aria-label="Copy link" title="Copy link"><span data-icon="copy"></span></button></dd>
+    </dl>
+    <div class="row-btns">
+      <a class="btn primary" id="insp-open" target="_blank" rel="noopener"><span data-icon="open"></span>Open page</a>
+      <button class="btn" type="button" id="insp-pin" aria-pressed="false"><span data-icon="star"></span><span>Pin</span></button>
+      <button class="btn" type="button" id="insp-go"><span data-icon="folder"></span>Show folder</button>
+      <button class="btn" type="button" id="insp-prompt" title="Copies a line to paste into a new Claude Code session, so Claude updates this page instead of making a new one"><span data-icon="copy"></span>Copy for Claude Code</button>
+    </div>
+    <p class="fine" id="insp-unsaved" hidden>This page has changes made here (folder or status) that are not in the hub's data yet. Use "Save changes with Claude" at the top of the page.</p>
+    <p class="fine">To keep working on this page in a new Claude Code session, paste the line "Copy for Claude Code" gives you: without the link, Claude makes a new page instead of updating this one. Copying a link does not change who can open the page: Claude keeps each page's own sharing setting. The kind is read from the title, and the cover is drawn, not a picture of the page.</p>
   </div>
 </dialog>
 
@@ -280,16 +476,20 @@ dialog::backdrop { background: var(--scrim); }
   // A row is [title, artifact id, description, date like '15 Oct']. A project may set
   // color: one of COLORS; otherwise it takes the colour of its place in PROJECTS.
   var COLORS = ['teal', 'indigo', 'amber', 'rose', 'green', 'violet', 'sky', 'clay'];
+  // A row may carry a fifth item, its status: 'draft', 'review', 'final' or 'archived'.
+  // Archived pages stay listed but are shown only on request.
+  var STATUSES = ['draft', 'review', 'final', 'archived'];
 
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
   var K = { folder: 'project-hub.folder.v2', pins: 'project-hub.pins.v1', opened: 'project-hub.opened.v1',
-    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1' };
+    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1',
+    colors: 'project-hub.colors.v1', side: 'project-hub.side.v1', edits: 'project-hub.edits.v1', visit: 'project-hub.visit.v1' };
   function getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setRaw(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not saved */ } }
   function getJSON(k, d) { try { var v = JSON.parse(getRaw(k)); return v == null ? d : v; } catch (e) { return d; } }
   function setJSON(k, v) { try { setRaw(k, JSON.stringify(v)); } catch (e) { /* not saved */ } }
 
-  // ---- Small DOM helpers and icons
+  // ---- Small DOM helpers and icons (fixed strings only; page text is never put through innerHTML)
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text !== undefined) x.textContent = text; return x; }
   function each(sel, fn) { Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
@@ -298,13 +498,20 @@ dialog::backdrop { background: var(--scrim); }
     search: '<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/>',
     menu: '<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>',
     dense: '<path d="M2.5 3.5h11M2.5 6.5h11M2.5 9.5h11M2.5 12.5h11"/>',
+    grid: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
+    rows: '<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>',
     star: '<path d="M8 1.9l1.85 3.8 4.2.6-3.05 2.95.72 4.15L8 11.45 4.28 13.4 5 9.25 1.95 6.3l4.2-.6z"/>',
     copy: '<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/>',
     open: '<path d="M9 2.5h4.5V7M13.5 2.5l-6 6M12 9.5v3a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/>',
+    info: '<circle cx="8" cy="8" r="5.5"/><path d="M8 7.25v3.5M8 5.2v.1"/>',
     more: '<circle cx="3.5" cy="8" r=".75"/><circle cx="8" cy="8" r=".75"/><circle cx="12.5" cy="8" r=".75"/>',
     x: '<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>',
     chev: '<path d="M6 3.5 10.5 8 6 12.5"/>',
     all: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
+    folder: '<path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/>',
+    fold: '<rect x="2.5" y="3" width="11" height="10" rx="1.5"/><path d="M6 3v10M10.5 6.5 9 8l1.5 1.5"/>',
+    check: '<path d="M3.5 8.5 6.5 11.5 12.5 5"/>',
+    pen: '<path d="M3 13h3l7-7-3-3-7 7zM9 4l3 3"/>',
     system: '<circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/>',
     light: '<circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/>',
     dark: '<path d="M13.5 9.6A5.5 5.5 0 0 1 6.4 2.5a5.5 5.5 0 1 0 7.1 7.1z"/>'
@@ -315,8 +522,42 @@ dialog::backdrop { background: var(--scrim); }
     s.innerHTML = ICONS[name] || ''; return s;
   }
   each('[data-icon]', function (x) { x.parentNode.replaceChild(icon(x.getAttribute('data-icon')), x); });
-  var html = document.documentElement, app = $('app'), list = $('list'), q = $('q'), tree = $('tree'), bar = $('bar'), empty = $('empty'), keys = $('keys');
+  var html = document.documentElement, app = $('app'), list = $('list'), q = $('q'), tree = $('tree'), bar = $('bar'), empty = $('empty'), keys = $('keys'), insp = $('inspector');
   var isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || ''), MOD = isMac ? '⌘' : 'Ctrl ';
+
+  // ---- The kind of page, read from the title (then the description) so a card can carry a
+  // meaningful symbol. It is a guess from words, and the page says so; nothing is fetched.
+  var KINDS = [
+    ['design', 'Design', /\b(ui|ux|mockups?|prototypes?|dashboards?|screens?|designs?|canvas|boards?|wireframes?|patterns?|brand|logo|theme|layout)\b/],
+    ['code', 'Code', /\b(api|apis|schema|routes?|stack|tests?|bench|code|setup|technology|tech|migration|cutover|release|deploy|build|sdk|cli)\b/],
+    ['report', 'Report', /\b(analytics|revenue|ledger|reports?|reviews?|trackers?|metrics|ga4|audits?|figures|funnel|results|numbers|stats|status)\b/],
+    ['slides', 'Slides', /\b(slides?|deck|presentation|pitch)\b/],
+    ['doc', 'Document', /\b(guides?|plans?|blueprints?|research|briefs?|notes?|playbooks?|checklists?|strategy|study|dossier|manual|scope|kit|path|queue|lists?|spec|docs?|faq|how)\b/]
+  ];
+  var KIND_ICON = {
+    design: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>',
+    designsystem: '<circle cx="8" cy="8" r="3"/><rect x="13" y="5" width="6" height="6" rx="1"/><path d="M5 19l3-5 3 5zM13 16h6v3h-6z"/>',
+    dashboard: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h18M10 10v11M14 15l2-2 2 2"/>',
+    code: '<path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/>',
+    report: '<path d="M4 20h16M7 17v-6M12 17V7M17 17v-3"/>',
+    slides: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M8 10h8M8 13h5"/>',
+    doc: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+    page: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'
+  };
+  // Kinds Claude itself records (a page made from one of its types) come first; the rest are read from the title
+  var KIND_LABEL = { slides: 'Slides', design: 'Design', designsystem: 'Design system', dashboard: 'Dashboard', doc: 'Document', code: 'Code', report: 'Report', page: 'Page' };
+  function kindOf(p) {
+    if (p.known) return p.known;
+    var t = p.ft, d = p.fd;
+    for (var i = 0; i < KINDS.length; i++) if (KINDS[i][2].test(t)) return KINDS[i][0];
+    for (var j = 0; j < KINDS.length; j++) if (KINDS[j][2].test(d)) return KINDS[j][0];
+    return 'page';
+  }
+  function kindLabel(k) { return KIND_LABEL[k] || 'Page'; }
+  function kindIcon(k) {
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = KIND_ICON[k] || KIND_ICON.page; return s;
+  }
 
   // ---- Text folding for search: lower case, accents dropped, one character in and one out,
   // so match positions line up with the original text for highlighting.
@@ -337,11 +578,16 @@ dialog::backdrop { background: var(--scrim); }
     return d.getTime();
   }
   function age(p) { if (!p.t) return Infinity; var d = new Date(p.t); d.setHours(0, 0, 0, 0); return Math.round((today - d) / DAY); }
+  function exact(p) { // the full date, with the time when the row carries one (an ISO stamp from the saved list)
+    if (!p.t) return p.date || '';
+    var withTime = /T|\d:\d/.test(p.date);
+    try { return new Date(p.t).toLocaleString(undefined, withTime ? { dateStyle: 'medium', timeStyle: 'short' } : { dateStyle: 'medium' }); } catch (e) { return p.date; }
+  }
   function rel(p) { // '3d', '2w', '4mo'; the original date string stays in the tooltip
     var a = age(p);
     if (a === Infinity) return p.date || '—';
     if (a <= 0) return 'today';
-    return a < 7 ? a + 'd' : a < 30 ? Math.floor(a / 7) + 'w' : a < 365 ? Math.floor(a / 30.4) + 'mo' : Math.floor(a / 365) + 'y';
+    return a < 7 ? a + 'd' : a < 45 ? Math.floor(a / 7) + 'w' : a < 365 ? Math.max(1, Math.round(a / 30.4)) + 'mo' : Math.floor(a / 365) + 'y';
   }
   function dateGroup(p) { var a = age(p); return a <= 0 ? 'Today' : a < 7 ? 'This week' : a <= 31 ? 'This month' : 'Earlier'; }
 
@@ -357,16 +603,27 @@ dialog::backdrop { background: var(--scrim); }
     parent.kids.push(node); byKey[k] = node; return node;
   }
   var PAGES = [], byId = {};
+  // a colour chosen on this page is kept in this browser; the project's own colour stays the default
+  var myColors = getJSON(K.colors, {}); if (!myColors || typeof myColors !== 'object') myColors = {};
   PROJECTS.forEach(function (p, pi) {
     var pn = child(root, String(p.name || 'Untitled'), slug(p.id || p.name));
-    if (!pn.color) { pn.about = p.about || ''; pn.color = COLORS.indexOf(p.color) >= 0 ? p.color : COLORS[pi % COLORS.length]; }
+    if (!pn.color) {
+      pn.about = p.about || ''; pn.note = String(p.note || '').slice(0, 200); pn.note0 = pn.note; // a short working note, editable on the page
+      pn.base = COLORS.indexOf(p.color) >= 0 ? p.color : COLORS[pi % COLORS.length];
+      pn.color = COLORS.indexOf(myColors[pn.key]) >= 0 ? myColors[pn.key] : pn.base;
+    }
     (p.shelves || []).forEach(function (s) {
       var node = pn;
       String(s[0] || '').split('/').map(function (t) { return t.trim(); }).filter(function (t) { return t && t.toLowerCase() !== 'all pages'; })
         .forEach(function (part) { node = child(node, part); });
       (s[1] || []).forEach(function (pg) {
         if (!pg) return;
-        var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''), node: node, proj: pn };
+        // the fifth item is a status word, or an object { status, kind, by } when more is known
+        var x = pg[4] && typeof pg[4] === 'object' ? pg[4] : { status: pg[4] };
+        var st = String(x.status || '').toLowerCase(), kd = String(x.kind || '').toLowerCase().replace(/[^a-z]/g, '');
+        var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''),
+          status: STATUSES.indexOf(st) >= 0 ? st : '', known: KIND_LABEL[kd] ? kd : '', by: x.by ? String(x.by) : '', node: node, proj: pn };
+        rec.home = node; rec.status0 = rec.status; // what the hub's data says, before any edit made on this page
         node.pages.push(rec); PAGES.push(rec); if (!byId[rec.id]) byId[rec.id] = rec;
       });
     });
@@ -377,11 +634,67 @@ dialog::backdrop { background: var(--scrim); }
     if (!underCache[node.key]) { var out = []; (function walk(n) { out.push.apply(out, n.pages); n.kids.forEach(walk); })(node); underCache[node.key] = out; }
     return underCache[node.key];
   }
-  PAGES.forEach(function (p) { // the search index is computed once, at load
+  function index(p) { // the search index and the folder label of one page
     p.path = trail(p.node).slice(2).map(function (x) { return x.name; }).join(' / ');
     p.where = p.proj.name + (p.path ? ' / ' + p.path : '');
-    p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.fw = fold(p.where);
+    p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.kind = kindOf(p);
+    p.fw = fold(p.where + (p.status ? ' ' + p.status : '') + ' ' + kindLabel(p.kind) + (p.by ? ' ' + p.by : ''));
+  }
+  var kindFilter = ''; // '' = every kind
+  function countKinds(pool) { var c = {}; pool.forEach(function (p) { c[p.kind] = (c[p.kind] || 0) + 1; }); return c; }
+  // ---- Edits made on this page (a page moved to another folder, a status set) live in this browser
+  // until Claude writes them into the hub's data. Each page keeps a note of what changed.
+  var edits = getJSON(K.edits, {}); if (!edits || typeof edits !== 'object') edits = {};
+  Object.keys(edits).forEach(function (id) {
+    var p = byId[id], e = edits[id];
+    if (!p && e && typeof e.note === 'string' && byKey[id] && byKey[id] !== root && byKey[id].up === root) { byKey[id].note = e.note.slice(0, 200); byKey[id].unsaved = true; return; } // a project note
+    if (!p || !e) { delete edits[id]; return; }
+    if (e.status !== undefined && (e.status === '' || STATUSES.indexOf(e.status) >= 0)) { p.status = e.status; p.unsaved = true; }
+    if (e.folder && byKey[e.folder] && byKey[e.folder] !== root && byKey[e.folder] !== p.node) { var to = byKey[e.folder]; p.node.pages.splice(p.node.pages.indexOf(p), 1); to.pages.push(p); p.node = to; p.proj = to.proj; p.unsaved = true; }
   });
+  PAGES.forEach(index);
+  function pathOf(node) { return trail(node).slice(1).map(function (x) { return x.name; }).join(' / '); }
+  function noteEdit(p, change) { // remember one change for this page, forget the item cache for it, redraw
+    var e = edits[p.id] || (edits[p.id] = {});
+    Object.keys(change).forEach(function (k) { e[k] = change[k]; });
+    if (e.folder && byKey[e.folder] === p.home) delete e.folder;
+    if (e.status !== undefined && e.status === p.status0) delete e.status;
+    if (!Object.keys(e).length) { delete edits[p.id]; p.unsaved = false; } else p.unsaved = true;
+    setJSON(K.edits, edits);
+    Object.keys(itemCache).forEach(function (k) { if (k.slice(k.lastIndexOf(':') + 1) === String(p.i)) delete itemCache[k]; });
+    itemsById[p.id] = []; underCache = {}; index(p); renderSide(); render();
+  }
+  function movePage(p, node) { if (node === p.node || node === root) return; p.node.pages.splice(p.node.pages.indexOf(p), 1); node.pages.push(p); p.node = node; p.proj = node.proj; noteEdit(p, { folder: node.key }); }
+  function setStatus(p, s) { p.status = s; noteEdit(p, { status: s }); }
+  function setNote(pn, text) { // a project's working note, kept here until Claude writes it
+    text = String(text || '').trim().slice(0, 200); pn.note = text;
+    if (text === pn.note0) { delete edits[pn.key]; pn.unsaved = false; } else { edits[pn.key] = { note: text }; pn.unsaved = true; }
+    setJSON(K.edits, edits); render();
+  }
+  function discardEdits() { edits = {}; setJSON(K.edits, edits); location.reload(); }
+  function editsText() { // one message for Claude, naming each change
+    var lines = ['Update my Project Hub at ' + location.href.split('#')[0] + ' with these changes I made on the page, then republish it to the same URL:'];
+    Object.keys(edits).forEach(function (id) {
+      var p = byId[id], e = edits[id];
+      if (!p) { if (e && typeof e.note === 'string' && byKey[id]) lines.push('- set the note of project ' + byKey[id].name + ' to: ' + (e.note || '(nothing)')); return; }
+      if (e.folder && byKey[e.folder]) lines.push('- move "' + p.title + '" (' + A + id + ') to the folder ' + pathOf(byKey[e.folder]));
+      if (e.status !== undefined) lines.push('- ' + (e.status ? 'mark "' + p.title + '" (' + A + id + ') as ' + e.status : 'remove the status from "' + p.title + '" (' + A + id + ')'));
+    });
+    return lines.join('\n');
+  }
+  var statusFilter = ''; // '' = every page but archived ones; a status name = only those
+  // since the last visit: pages whose date is newer than when this browser last opened the hub
+  var lastVisit = +getRaw(K.visit) || 0, sinceFilter = false, sinceGone = false; setRaw(K.visit, String(Date.now()));
+  function isNew(p) { return lastVisit > 0 && p.t > lastVisit; }
+  var sinceN = PAGES.filter(isNew).length;
+  function visible(p) { return (kindFilter ? p.kind === kindFilter : true) && (statusFilter ? p.status === statusFilter : p.status !== 'archived') && (!sinceFilter || isNew(p)); }
+  // selection, for acting on several pages at once (shift-click, or x on the selected page)
+  var selected = {};
+  function toggleSel(p) { if (selected[p.id]) delete selected[p.id]; else selected[p.id] = true; markSel(); renderSel(); }
+  function clearSel() { selected = {}; markSel(); renderSel(); }
+  function markSel() { Object.keys(itemCache).forEach(function (k) { var r = itemCache[k]; r.classList.toggle('sel', !!selected[r._p.id]); }); }
+  function selPages() { return Object.keys(selected).map(function (id) { return byId[id]; }).filter(Boolean); }
+  function countStatus(pool) { var c = {}; pool.forEach(function (p) { if (p.status) c[p.status] = (c[p.status] || 0) + 1; }); return c; }
 
   // ---- Viewer state (all optional; bad or missing values fall back to defaults)
   var pins = getJSON(K.pins, []); pins = Array.isArray(pins) ? pins.filter(function (x) { return typeof x === 'string'; }) : [];
@@ -390,6 +703,9 @@ dialog::backdrop { background: var(--scrim); }
   var sort = getRaw(K.sort); if (['recent', 'updated', 'az'].indexOf(sort) < 0) sort = 'recent';
   var theme = getRaw(K.theme); if (['system', 'light', 'dark'].indexOf(theme) < 0) theme = 'system';
   var dense = getRaw(K.density) === 'compact', stale = false;
+  // the view: what the viewer chose; before that, a gallery on a wide screen and a list elsewhere
+  var view = getRaw(K.view);
+  if (['gallery', 'list'].indexOf(view) < 0) view = window.matchMedia && matchMedia('(min-width: 1024px)').matches ? 'gallery' : 'list';
   function fromHash() { var k = (location.hash || '').replace('#', ''); try { k = decodeURIComponent(k); } catch (e) { /* keep raw */ } return byKey[k] || null; }
   var current = fromHash() || byKey[getRaw(K.folder)] || root; // a bare #folder link wins, then the last folder opened
   var collator = window.Intl && Intl.Collator ? new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' }) : { compare: function (a, b) { return a < b ? -1 : a > b ? 1 : 0; } };
@@ -409,8 +725,9 @@ dialog::backdrop { background: var(--scrim); }
   }
 
   // ---- Search: every word must match somewhere. Ranking: title prefix > title word start >
-  // inside the title > loose (fuzzy) title > description > project or folder; ties by recency.
-  var WORD = /[a-z0-9À-￿]/;
+  // inside the title > a whole word in the description or folder > inside them > loose
+  // (fuzzy) title letters, so a real word beats scattered letters; ties by recency.
+  var WORD = /[a-z0-9\u00C0-\uFFFF]/; // escaped, so the page is safe however it is served
   function wordAt(s, w) { var i = s.indexOf(w); while (i > 0 && WORD.test(s[i - 1])) i = s.indexOf(w, i + 1); return i; }
   function fuzzy(s, w) { // the letters of w in order and close together: their positions, or null
     if (w.length < 3) return null;
@@ -430,11 +747,11 @@ dialog::backdrop { background: var(--scrim); }
       if (p.ft.indexOf(w) === 0) { hit.score += 100; hit.t.push([0, w.length]); }
       else if ((i = wordAt(p.ft, w)) >= 0) { hit.score += 80; hit.t.push([i, i + w.length]); }
       else if ((i = p.ft.indexOf(w)) >= 0) { hit.score += 60; hit.t.push([i, i + w.length]); }
-      else if ((f = fuzzy(p.ft, w))) { hit.score += 50 - Math.min(10, f[f.length - 1] - f[0] + 1 - w.length); f.forEach(function (x) { hit.t.push([x, x + 1]); }); }
-      else if ((i = wordAt(p.fd, w)) >= 0) { hit.score += 35; hit.d.push([i, i + w.length]); }
-      else if ((i = p.fd.indexOf(w)) >= 0) { hit.score += 25; hit.d.push([i, i + w.length]); }
-      else if ((i = wordAt(p.fw, w)) >= 0) { hit.score += 30; hit.w.push([i, i + w.length]); }
-      else if ((i = p.fw.indexOf(w)) >= 0) { hit.score += 20; hit.w.push([i, i + w.length]); }
+      else if ((i = wordAt(p.fd, w)) >= 0) { hit.score += 45; hit.d.push([i, i + w.length]); }
+      else if ((i = wordAt(p.fw, w)) >= 0) { hit.score += 40; hit.w.push([i, i + w.length]); }
+      else if ((i = p.fd.indexOf(w)) >= 0) { hit.score += 30; hit.d.push([i, i + w.length]); }
+      else if ((i = p.fw.indexOf(w)) >= 0) { hit.score += 25; hit.w.push([i, i + w.length]); }
+      else if ((f = fuzzy(p.ft, w))) { hit.score += 20 - Math.min(10, f[f.length - 1] - f[0] + 1 - w.length); f.forEach(function (x) { hit.t.push([x, x + 1]); }); }
       else return null;
     }
     if (words.length > 1) hit.score += p.ft.indexOf(whole) === 0 ? 200 : p.ft.indexOf(whole) > 0 ? 100 : 0;
@@ -456,13 +773,13 @@ dialog::backdrop { background: var(--scrim); }
     if (at < text.length) node.appendChild(document.createTextNode(text.slice(at)));
   }
 
-  // ---- What to show: a list of sections { key, label, color, items, path }
+  // ---- What to show: a list of sections { key, label, color, items, path }, the same in both views
   function relPath(p) { // the page's folder, relative to the open filter
     if (current === root) return p.where;
     return trail(p.node).slice(trail(current).length).map(function (x) { return x.name; }).join(' / ');
   }
   function sections(query) {
-    var pool = under(current), secs = [];
+    var pool = under(current).filter(visible), secs = [];
     if (query) { // one ranked list, searched inside the open filter
       var words = fold(query).split(/\s+/).filter(Boolean), whole = words.join(' '), res = [];
       pool.forEach(function (p) { p.hit = match(p, words, whole); if (p.hit) res.push(p); });
@@ -470,90 +787,122 @@ dialog::backdrop { background: var(--scrim); }
       if (res.length) secs.push({ key: 'res', label: 'Best matches', items: res, path: 'rel' });
       return secs;
     }
-    if (current === root) { // pinned first, then the 8 most recently opened
-      var pinned = pins.map(function (id) { return byId[id]; }).filter(Boolean);
+    if (current === root && !statusFilter && !kindFilter) { // continue working: pinned pages, then the 8 opened last (this browser only)
+      var pinned = pins.map(function (id) { return byId[id]; }).filter(Boolean).filter(visible);
       if (pinned.length) secs.push({ key: 'pin', label: 'Pinned', items: pinned, path: 'rel' });
-      var recent = recentIds(8).map(function (id) { return byId[id]; });
-      if (recent.length) secs.push({ key: 'rec', label: 'Recently opened', items: recent, path: 'rel' });
+      var recent = recentIds(8).map(function (id) { return byId[id]; }).filter(visible);
+      if (recent.length) secs.push({ key: 'rec', label: 'Continue working', items: recent, path: 'rel', about: 'Pages you opened last, remembered in this browser' });
     }
     if (sort === 'updated') { // newest first, under Today / This week / This month / Earlier
       var groups = {};
       pool.slice().sort(cmp).forEach(function (p) { var g = dateGroup(p); (groups[g] = groups[g] || []).push(p); });
       ['Today', 'This week', 'This month', 'Earlier'].forEach(function (g) { if (groups[g]) secs.push({ key: 'd:' + g, label: g, items: groups[g], path: 'rel' }); });
     } else if (current === root) { // one group per project, in PROJECTS order
-      root.kids.forEach(function (pn) { var it = under(pn).slice().sort(cmp); if (it.length) secs.push({ key: 'p:' + pn.key, label: pn.name, color: pn.color, items: it, path: 'folder', about: pn.about }); });
+      root.kids.forEach(function (pn) { var it = under(pn).filter(visible).sort(cmp); if (it.length) secs.push({ key: 'p:' + pn.key, label: pn.name, color: pn.color, items: it, path: 'folder', about: pn.about }); });
     } else { // inside a folder: its own pages, then each folder below it under its path
       var base = trail(current).length;
       (function walk(n) {
-        if (n.pages.length) secs.push({ key: 'f:' + n.key, label: n === current ? n.name : trail(n).slice(base).map(function (x) { return x.name; }).join(' / '), color: n.proj.color, items: n.pages.slice().sort(cmp), path: 'none' });
+        var own = n.pages.filter(visible);
+        if (own.length) secs.push({ key: 'f:' + n.key, label: n === current ? n.name : trail(n).slice(base).map(function (x) { return x.name; }).join(' / '), color: n.proj.color, items: own.sort(cmp), path: 'none' });
         n.kids.forEach(walk);
       })(current);
     }
     return secs;
   }
 
-  // ---- Rows are built once per page (plus once for its Pinned / Recent copy), then reused and reordered.
-  var rowCache = {}, rowsById = {}, secCache = {}, shown = [], active = null, lastQuery = null, openRow = null;
+  // ---- Rows and cards are built once per page (plus once for a Pinned / Continue copy), then reused.
+  // Both carry the same fields (_p, _t, _d, _path, _star), so filling, selection and actions are shared.
+  var itemCache = {}, itemsById = {}, secCache = {}, shown = [], active = null, lastQuery = null, openRow = null;
   function actBtn(name, label, act) { var b = el('button'); b.type = 'button'; b.tabIndex = -1; b.title = label; b.setAttribute('aria-label', label); b.setAttribute('data-act', act); b.appendChild(icon(name)); return b; }
   function link(cls, p) { var a = el('a', cls); a.href = A + p.id; a.target = '_blank'; a.rel = 'noopener'; a.setAttribute('data-id', p.id); return a; }
-  function getRow(p, kind) {
-    var ck = kind + ':' + p.i; if (rowCache[ck]) return rowCache[ck];
-    var r = el('div', 'row c-' + p.proj.color); r.id = 'r-' + kind + '-' + p.i; r.setAttribute('role', 'option'); r.setAttribute('aria-selected', 'false');
-    var dot = el('span', 'dot'); dot.setAttribute('aria-hidden', 'true');
-    var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + p.date : '');
-    var t = el('span', 'title', p.title), d = el('span', 'desc'), path = el('span', 'path'), dt = el('span', 'dtext');
-    d.appendChild(path); d.appendChild(dt); a.appendChild(t); a.appendChild(d);
-    var when = el('span', 'when', rel(p)); if (p.date) when.title = 'Updated ' + p.date;
-    var acts = el('span', 'acts'), star = actBtn('star', 'Pin', 'pin'), go = link('', p);
+  function actions(p) {
+    var acts = el('span', 'acts'), go = link('', p);
     go.tabIndex = -1; go.title = 'Open in new tab'; go.setAttribute('aria-label', 'Open in new tab'); go.appendChild(icon('open'));
-    acts.appendChild(star); acts.appendChild(actBtn('copy', 'Copy link', 'copy')); acts.appendChild(go);
+    acts.appendChild(actBtn('star', 'Pin', 'pin')); acts.appendChild(actBtn('info', 'Details', 'info')); acts.appendChild(actBtn('copy', 'Copy link', 'copy')); acts.appendChild(go);
+    return acts;
+  }
+  function textOf(p) { // title and description, shared by rows and cards
+    var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + exact(p) : '') + (p.status ? '\n' + cap(p.status) : '');
+    var tl = el('span', 'tl'), t = el('span', 'title', p.title), d = el('span', 'desc'), path = el('span', 'path'), dt = el('span', 'dtext');
+    tl.appendChild(t); if (p.status) tl.appendChild(el('span', 'st s-' + p.status, cap(p.status)));
+    if (p.by) { var by = el('span', 'st s-by', p.by); by.title = 'Shared with you by ' + p.by; tl.appendChild(by); }
+    if (p.unsaved) { var u = el('span', 'st s-unsaved', 'Unsaved'); u.title = 'Changed on this page, not yet written to the hub'; tl.appendChild(u); }
+    d.appendChild(path); d.appendChild(dt); a.appendChild(tl); a.appendChild(d);
+    return { a: a, t: t, path: path, dt: dt };
+  }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function finish(r, p, kind, parts) {
+    r.id = 'r-' + kind + '-' + p.i; r.setAttribute('role', 'option'); r.setAttribute('aria-selected', 'false');
+    r._p = p; r._t = parts.t; r._d = parts.dt; r._path = parts.path; r._star = r.querySelector('[data-act="pin"]'); r._sig = null;
+    var chk = el('span', 'chk'); chk.setAttribute('aria-hidden', 'true'); chk.appendChild(icon('check')); r.appendChild(chk);
+    if (selected[p.id]) r.classList.add('sel');
+    (itemsById[p.id] = itemsById[p.id] || []).push(r); markPin(r);
+    return r;
+  }
+  function getRow(p, kind) {
+    var ck = 'r:' + kind + ':' + p.i; if (itemCache[ck]) return itemCache[ck];
+    var r = el('div', 'row c-' + p.proj.color), parts = textOf(p);
+    var dot = el('span', 'dot'); dot.setAttribute('aria-hidden', 'true');
+    var when = el('span', 'when', rel(p)); if (p.date) when.title = 'Updated ' + exact(p);
     var more = actBtn('more', 'Actions', 'more'); more.className = 'more'; more.setAttribute('aria-expanded', 'false');
-    r.appendChild(dot); r.appendChild(a); r.appendChild(when); r.appendChild(acts); r.appendChild(more);
-    r._p = p; r._t = t; r._d = dt; r._path = path; r._star = star; r._sig = null;
-    (rowsById[p.id] = rowsById[p.id] || []).push(r); markPin(r);
-    return (rowCache[ck] = r);
+    r.appendChild(dot); r.appendChild(parts.a); r.appendChild(when); r.appendChild(actions(p)); r.appendChild(more);
+    return (itemCache[ck] = finish(r, p, kind, parts));
+  }
+  function getCard(p, kind) {
+    var ck = 'c:' + kind + ':' + p.i; if (itemCache[ck]) return itemCache[ck];
+    var r = el('div', 'card c-' + p.proj.color), parts = textOf(p);
+    var cover = el('div', 'cover'); cover.setAttribute('aria-hidden', 'true'); cover.appendChild(kindIcon(p.kind)); cover.appendChild(el('span', 'kind', kindLabel(p.kind)));
+    var foot = el('div', 'foot'), where = el('span', 'where'), when = el('span', 'when', rel(p));
+    where.appendChild(el('span', 'dot')); where.appendChild(document.createTextNode(' ')); where.appendChild(el('span', 'wtext'));
+    if (p.date) when.title = 'Updated ' + exact(p);
+    foot.appendChild(where); foot.appendChild(when);
+    r.appendChild(cover); r.appendChild(parts.a); r.appendChild(foot); r.appendChild(actions(p));
+    r._where = where.lastChild;
+    return (itemCache[ck] = finish(r, p, kind, parts));
   }
   function markPin(r) {
     var on = pins.indexOf(r._p.id) >= 0, label = on ? 'Unpin' : 'Pin';
     r.classList.toggle('pinned', on); r._star.setAttribute('aria-pressed', String(on)); r._star.title = label; r._star.setAttribute('aria-label', label);
   }
-  function fillRow(r, p, mode, query) { // folder label and highlights; skipped when nothing changed
+  function fillItem(r, p, mode, query) { // folder label and highlights; skipped when nothing changed
     var path = mode === 'folder' ? p.path : mode === 'rel' ? relPath(p) : '', sig = query + '\u0000' + path;
     if (r._sig === sig) return; r._sig = sig;
     var h = query ? p.hit : null;
     paint(r._t, p.title, h && h.t); paint(r._d, p.desc, h && h.d); paint(r._path, path, h && path === p.where ? h.w : null);
+    if (r._where) paint(r._where, path || p.proj.name, h && path === p.where ? h.w : null);
   }
   function getSec(s) {
     var c = secCache[s.key];
     if (!c) {
-      c = secCache[s.key] = { el: el('section', 'sec'), h: el('div', 'sec-h') };
+      c = secCache[s.key] = { el: el('section', 'sec'), h: el('div', 'sec-h'), body: el('div') };
       c.h.id = 'h-' + slug(s.key) + '-' + Object.keys(secCache).length; c.h.setAttribute('aria-hidden', 'true');
-      c.el.setAttribute('role', 'group'); c.el.setAttribute('aria-labelledby', c.h.id); c.el.appendChild(c.h);
+      c.el.setAttribute('role', 'group'); c.el.setAttribute('aria-labelledby', c.h.id); c.el.appendChild(c.h); c.el.appendChild(c.body);
     }
     c.h.textContent = '';
     if (s.color) c.h.appendChild(el('span', 'dot c-' + s.color));
     c.h.appendChild(el('span', '', s.label)); c.h.appendChild(el('small', '', '· ' + s.items.length));
     c.h.title = s.about || '';
-    while (c.el.lastChild !== c.h) c.el.removeChild(c.el.lastChild);
-    return c.el;
+    c.body.className = view === 'gallery' ? 'grid' : 'rows'; c.body.textContent = '';
+    return c;
   }
 
   function render() {
-    var query = q.value.trim(), secs = sections(query), frag = document.createDocumentFragment();
-    shown = [];
+    var query = q.value.trim(), secs = sections(query), frag = document.createDocumentFragment(), build = view === 'gallery' ? getCard : getRow;
+    var keep = active && active._p; shown = [];
     secs.forEach(function (s) {
       var sec = getSec(s), kind = s.key === 'pin' || s.key === 'rec' ? s.key : 'm';
-      s.items.forEach(function (p) { var r = getRow(p, kind); fillRow(r, p, s.path, query); sec.appendChild(r); shown.push(r); });
-      frag.appendChild(sec);
+      s.items.forEach(function (p) { var r = build(p, kind); fillItem(r, p, s.path, query); sec.body.appendChild(r); shown.push(r); });
+      frag.appendChild(sec.el);
     });
     list.textContent = ''; list.appendChild(frag);
-    // a new query starts on the best match; otherwise the active row stays if it is still listed
+    // a new query starts on the best match; otherwise the selected page stays if it is still listed
     if (query !== lastQuery) setActive(query ? shown[0] : null, false);
-    else setActive(shown.indexOf(active) >= 0 ? active : null, false);
+    else setActive(shown.indexOf(active) >= 0 ? active : firstFor(keep), false);
     if (query !== lastQuery) $('live').textContent = query ? shown.length + (shown.length === 1 ? ' page matches' : ' pages match') : '';
     lastQuery = query;
     renderBar(query); renderEmpty(query);
   }
+  function firstFor(p) { if (!p) return null; for (var i = 0; i < shown.length; i++) if (shown[i]._p === p) return shown[i]; return null; }
   function setActive(r, scroll) {
     if (active && active !== r) { active.classList.remove('active'); active.setAttribute('aria-selected', 'false'); }
     active = r || null;
@@ -563,46 +912,149 @@ dialog::backdrop { background: var(--scrim); }
       if (scroll) active.scrollIntoView({ block: 'nearest' });
     } else { q.removeAttribute('aria-activedescendant'); list.removeAttribute('aria-activedescendant'); }
   }
-  function move(d) { // next / previous row, wrapping around
+  function move(d) { // next / previous page in reading order (the gallery is walked as one list), wrapping around
     if (!shown.length) return;
     var i = shown.indexOf(active);
     i = i < 0 ? (d > 0 ? 0 : shown.length - 1) : (i + d + shown.length) % shown.length;
     setActive(shown[i], true);
   }
-  function jump(d) { // first row of the next / previous group
+  function jump(d) { // first page of the next / previous group
     var secs = Array.prototype.slice.call(list.children); if (!secs.length) return;
-    var i = active ? secs.indexOf(active.parentNode) : -1, n = i < 0 ? (d > 0 ? 0 : secs.length - 1) : Math.min(secs.length - 1, Math.max(0, i + d));
-    setActive(secs[n].querySelector('.row'), true);
+    var i = active ? secs.indexOf(active.parentNode.parentNode) : -1, n = i < 0 ? (d > 0 ? 0 : secs.length - 1) : Math.min(secs.length - 1, Math.max(0, i + d));
+    setActive(secs[n].querySelector('[role="option"]'), true);
   }
 
-  // ---- Filter chip, page count, subfolders (phones and tablets), empty state
+  // ---- Context bar: the open folder with its note and subfolders, the page count, status
+  // filters, the empty state. Inside a project the colour dot is a button: eight swatches, the
+  // choice kept in this browser (Claude can make it permanent in the hub's data).
+  var swatchOpen = false, noteOpen = null;
+  function recolor(pn, color) {
+    pn.color = color || pn.base;
+    if (color && color !== pn.base) myColors[pn.key] = color; else delete myColors[pn.key];
+    setJSON(K.colors, myColors);
+    Object.keys(itemCache).forEach(function (k) { var r = itemCache[k]; if (r._p.proj === pn) { r.className = r.className.replace(/\bc-\w+/, 'c-' + pn.color); } });
+    renderSide(); render(); toast(color ? 'Colour kept in this browser. Ask Claude to make it permanent.' : 'Default colour');
+  }
   function renderBar(query) {
-    bar.textContent = '';
-    if (current !== root) {
-      var chip = el('span', 'chip'), x = el('button'); x.type = 'button'; x.setAttribute('aria-label', 'Remove filter, show all projects'); x.title = 'Show all projects'; x.appendChild(icon('x'));
-      x.addEventListener('click', function () { go(root); });
-      chip.appendChild(el('span', '', 'in ' + trail(current).slice(1).map(function (n) { return n.name; }).join(' / '))); chip.appendChild(x); bar.appendChild(chip);
+    bar.textContent = ''; app.classList.toggle('at-root', current === root);
+    var n = Object.keys(edits).length; $('save').hidden = !n;
+    if (n) $('save-n').textContent = n + (n === 1 ? ' change made here, not yet in the hub' : ' changes made here, not yet in the hub');
+    if (sinceN && !sinceGone) { // a quiet line: what changed since this browser last opened the hub
+      var since = el('div', 'since'); since.setAttribute('role', 'status');
+      since.appendChild(el('span', '', sinceN + (sinceN === 1 ? ' page updated' : ' pages updated') + ' since your last visit'));
+      var show = el('button', 'stf'); show.type = 'button'; show.setAttribute('aria-pressed', String(sinceFilter)); show.textContent = sinceFilter ? 'Showing only these' : 'Show';
+      show.addEventListener('click', function () { sinceFilter = !sinceFilter; render(); });
+      var dis = el('button', 'lnk', 'Dismiss'); dis.type = 'button'; dis.addEventListener('click', function () { sinceGone = true; sinceFilter = false; render(); });
+      since.appendChild(show); since.appendChild(dis); bar.appendChild(since);
     }
-    var total = under(current).length;
+    if (current !== root) {
+      var ctx = el('div', 'ctx'), up = trail(current).slice(1, -1).map(function (n) { return n.name; }).join(' / '), pn = current.proj;
+      var db = el('button', 'dotbtn'); db.type = 'button'; db.title = 'Project colour'; db.setAttribute('aria-label', 'Change the colour of ' + pn.name); db.setAttribute('aria-expanded', String(swatchOpen));
+      db.appendChild(el('span', 'dot c-' + pn.color));
+      db.addEventListener('click', function () { swatchOpen = !swatchOpen; renderBar(q.value.trim()); if (swatchOpen) { var f = bar.querySelector('.sw [aria-checked="true"]'); if (f) f.focus(); } });
+      ctx.appendChild(db);
+      if (up) ctx.appendChild(el('span', 'up', up + ' /'));
+      ctx.appendChild(el('h2', '', current.name));
+      var x = el('button'); x.type = 'button'; x.setAttribute('aria-label', 'Leave this folder, show all projects'); x.title = 'Show all projects'; x.appendChild(icon('x'));
+      x.addEventListener('click', function () { go(root); });
+      ctx.appendChild(x); bar.appendChild(ctx);
+      if (swatchOpen) {
+        var sw = el('div', 'sw'); sw.setAttribute('role', 'radiogroup'); sw.setAttribute('aria-label', 'Colour of ' + pn.name);
+        COLORS.forEach(function (c) {
+          var b = el('button', 'swatch c-' + c); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(c === pn.color)); b.title = cap(c) + (c === pn.base ? ' (default)' : ''); b.setAttribute('aria-label', b.title);
+          b.addEventListener('click', function () { swatchOpen = false; recolor(pn, c === pn.base ? '' : c); });
+          sw.appendChild(b);
+        });
+        bar.appendChild(sw);
+      }
+    }
+    var all = under(current), total = all.filter(visible).length, counts = countStatus(all), kinds = countKinds(all);
     bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
-    if (current.about && !query) bar.appendChild(el('p', 'about', current.about));
+    if (current.about && !query) bar.appendChild(el('p', 'about', current.about)); // what the project is, right under its name
+    if (current !== root && current === current.proj && !query) { // the project's working note, editable here
+      var pn2 = current, nt = el('div', 'pnote');
+      if (noteOpen === pn2.key) {
+        var ta = el('textarea'); ta.maxLength = 200; ta.rows = 2; ta.value = pn2.note; ta.setAttribute('aria-label', 'Note for ' + pn2.name); ta.placeholder = 'A short working note for this project';
+        var ok = el('button', 'btn primary', 'Keep'), no = el('button', 'btn', 'Cancel'); ok.type = 'button'; no.type = 'button';
+        ok.addEventListener('click', function () { noteOpen = null; setNote(pn2, ta.value); });
+        no.addEventListener('click', function () { noteOpen = null; render(); });
+        ta.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); noteOpen = null; render(); } if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); noteOpen = null; setNote(pn2, ta.value); } });
+        var row = el('div', 'btns'); row.appendChild(ok); row.appendChild(no); nt.appendChild(ta); nt.appendChild(row);
+        setTimeout(function () { ta.focus(); }, 0);
+      } else if (pn2.note) { // the note, with a pencil to change it
+        var txt = el('p', 'ptext', pn2.note);
+        var ed = el('button', 'ib small'); ed.type = 'button'; ed.title = 'Edit note'; ed.setAttribute('aria-label', 'Edit the note for ' + pn2.name); ed.appendChild(icon('pen'));
+        ed.addEventListener('click', function () { noteOpen = pn2.key; render(); });
+        nt.appendChild(txt); nt.appendChild(ed);
+        if (pn2.unsaved) { var u1 = el('span', 'st s-unsaved', 'Unsaved'); u1.title = 'Changed on this page, not yet written to the hub'; nt.appendChild(u1); }
+      } else { // no note: one quiet link, no placeholder text
+        var add = el('button', 'lnk addnote'); add.type = 'button'; add.appendChild(icon('pen')); add.appendChild(document.createTextNode(' Add a note'));
+        add.setAttribute('aria-label', 'Add a note for ' + pn2.name); add.addEventListener('click', function () { noteOpen = pn2.key; render(); });
+        nt.appendChild(add);
+        if (pn2.unsaved) { var u = el('span', 'st s-unsaved', 'Unsaved'); u.title = 'The note was cleared here, not yet written to the hub'; nt.appendChild(u); }
+      }
+      bar.appendChild(nt);
+    }
+    var filters = el('div', 'filters'); // kind and status chips share one row; project chips take the next
+    if (Object.keys(kinds).length > 1) { // kind chips, like the gallery's type filter: one per kind present here
+      var kf = el('div', 'sts kinds'); kf.setAttribute('role', 'group'); kf.setAttribute('aria-label', 'Kind');
+      Object.keys(KIND_LABEL).forEach(function (k) {
+        if (!kinds[k]) return;
+        var b = el('button', 'stf'); b.type = 'button'; b.setAttribute('aria-pressed', String(kindFilter === k));
+        b.appendChild(kindIcon(k)); b.appendChild(el('span', '', KIND_LABEL[k])); b.appendChild(el('small', '', String(kinds[k])));
+        b.addEventListener('click', function () { kindFilter = kindFilter === k ? '' : k; render(); });
+        kf.appendChild(b);
+      });
+      filters.appendChild(kf);
+    }
+    if (Object.keys(counts).length) { // status chips: a filter each; archived pages appear only through theirs
+      var sts = el('div', 'sts'); sts.setAttribute('role', 'group'); sts.setAttribute('aria-label', 'Status');
+      STATUSES.forEach(function (s) {
+        if (!counts[s]) return;
+        var b = el('button', 'stf s-' + s); b.type = 'button'; b.setAttribute('aria-pressed', String(statusFilter === s));
+        b.appendChild(el('span', '', cap(s))); b.appendChild(el('small', '', String(counts[s])));
+        b.addEventListener('click', function () { statusFilter = statusFilter === s ? '' : s; render(); });
+        sts.appendChild(b);
+      });
+      filters.appendChild(sts);
+    }
+    if (filters.childNodes.length) bar.appendChild(filters);
     if (current.kids.length && !query) {
       var subs = el('div', 'subs');
       current.kids.forEach(function (k) {
         var b = el('button'); b.type = 'button';
-        if (k.up === root) b.appendChild(el('span', 'dot c-' + k.color));
+        if (k.up === root) b.appendChild(el('span', 'dot c-' + k.color)); else b.appendChild(icon('folder'));
         b.appendChild(el('span', '', k.name)); b.appendChild(el('small', '', String(under(k).length)));
         b.addEventListener('click', function () { go(k); }); subs.appendChild(b);
       });
       bar.appendChild(subs);
     }
   }
+  // the empty hub shows what it will look like: six example cards, clearly marked, that go nowhere
+  var SAMPLE = [['Launch Checklist', 'What is left before the store opens, by stage', 'doc', 'teal'], ['Checkout Screens', 'Cart, address and payment mockups for the phone', 'design', 'teal'],
+    ['September Report', 'Sign-ups, orders and where people drop off', 'report', 'indigo'], ['Orders API Routes', 'Every route, its inputs and who may call it', 'code', 'indigo'],
+    ['Kickoff Deck', 'Ten slides for the first client meeting', 'slides', 'amber'], ['Keyword Research', 'What people search before they buy', 'doc', 'amber']];
   function renderEmpty(query) {
     empty.hidden = shown.length > 0; empty.textContent = '';
     if (shown.length) return;
-    if (!PAGES.length) { empty.appendChild(el('p', '', 'No pages listed yet. Ask Claude to run the hub rebuild.')); return; }
-    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : 'This folder is empty.'));
+    if (!PAGES.length) {
+      empty.appendChild(el('h2', 'eh', 'Your pages will appear here, filed by project'));
+      empty.appendChild(el('p', '', 'Every page you publish is saved and filed. This is what the hub looks like once it has a few:'));
+      var g = el('div', 'grid sample'); g.setAttribute('aria-hidden', 'true');
+      SAMPLE.forEach(function (s) {
+        var c = el('div', 'card c-' + s[3]), cover = el('div', 'cover'); cover.appendChild(kindIcon(s[2])); cover.appendChild(el('span', 'kind', 'Example'));
+        var t = el('div', 'txt'), tl = el('span', 'tl'); tl.appendChild(el('span', 'title', s[0])); t.appendChild(tl); t.appendChild(el('span', 'desc', s[1]));
+        var f = el('div', 'foot'); f.appendChild(el('span', 'where', kindLabel(s[2]))); f.appendChild(el('span', 'when', '2d'));
+        c.appendChild(cover); c.appendChild(t); c.appendChild(f); g.appendChild(c);
+      });
+      empty.appendChild(g);
+      var ask = el('p', ''); ask.appendChild(document.createTextNode('Ask Claude to run ')); ask.appendChild(el('code', '', '/artifact-hub:hub')); ask.appendChild(document.createTextNode(' to fill it from your gallery.'));
+      empty.appendChild(ask); return;
+    }
+    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : sinceFilter ? 'Nothing here changed since your last visit.' : statusFilter || kindFilter ? 'No such pages here.' : 'This folder is empty.'));
     var btns = el('div', 'btns');
+    if (sinceFilter) { var sv = el('button', 'btn', 'Show every page'); sv.type = 'button'; sv.addEventListener('click', function () { sinceFilter = false; render(); }); btns.appendChild(sv); }
+    if (statusFilter || kindFilter) { var sf = el('button', 'btn', 'Show every kind and status'); sf.type = 'button'; sf.addEventListener('click', function () { statusFilter = ''; kindFilter = ''; render(); }); btns.appendChild(sf); }
     if (current !== root) { var all = el('button', 'btn primary', 'Search all projects'); all.type = 'button'; all.addEventListener('click', function () { go(root); q.focus(); }); btns.appendChild(all); }
     if (query) { var clr = el('button', 'btn', 'Clear'); clr.type = 'button'; clr.addEventListener('click', function () { q.value = ''; render(); q.focus(); }); btns.appendChild(clr); }
     empty.appendChild(btns);
@@ -630,9 +1082,14 @@ dialog::backdrop { background: var(--scrim); }
     if (node.kids.length && expanded[node.key]) { var sub = el('ul'); node.kids.forEach(function (k) { branch(k, sub); }); li.appendChild(sub); }
     ul.appendChild(li);
   }
-  function pageLinks(box, label, items) {
+  function pageLinks(box, label, items, total) {
     box.textContent = ''; if (!items.length) return;
-    box.appendChild(el('h2', 'side-h', label));
+    var h = el('h2', 'side-h', label + (total > items.length ? ' · ' + items.length + ' of ' + total : ''));
+    if (total > items.length) { // the full list: every page, sorted by when you opened it
+      var all = el('button', 'lnk', 'all'); all.type = 'button'; all.title = 'Every page, most recently opened first';
+      all.addEventListener('click', function () { setSort('recent'); go(root); }); h.appendChild(document.createTextNode(' ')); h.appendChild(all);
+    }
+    box.appendChild(h);
     var ul = el('ul', 'nav');
     items.forEach(function (p) {
       var li = el('li'), a = link('item', p); a.title = p.where;
@@ -641,12 +1098,11 @@ dialog::backdrop { background: var(--scrim); }
     box.appendChild(ul);
   }
   function renderSide() {
-    trail(current).forEach(function (x) { expanded[x.key] = true; });
     tree.textContent = '';
     var li = el('li'), line = el('div', 'node'); line.appendChild(folderItem(root)); li.appendChild(line); tree.appendChild(li);
     root.kids.forEach(function (k) { branch(k, tree); });
-    pageLinks($('side-pins'), 'Pinned', pins.map(function (id) { return byId[id]; }).filter(Boolean));
-    pageLinks($('side-recent'), 'Recent', recentIds(5).map(function (id) { return byId[id]; }));
+    pageLinks($('side-pins'), 'Pinned', pins.map(function (id) { return byId[id]; }).filter(Boolean), 0);
+    pageLinks($('side-recent'), 'Recent', recentIds(6).map(function (id) { return byId[id]; }), recentIds(1000).length);
     var dots = $('rail-dots'); dots.textContent = '';
     [root].concat(root.kids).forEach(function (n) {
       var b = el('button', 'rbtn'); b.type = 'button';
@@ -660,6 +1116,7 @@ dialog::backdrop { background: var(--scrim); }
   // ---- Actions
   function go(node) { // open a folder as the filter; a typed search keeps running inside it
     current = node; setRaw(K.folder, node.key); closeNav(true);
+    trail(node).forEach(function (x) { expanded[x.key] = true; }); // open the branch once; the caret can close it again
     renderSide(); render();
     if (window.scrollY > 0) window.scrollTo(0, 0);
   }
@@ -669,25 +1126,36 @@ dialog::backdrop { background: var(--scrim); }
     if (text) { var i = el('input'); i.readOnly = true; i.value = text; i.setAttribute('aria-label', 'Link to copy'); t.appendChild(i); i.focus(); i.select(); }
     toastTimer = setTimeout(function () { t.textContent = ''; }, text ? 8000 : 1500);
   }
-  function copy(p) { // clipboard first; if refused, show the link selected so it can be copied by hand
-    var url = A + p.id;
-    function byHand() { toast('Press ' + MOD + 'C to copy', url); }
+  function copyText(text, done) { // clipboard first; if refused, show the text selected so it can be copied by hand
+    function byHand() { toast('Press ' + MOD + 'C to copy', text); }
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { toast('Copied'); }, byHand);
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(done || 'Copied'); }, byHand);
       else byHand();
     } catch (e) { byHand(); }
   }
+  function copy(p) { copyText(A + p.id); }
   function togglePin(p) {
     var k = pins.indexOf(p.id);
     if (k >= 0) pins.splice(k, 1); else pins.unshift(p.id);
-    setJSON(K.pins, pins); (rowsById[p.id] || []).forEach(markPin);
-    toast(k >= 0 ? 'Unpinned' : 'Pinned'); renderSide(); render();
+    setJSON(K.pins, pins); (itemsById[p.id] || []).forEach(markPin);
+    toast(k >= 0 ? 'Unpinned' : 'Pinned'); renderSide(); render(); if (insp.open && inspected === p) fillInspector(p);
   }
   function setSort(s) {
     sort = s; setRaw(K.sort, s);
     each('[data-sort]', function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-sort') === s)); });
   }
+  function setView(v, save) {
+    view = v; if (save) setRaw(K.view, v);
+    app.classList.toggle('gallery', v === 'gallery'); app.classList.toggle('list', v !== 'gallery');
+    each('[data-view]', function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === v)); });
+    if (openRow) { openRow.classList.remove('show'); openRow = null; }
+  }
   function setDense(on) { dense = on; app.classList.toggle('compact', on); $('density').setAttribute('aria-pressed', String(on)); }
+  var folded = getRaw(K.side) === 'closed';
+  function setFolded(on, save) { // desktop: the sidebar folds to the rail of project dots
+    folded = on; app.classList.toggle('folded', on); if (save) setRaw(K.side, on ? 'closed' : 'open');
+    each('[data-menu]', function (b) { b.setAttribute('aria-expanded', String(!on)); });
+  }
   function applyTheme() { // no attribute = follow the system; the button cycles system, light, dark
     if (theme === 'system') html.removeAttribute('data-theme'); else html.setAttribute('data-theme', theme);
     var b = $('theme'), label = 'Theme: ' + (theme === 'system' ? 'follow system' : theme) + '. Change theme';
@@ -705,52 +1173,131 @@ dialog::backdrop { background: var(--scrim); }
     each('[data-menu]', function (b) { b.setAttribute('aria-expanded', 'false'); });
     if (focusBack && lastMenu) lastMenu.focus();
   }
-  function openKeys() { if (keys.open) return; if (keys.showModal) keys.showModal(); else keys.setAttribute('open', ''); }
-  function closeKeys() { if (keys.close) keys.close(); else keys.removeAttribute('open'); }
-  [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages'], ['Enter', 'Open the page (new tab)'],
-    [MOD + '↑  ' + MOD + '↓', 'Previous / next group'], ['Home  End', 'First / last page (in the list)'],
-    ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['Esc', 'Clear the search, then leave it'], ['?', 'This list']]
+  function showDialog(d) { if (d.open) return; if (d.showModal) d.showModal(); else d.setAttribute('open', ''); }
+  function hideDialog(d) { if (d.close) d.close(); else d.removeAttribute('open'); }
+
+  // ---- Details: what the hub knows about one page, and nothing it does not. Modal, so Esc
+  // closes it and focus goes back to where it came from (the list keeps its selected page).
+  var inspected = null, inspFrom = null;
+  function fillInspector(p) {
+    var badge = $('insp-kind'); badge.textContent = ''; badge.className = 'badge c-' + p.proj.color; badge.appendChild(kindIcon(p.kind)); badge.appendChild(document.createTextNode(kindLabel(p.kind)));
+    $('insp-title').textContent = p.title;
+    $('insp-desc').textContent = p.desc; $('insp-desc').hidden = !p.desc;
+    var where = $('insp-where'); where.textContent = '';
+    trail(p.node).slice(1).forEach(function (n, i) {
+      if (i) where.appendChild(document.createTextNode(' / '));
+      var b = el('button', 'lnk', n.name); b.type = 'button'; b.addEventListener('click', function () { hideDialog(insp); go(n); }); where.appendChild(b);
+    });
+    $('insp-date').textContent = p.date ? exact(p) + (age(p) === Infinity ? '' : ' · ' + rel(p)) : 'not recorded';
+    var ss = $('insp-status'); ss.value = p.status || '';
+    var ms = $('insp-move'); ms.textContent = '';
+    var none = el('option', '', 'Keep in ' + pathOf(p.node)); none.value = p.node.key; ms.appendChild(none);
+    (function walk(n) { n.kids.forEach(function (k) { if (k !== p.node) { var o = el('option', '', pathOf(k)); o.value = k.key; ms.appendChild(o); } walk(k); }); })(root);
+    $('insp-unsaved').hidden = !p.unsaved;
+    $('insp-kind-text').textContent = kindLabel(p.kind) + (p.known ? ' (recorded by Claude)' : ' (from the title)') + (p.by ? ' · shared by ' + p.by : '');
+    $('insp-url').value = A + p.id; $('insp-open').href = A + p.id; $('insp-open').setAttribute('data-id', p.id);
+    var on = pins.indexOf(p.id) >= 0, pb = $('insp-pin'); pb.setAttribute('aria-pressed', String(on)); pb.lastChild.textContent = on ? 'Pinned' : 'Pin';
+  }
+  function inspect(p, from) {
+    inspected = p; inspFrom = from || document.activeElement; fillInspector(p); showDialog(insp);
+    $('insp-close').focus();
+  }
+  insp.addEventListener('close', function () { var f = inspFrom; inspFrom = null; if (f && f.focus && document.contains(f)) f.focus(); else list.focus({ preventScroll: true }); });
+  insp.addEventListener('click', function (e) { if (e.target === insp) hideDialog(insp); }); // a click on the backdrop
+  $('insp-close').addEventListener('click', function () { hideDialog(insp); });
+  $('insp-copy').addEventListener('click', function () { if (inspected) copy(inspected); });
+  $('insp-pin').addEventListener('click', function () { if (inspected) togglePin(inspected); });
+  $('insp-go').addEventListener('click', function () { if (inspected) { var n = inspected.node; hideDialog(insp); go(n); } });
+  // one line to paste into a new Claude Code session: with the link, Claude updates this page instead of making another
+  $('insp-prompt').addEventListener('click', function () { if (inspected) copyText('Update my artifact "' + inspected.title + '" at ' + A + inspected.id + ' (read it first with the Artifact tool, then publish to the same URL).', 'Copied: paste it into Claude Code'); });
+  // the whole list as Markdown, made in the browser; nothing is sent anywhere
+  $('export').addEventListener('click', function () {
+    var lines = ['# ' + document.title, ''];
+    root.kids.forEach(function (pn) {
+      lines.push('## ' + pn.name + (pn.about ? ' — ' + pn.about : ''), '');
+      (function walk(n, depth) {
+        if (n !== pn && n.pages.length) { if (lines[lines.length - 1] !== '') lines.push(''); lines.push('#'.repeat(Math.min(6, depth + 2)) + ' ' + trail(n).slice(2).map(function (x) { return x.name; }).join(' / '), ''); }
+        n.pages.forEach(function (p) { lines.push('- [' + p.title.replace(/[\[\]]/g, '') + '](' + A + p.id + ')' + (p.desc ? ' — ' + p.desc : '') + (p.date ? ' (' + p.date + ')' : '')); });
+        n.kids.forEach(function (k) { walk(k, depth + 1); });
+      })(pn, 0);
+      lines.push('');
+    });
+    // the viewer does not let a page save files, so the text goes to the clipboard (or a box to copy from)
+    copyText(lines.join('\n') + '\n', 'Copied ' + PAGES.length + ' links as Markdown');
+  });
+  $('insp-url').addEventListener('focus', function () { this.select(); });
+  $('insp-status').addEventListener('change', function () { if (inspected) { setStatus(inspected, this.value); fillInspector(inspected); } });
+  $('insp-move').addEventListener('change', function () { if (inspected && byKey[this.value]) { movePage(inspected, byKey[this.value]); fillInspector(inspected); } });
+  // the selection bar: what to do with the selected pages
+  function renderSel() {
+    var ps = selPages(), n = ps.length; $('sel').hidden = !n; if (!n) return;
+    $('sel-n').textContent = n + (n === 1 ? ' page selected' : ' pages selected');
+    var ms = $('sel-move'); ms.textContent = ''; var ph = el('option', '', 'Move to…'); ph.value = ''; ms.appendChild(ph);
+    (function walk(nd) { nd.kids.forEach(function (k) { var o = el('option', '', pathOf(k)); o.value = k.key; ms.appendChild(o); walk(k); }); })(root);
+    $('sel-status').value = '';
+  }
+  $('sel-move').addEventListener('change', function () { var to = byKey[this.value]; if (!to) return; var ps = selPages(); clearSel(); ps.forEach(function (p) { movePage(p, to); }); toast('Moved ' + ps.length + ' to ' + pathOf(to)); });
+  $('sel-status').addEventListener('change', function () { var v = this.value; if (!v) return; var ps = selPages(); clearSel(); ps.forEach(function (p) { setStatus(p, v === '-' ? '' : v); }); toast(v === '-' ? 'Status removed' : 'Marked ' + ps.length + ' as ' + v); });
+  $('sel-copy').addEventListener('click', function () { var ps = selPages(); copyText(ps.map(function (p) { return A + p.id; }).join('\n'), 'Copied ' + ps.length + (ps.length === 1 ? ' link' : ' links')); });
+  $('sel-clear').addEventListener('click', clearSel);
+  $('save-copy').addEventListener('click', function () { copyText(editsText(), 'Copied: paste it into Claude Code'); });
+  $('save-drop').addEventListener('click', function () { var n = Object.keys(edits).length; if (!n) return; this.textContent = 'Discard ' + n + ' change' + (n > 1 ? 's' : '') + '? Click again'; var self = this; if (self._armed) discardEdits(); else { self._armed = true; setTimeout(function () { self._armed = false; self.textContent = 'Discard'; }, 4000); } });
+
+  [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
+    ['i', 'Details of the page'], [MOD + '↑  ' + MOD + '↓', 'Previous / next group'], ['Home  End', 'First / last page (in the list)'],
+    ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['x', 'Select or unselect the page (shift-click too)'], ['o  then  1–9', 'Open the 1st to 9th page shown'],
+    ['v', 'Gallery or list'], ['[', 'Hide or show the sidebar'], ['Esc', 'Clear the selection, close, clear the search, then leave it'], ['?', 'This list']]
     .forEach(function (k) { $('keys-list').appendChild(el('dt')).appendChild(el('kbd', '', k[0])); $('keys-list').appendChild(el('dd', '', k[1])); });
 
   // ---- Events
   q.addEventListener('input', render);
   list.addEventListener('focus', function () { if (!active && shown.length) setActive(shown[0], true); });
   list.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('[data-act]'), r = b && b.closest('.row');
+    if (e.shiftKey) { var sr = e.target.closest && e.target.closest('[role="option"]'); if (sr) { e.preventDefault(); setActive(sr, false); toggleSel(sr._p); return; } }
+    var b = e.target.closest && e.target.closest('[data-act]'), r = b && b.closest('[role="option"]');
     if (!r) return;
     var act = b.getAttribute('data-act');
     if (act === 'pin') togglePin(r._p);
     else if (act === 'copy') copy(r._p);
+    else if (act === 'info') { setActive(r, false); inspect(r._p, b); }
     else if (act === 'more') { // phones: the ⋯ button shows the row's actions
       if (openRow && openRow !== r) { openRow.classList.remove('show'); openRow.querySelector('.more').setAttribute('aria-expanded', 'false'); }
       var on = !r.classList.contains('show'); r.classList.toggle('show', on); b.setAttribute('aria-expanded', String(on)); openRow = on ? r : null;
     }
   });
   // every opened page is remembered: left or middle click, or Enter (which clicks the link)
+  var wide = window.matchMedia ? matchMedia('(min-width: 1024px)') : { matches: false };
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[data-id]'); if (a) record(a.getAttribute('data-id'));
-    var m = e.target.closest && e.target.closest('[data-menu]'); if (m) { if (app.classList.contains('nav-open')) closeNav(true); else openNav(m); }
+    var m = e.target.closest && e.target.closest('[data-menu]');
+    if (m) { if (wide.matches) setFolded(!folded, true); else if (app.classList.contains('nav-open')) closeNav(true); else openNav(m); }
+    if (swatchOpen && !(e.target.closest && e.target.closest('.sw, .dotbtn'))) { swatchOpen = false; renderBar(q.value.trim()); }
   });
+  $('fold').addEventListener('click', function () { setFolded(true, true); $('side-open').focus(); });
   document.addEventListener('auxclick', function (e) { var a = e.button === 1 && e.target.closest && e.target.closest('a[data-id]'); if (a) record(a.getAttribute('data-id')); });
-  // Recent is refreshed when the viewer comes back from the opened page, not under their cursor
+  // Continue working is refreshed when the viewer comes back from the opened page, not under their cursor
   function refresh() { if (stale && !document.hidden) { stale = false; renderSide(); render(); } }
   window.addEventListener('focus', refresh); document.addEventListener('visibilitychange', refresh);
   $('scrim').addEventListener('click', function () { closeNav(true); });
   each('[data-sort]', function (b) { b.addEventListener('click', function () { setSort(b.getAttribute('data-sort')); render(); }); });
+  each('[data-view]', function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view'), true); render(); }); });
   $('density').addEventListener('click', function () { setDense(!dense); setRaw(K.density, dense ? 'compact' : 'comfortable'); });
   $('theme').addEventListener('click', function () { theme = theme === 'system' ? 'light' : theme === 'light' ? 'dark' : 'system'; setRaw(K.theme, theme); applyTheme(); });
-  $('help').addEventListener('click', openKeys);
-  $('keys-close').addEventListener('click', closeKeys);
-  keys.addEventListener('click', function (e) { if (e.target === keys) closeKeys(); }); // a click on the backdrop
+  $('help').addEventListener('click', function () { showDialog(keys); });
+  $('keys-close').addEventListener('click', function () { hideDialog(keys); });
+  keys.addEventListener('click', function (e) { if (e.target === keys) hideDialog(keys); }); // a click on the backdrop
   window.addEventListener('hashchange', function () { var n = fromHash(); if (n && n !== current) go(n); });
 
+  var quick = 0; // when "o" was pressed, waiting for a digit
   document.addEventListener('keydown', function (e) {
-    if (keys.open || e.isComposing) return; // the shortcut sheet handles its own Esc
+    if (keys.open || insp.open || e.isComposing) return; // an open dialog handles its own Esc
     var t = e.target, inSearch = t === q, inList = t === list, mod = e.metaKey || e.ctrlKey;
     var typing = !inSearch && t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
     if (mod && !e.altKey && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); q.focus(); q.select(); return; }
     if (e.key === 'Escape') {
-      if (app.classList.contains('nav-open')) { e.preventDefault(); closeNav(true); }
+      if (Object.keys(selected).length) { e.preventDefault(); clearSel(); }
+      else if (app.classList.contains('nav-open')) { e.preventDefault(); closeNav(true); }
+      else if (openRow) { openRow.classList.remove('show'); openRow.querySelector('.more').setAttribute('aria-expanded', 'false'); openRow = null; }
       else if (inSearch) { e.preventDefault(); if (q.value) { q.value = ''; render(); } else q.blur(); }
       else if (inList) q.focus();
       return;
@@ -763,16 +1310,23 @@ dialog::backdrop { background: var(--scrim); }
       if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); setActive(e.key === 'Home' ? shown[0] : shown[shown.length - 1], true); return; }
     }
     if (mod || e.altKey) return;
+    // o then a digit: open the 1st to 9th page shown
+    if (quick && Date.now() - quick < 1500 && /^[1-9]$/.test(e.key)) { e.preventDefault(); quick = 0; var qr = shown[+e.key - 1]; if (qr) { setActive(qr, true); qr.querySelector('a.txt').click(); } else toast('Only ' + shown.length + ' pages shown'); return; }
     // single-key shortcuts; never while typing in a field
-    if (e.key === '/') { e.preventDefault(); q.focus(); q.select(); }
-    else if (e.key === '?') { e.preventDefault(); openKeys(); }
+    if (e.key === 'o' && shown.length) { e.preventDefault(); quick = Date.now(); toast('Open which? 1–9'); }
+    else if (e.key === 'x' && active) { e.preventDefault(); toggleSel(active._p); }
+    else if (e.key === '/') { e.preventDefault(); q.focus(); q.select(); }
+    else if (e.key === '?') { e.preventDefault(); showDialog(keys); }
     else if (e.key === 'j' || e.key === 'k') {
       e.preventDefault();
-      if (!inList) { var had = active; list.focus({ preventScroll: true }); if (!had) return; } // focusing the list picks the first row
+      if (!inList) { var had = active; list.focus({ preventScroll: true }); if (!had) return; } // focusing the list picks the first page
       move(e.key === 'j' ? 1 : -1);
     }
     else if (e.key === 'c' && active) copy(active._p);
     else if (e.key === 'p' && active) togglePin(active._p);
+    else if (e.key === 'i' && active) { e.preventDefault(); inspect(active._p, inList ? list : null); }
+    else if (e.key === 'v') { setView(view === 'gallery' ? 'list' : 'gallery', true); render(); }
+    else if (e.key === '[' && wide.matches) setFolded(!folded, true);
   });
 
   // sticky group headers sit just under the sticky search header, whatever its height
@@ -781,6 +1335,7 @@ dialog::backdrop { background: var(--scrim); }
   if (window.ResizeObserver) new ResizeObserver(measure).observe(head); else window.addEventListener('resize', measure);
   measure();
 
-  applyTheme(); setSort(sort); setDense(dense); renderSide(); render();
+  trail(current).forEach(function (x) { expanded[x.key] = true; }); // the folder opened at load is shown open
+  applyTheme(); setSort(sort); setView(view, false); setDense(dense); setFolded(folded, false); renderSide(); render();
 })();
 </script>
