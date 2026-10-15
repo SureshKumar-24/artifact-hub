@@ -1,5 +1,13 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/on-session.js"] }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Artifact|mcp__claude_ai_Claude_Docs__batch",

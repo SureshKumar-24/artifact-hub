@@ -126,6 +126,30 @@ test('at the end of a turn, a page that was published but not filed gets one rem
   assert.strictEqual(stop(home(), 'Done.'), '', 'nothing pending, nothing said');
 });
 
+const SESSION = path.join(__dirname, '..', 'hooks', 'on-session.js');
+function session(h, cwd) {
+  const r = spawnSync(process.execPath, [SESSION], { input: JSON.stringify({ hook_event_name: 'SessionStart', source: 'startup', cwd }), env: { ...process.env, HOME: h.dir, USERPROFILE: h.dir }, encoding: 'utf8' });
+  assert.strictEqual(r.status, 0);
+  return r.stdout ? JSON.parse(r.stdout).hookSpecificOutput.additionalContext : '';
+}
+
+test('at session start, the last pages published from this repository are mentioned, nothing else', () => {
+  const h = home();
+  const repo = path.join(h.dir, 'my-shop'); fs.mkdirSync(path.join(repo, '.git'), { recursive: true }); fs.mkdirSync(path.join(repo, 'src'));
+  const other = path.join(h.dir, 'other'); fs.mkdirSync(path.join(other, '.git'), { recursive: true });
+  assert.strictEqual(session(h, repo), '', 'no hub yet');
+  h.hub(`${A}HUB000`);
+  assert.strictEqual(session(h, repo), '', 'nothing published');
+  h.run({ cwd: repo, tool_input: { title: 'Old plan' }, tool_response: published('AAA111') });
+  h.run({ cwd: repo, tool_input: { title: 'Launch checklist' }, tool_response: published('BBB222') });
+  h.run({ cwd: repo, tool_input: { title: 'Pricing page' }, tool_response: published('CCC333') });
+  h.run({ cwd: other, tool_input: { title: 'Elsewhere' }, tool_response: published('DDD444') });
+  const out = session(h, path.join(repo, 'src'));
+  assert.match(out, /"Pricing page" \(.*CCC333\) and "Launch checklist" \(.*BBB222\)/);
+  assert.doesNotMatch(out, /AAA111|DDD444/);
+  assert.strictEqual(session(h, h.dir), '', 'a folder with no pages');
+});
+
 test('a damaged list is replaced, not crashed on', () => {
   const h = home(); fs.mkdirSync(h.store, { recursive: true }); fs.writeFileSync(path.join(h.store, 'pages.json'), '{broken');
   h.run({ tool_input: {}, tool_response: published('AAA111') });

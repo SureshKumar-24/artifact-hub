@@ -71,7 +71,14 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
   .side { position: sticky; z-index: auto; align-self: start; height: 100vh; width: auto; transform: none; visibility: visible; transition: none; box-shadow: none; }
   .main { padding-left: 32px; padding-right: max(32px, env(safe-area-inset-right, 0px)); }
   .app.at-root .subs { display: none; } /* at the top level the sidebar tree already lists the projects */
+  /* folded: the sidebar gives way to the rail of project dots, like on a tablet */
+  .app.folded { grid-template-columns: calc(56px + env(safe-area-inset-left, 0px)) minmax(0, 1fr); }
+  .app.folded .rail { display: flex; }
+  .app.folded .side { display: none; }
+  .app.folded.at-root .subs { display: flex; }
+  .fold { display: inline-grid; }
 }
+.fold { display: none; position: absolute; top: 8px; right: 8px; } /* .side is positioned at every width, so this sits in its corner */
 
 /* ---- Rail (tablet): project dots, names in tooltips */
 .rail-dots { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -149,6 +156,28 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .subs { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 .subs button { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; cursor: pointer; }
 .subs button:hover { border-color: var(--accent); }
+/* status: a small label on the page, a filter chip in the bar; one hue per status, readable in both themes */
+.tl { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.tl .title { min-width: 0; }
+.st { flex: none; font: 500 10px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--hover); color: var(--muted); }
+.s-draft { background: var(--hover); color: var(--c-amber); }
+.s-review { background: var(--accent-soft); color: var(--c-sky); }
+.s-final { background: var(--accent-soft); color: var(--c-green); }
+.s-archived { background: var(--hover); color: var(--muted); }
+.card .tl { align-items: flex-start; }
+.card .st { margin-top: 2px; }
+.sts { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+.stf { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; cursor: pointer; color: var(--ink); }
+.stf small { font: 400 11px/1 var(--mono); color: var(--muted); }
+.stf[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.hint { color: var(--muted); font-size: 12px; }
+/* colour swatches for the open project */
+.dotbtn { width: 28px; height: 28px; flex: none; padding: 0; border: 0; border-radius: 999px; background: transparent; cursor: pointer; display: grid; place-items: center; }
+.dotbtn:hover, .dotbtn[aria-expanded="true"] { background: var(--hover); }
+.dotbtn .dot { width: 12px; height: 12px; }
+.sw { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); max-width: 100%; }
+.swatch { width: 28px; height: 28px; padding: 0; border: 2px solid transparent; border-radius: 999px; background: var(--dot); cursor: pointer; }
+.swatch[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 2px var(--surface); }
 @media (max-width: 639px) { /* subfolder chips scroll sideways under the gutter instead of stacking */
   .bar { padding-top: 8px; min-height: 0; }
   .subs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
@@ -292,12 +321,13 @@ button.lnk:hover { text-decoration: underline; }
 
 <div class="app at-root list" id="app" data-hub-template="3">
   <nav class="rail" aria-label="Projects">
-    <button class="rbtn" type="button" data-menu aria-label="Open folders" aria-controls="side" aria-expanded="false" title="Folders"><span data-icon="menu"></span></button>
+    <button class="rbtn" type="button" id="side-open" data-menu aria-label="Open folders" aria-controls="side" aria-expanded="false" title="Folders ([)"><span data-icon="menu"></span></button>
     <hr>
     <div class="rail-dots" id="rail-dots"></div>
   </nav>
 
   <aside class="side" id="side" aria-label="Folders">
+    <button class="ib fold" type="button" id="fold" aria-label="Hide the sidebar" title="Hide the sidebar ([)"><span data-icon="fold"></span></button>
     <div id="side-pins"></div>
     <div id="side-recent"></div>
     <h2 class="side-h">Projects</h2>
@@ -363,6 +393,7 @@ button.lnk:hover { text-decoration: underline; }
       <dt>Folder</dt><dd id="insp-where"></dd>
       <dt>Updated</dt><dd id="insp-date"></dd>
       <dt>Kind</dt><dd id="insp-kind-text"></dd>
+      <dt>Status</dt><dd><span id="insp-status"></span> <span class="hint">· ask Claude: "mark this page final"</span></dd>
       <dt>Link</dt><dd class="url"><input readonly id="insp-url" aria-label="Page link"><button class="ib" type="button" id="insp-copy" aria-label="Copy link" title="Copy link"><span data-icon="copy"></span></button></dd>
     </dl>
     <div class="row-btns">
@@ -388,10 +419,14 @@ button.lnk:hover { text-decoration: underline; }
   // A row is [title, artifact id, description, date like '15 Oct']. A project may set
   // color: one of COLORS; otherwise it takes the colour of its place in PROJECTS.
   var COLORS = ['teal', 'indigo', 'amber', 'rose', 'green', 'violet', 'sky', 'clay'];
+  // A row may carry a fifth item, its status: 'draft', 'review', 'final' or 'archived'.
+  // Archived pages stay listed but are shown only on request.
+  var STATUSES = ['draft', 'review', 'final', 'archived'];
 
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
   var K = { folder: 'project-hub.folder.v2', pins: 'project-hub.pins.v1', opened: 'project-hub.opened.v1',
-    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1' };
+    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1',
+    colors: 'project-hub.colors.v1', side: 'project-hub.side.v1' };
   function getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setRaw(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not saved */ } }
   function getJSON(k, d) { try { var v = JSON.parse(getRaw(k)); return v == null ? d : v; } catch (e) { return d; } }
@@ -417,6 +452,7 @@ button.lnk:hover { text-decoration: underline; }
     chev: '<path d="M6 3.5 10.5 8 6 12.5"/>',
     all: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
     folder: '<path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/>',
+    fold: '<rect x="2.5" y="3" width="11" height="10" rx="1.5"/><path d="M6 3v10M10.5 6.5 9 8l1.5 1.5"/>',
     system: '<circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/>',
     light: '<circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/>',
     dark: '<path d="M13.5 9.6A5.5 5.5 0 0 1 6.4 2.5a5.5 5.5 0 1 0 7.1 7.1z"/>'
@@ -482,7 +518,7 @@ button.lnk:hover { text-decoration: underline; }
     var a = age(p);
     if (a === Infinity) return p.date || '—';
     if (a <= 0) return 'today';
-    return a < 7 ? a + 'd' : a < 30 ? Math.floor(a / 7) + 'w' : a < 365 ? Math.floor(a / 30.4) + 'mo' : Math.floor(a / 365) + 'y';
+    return a < 7 ? a + 'd' : a < 45 ? Math.floor(a / 7) + 'w' : a < 365 ? Math.max(1, Math.round(a / 30.4)) + 'mo' : Math.floor(a / 365) + 'y';
   }
   function dateGroup(p) { var a = age(p); return a <= 0 ? 'Today' : a < 7 ? 'This week' : a <= 31 ? 'This month' : 'Earlier'; }
 
@@ -498,16 +534,22 @@ button.lnk:hover { text-decoration: underline; }
     parent.kids.push(node); byKey[k] = node; return node;
   }
   var PAGES = [], byId = {};
+  // a colour chosen on this page is kept in this browser; the project's own colour stays the default
+  var myColors = getJSON(K.colors, {}); if (!myColors || typeof myColors !== 'object') myColors = {};
   PROJECTS.forEach(function (p, pi) {
     var pn = child(root, String(p.name || 'Untitled'), slug(p.id || p.name));
-    if (!pn.color) { pn.about = p.about || ''; pn.color = COLORS.indexOf(p.color) >= 0 ? p.color : COLORS[pi % COLORS.length]; }
+    if (!pn.color) {
+      pn.about = p.about || ''; pn.base = COLORS.indexOf(p.color) >= 0 ? p.color : COLORS[pi % COLORS.length];
+      pn.color = COLORS.indexOf(myColors[pn.key]) >= 0 ? myColors[pn.key] : pn.base;
+    }
     (p.shelves || []).forEach(function (s) {
       var node = pn;
       String(s[0] || '').split('/').map(function (t) { return t.trim(); }).filter(function (t) { return t && t.toLowerCase() !== 'all pages'; })
         .forEach(function (part) { node = child(node, part); });
       (s[1] || []).forEach(function (pg) {
         if (!pg) return;
-        var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''), node: node, proj: pn };
+        var st = String(pg[4] || '').toLowerCase();
+        var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''), status: STATUSES.indexOf(st) >= 0 ? st : '', node: node, proj: pn };
         node.pages.push(rec); PAGES.push(rec); if (!byId[rec.id]) byId[rec.id] = rec;
       });
     });
@@ -521,8 +563,11 @@ button.lnk:hover { text-decoration: underline; }
   PAGES.forEach(function (p) { // the search index is computed once, at load
     p.path = trail(p.node).slice(2).map(function (x) { return x.name; }).join(' / ');
     p.where = p.proj.name + (p.path ? ' / ' + p.path : '');
-    p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.fw = fold(p.where); p.kind = kindOf(p);
+    p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.fw = fold(p.where + (p.status ? ' ' + p.status : '')); p.kind = kindOf(p);
   });
+  var statusFilter = ''; // '' = every page but archived ones; a status name = only those
+  function visible(p) { return statusFilter ? p.status === statusFilter : p.status !== 'archived'; }
+  function countStatus(pool) { var c = {}; pool.forEach(function (p) { if (p.status) c[p.status] = (c[p.status] || 0) + 1; }); return c; }
 
   // ---- Viewer state (all optional; bad or missing values fall back to defaults)
   var pins = getJSON(K.pins, []); pins = Array.isArray(pins) ? pins.filter(function (x) { return typeof x === 'string'; }) : [];
@@ -607,7 +652,7 @@ button.lnk:hover { text-decoration: underline; }
     return trail(p.node).slice(trail(current).length).map(function (x) { return x.name; }).join(' / ');
   }
   function sections(query) {
-    var pool = under(current), secs = [];
+    var pool = under(current).filter(visible), secs = [];
     if (query) { // one ranked list, searched inside the open filter
       var words = fold(query).split(/\s+/).filter(Boolean), whole = words.join(' '), res = [];
       pool.forEach(function (p) { p.hit = match(p, words, whole); if (p.hit) res.push(p); });
@@ -615,10 +660,10 @@ button.lnk:hover { text-decoration: underline; }
       if (res.length) secs.push({ key: 'res', label: 'Best matches', items: res, path: 'rel' });
       return secs;
     }
-    if (current === root) { // continue working: pinned pages, then the 8 opened last (this browser only)
-      var pinned = pins.map(function (id) { return byId[id]; }).filter(Boolean);
+    if (current === root && !statusFilter) { // continue working: pinned pages, then the 8 opened last (this browser only)
+      var pinned = pins.map(function (id) { return byId[id]; }).filter(Boolean).filter(visible);
       if (pinned.length) secs.push({ key: 'pin', label: 'Pinned', items: pinned, path: 'rel' });
-      var recent = recentIds(8).map(function (id) { return byId[id]; });
+      var recent = recentIds(8).map(function (id) { return byId[id]; }).filter(visible);
       if (recent.length) secs.push({ key: 'rec', label: 'Continue working', items: recent, path: 'rel', about: 'Pages you opened last, remembered in this browser' });
     }
     if (sort === 'updated') { // newest first, under Today / This week / This month / Earlier
@@ -626,11 +671,12 @@ button.lnk:hover { text-decoration: underline; }
       pool.slice().sort(cmp).forEach(function (p) { var g = dateGroup(p); (groups[g] = groups[g] || []).push(p); });
       ['Today', 'This week', 'This month', 'Earlier'].forEach(function (g) { if (groups[g]) secs.push({ key: 'd:' + g, label: g, items: groups[g], path: 'rel' }); });
     } else if (current === root) { // one group per project, in PROJECTS order
-      root.kids.forEach(function (pn) { var it = under(pn).slice().sort(cmp); if (it.length) secs.push({ key: 'p:' + pn.key, label: pn.name, color: pn.color, items: it, path: 'folder', about: pn.about }); });
+      root.kids.forEach(function (pn) { var it = under(pn).filter(visible).sort(cmp); if (it.length) secs.push({ key: 'p:' + pn.key, label: pn.name, color: pn.color, items: it, path: 'folder', about: pn.about }); });
     } else { // inside a folder: its own pages, then each folder below it under its path
       var base = trail(current).length;
       (function walk(n) {
-        if (n.pages.length) secs.push({ key: 'f:' + n.key, label: n === current ? n.name : trail(n).slice(base).map(function (x) { return x.name; }).join(' / '), color: n.proj.color, items: n.pages.slice().sort(cmp), path: 'none' });
+        var own = n.pages.filter(visible);
+        if (own.length) secs.push({ key: 'f:' + n.key, label: n === current ? n.name : trail(n).slice(base).map(function (x) { return x.name; }).join(' / '), color: n.proj.color, items: own.sort(cmp), path: 'none' });
         n.kids.forEach(walk);
       })(current);
     }
@@ -649,11 +695,13 @@ button.lnk:hover { text-decoration: underline; }
     return acts;
   }
   function textOf(p) { // title and description, shared by rows and cards
-    var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + p.date : '');
-    var t = el('span', 'title', p.title), d = el('span', 'desc'), path = el('span', 'path'), dt = el('span', 'dtext');
-    d.appendChild(path); d.appendChild(dt); a.appendChild(t); a.appendChild(d);
+    var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + p.date : '') + (p.status ? '\n' + cap(p.status) : '');
+    var tl = el('span', 'tl'), t = el('span', 'title', p.title), d = el('span', 'desc'), path = el('span', 'path'), dt = el('span', 'dtext');
+    tl.appendChild(t); if (p.status) tl.appendChild(el('span', 'st s-' + p.status, cap(p.status)));
+    d.appendChild(path); d.appendChild(dt); a.appendChild(tl); a.appendChild(d);
     return { a: a, t: t, path: path, dt: dt };
   }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
   function finish(r, p, kind, parts) {
     r.id = 'r-' + kind + '-' + p.i; r.setAttribute('role', 'option'); r.setAttribute('aria-selected', 'false');
     r._p = p; r._t = parts.t; r._d = parts.dt; r._path = parts.path; r._star = r.querySelector('[data-act="pin"]'); r._sig = null;
@@ -745,20 +793,53 @@ button.lnk:hover { text-decoration: underline; }
     setActive(secs[n].querySelector('[role="option"]'), true);
   }
 
-  // ---- Context bar: the open folder with its note and subfolders, the page count, the empty state
+  // ---- Context bar: the open folder with its note and subfolders, the page count, status
+  // filters, the empty state. Inside a project the colour dot is a button: eight swatches, the
+  // choice kept in this browser (Claude can make it permanent in the hub's data).
+  var swatchOpen = false;
+  function recolor(pn, color) {
+    pn.color = color || pn.base;
+    if (color && color !== pn.base) myColors[pn.key] = color; else delete myColors[pn.key];
+    setJSON(K.colors, myColors);
+    Object.keys(itemCache).forEach(function (k) { var r = itemCache[k]; if (r._p.proj === pn) { r.className = r.className.replace(/\bc-\w+/, 'c-' + pn.color); } });
+    renderSide(); render(); toast(color ? 'Colour kept in this browser. Ask Claude to make it permanent.' : 'Default colour');
+  }
   function renderBar(query) {
     bar.textContent = ''; app.classList.toggle('at-root', current === root);
     if (current !== root) {
-      var ctx = el('div', 'ctx'), up = trail(current).slice(1, -1).map(function (n) { return n.name; }).join(' / ');
-      ctx.appendChild(el('span', 'dot c-' + current.proj.color));
+      var ctx = el('div', 'ctx'), up = trail(current).slice(1, -1).map(function (n) { return n.name; }).join(' / '), pn = current.proj;
+      var db = el('button', 'dotbtn'); db.type = 'button'; db.title = 'Project colour'; db.setAttribute('aria-label', 'Change the colour of ' + pn.name); db.setAttribute('aria-expanded', String(swatchOpen));
+      db.appendChild(el('span', 'dot c-' + pn.color));
+      db.addEventListener('click', function () { swatchOpen = !swatchOpen; renderBar(q.value.trim()); if (swatchOpen) { var f = bar.querySelector('.sw [aria-checked="true"]'); if (f) f.focus(); } });
+      ctx.appendChild(db);
       if (up) ctx.appendChild(el('span', 'up', up + ' /'));
       ctx.appendChild(el('h2', '', current.name));
       var x = el('button'); x.type = 'button'; x.setAttribute('aria-label', 'Leave this folder, show all projects'); x.title = 'Show all projects'; x.appendChild(icon('x'));
       x.addEventListener('click', function () { go(root); });
       ctx.appendChild(x); bar.appendChild(ctx);
+      if (swatchOpen) {
+        var sw = el('div', 'sw'); sw.setAttribute('role', 'radiogroup'); sw.setAttribute('aria-label', 'Colour of ' + pn.name);
+        COLORS.forEach(function (c) {
+          var b = el('button', 'swatch c-' + c); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(c === pn.color)); b.title = cap(c) + (c === pn.base ? ' (default)' : ''); b.setAttribute('aria-label', b.title);
+          b.addEventListener('click', function () { swatchOpen = false; recolor(pn, c === pn.base ? '' : c); });
+          sw.appendChild(b);
+        });
+        bar.appendChild(sw);
+      }
     }
-    var total = under(current).length;
+    var all = under(current), total = all.filter(visible).length, counts = countStatus(all);
     bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
+    if (Object.keys(counts).length) { // status chips: a filter each; archived pages appear only through theirs
+      var sts = el('div', 'sts'); sts.setAttribute('role', 'group'); sts.setAttribute('aria-label', 'Status');
+      STATUSES.forEach(function (s) {
+        if (!counts[s]) return;
+        var b = el('button', 'stf s-' + s); b.type = 'button'; b.setAttribute('aria-pressed', String(statusFilter === s));
+        b.appendChild(el('span', '', cap(s))); b.appendChild(el('small', '', String(counts[s])));
+        b.addEventListener('click', function () { statusFilter = statusFilter === s ? '' : s; render(); });
+        sts.appendChild(b);
+      });
+      bar.appendChild(sts);
+    }
     if (current.about && !query) bar.appendChild(el('p', 'about', current.about));
     if (current.kids.length && !query) {
       var subs = el('div', 'subs');
@@ -775,8 +856,9 @@ button.lnk:hover { text-decoration: underline; }
     empty.hidden = shown.length > 0; empty.textContent = '';
     if (shown.length) return;
     if (!PAGES.length) { empty.appendChild(el('p', '', 'No pages listed yet. Ask Claude to run the hub rebuild.')); return; }
-    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : 'This folder is empty.'));
+    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : statusFilter ? 'No ' + statusFilter + ' pages here.' : 'This folder is empty.'));
     var btns = el('div', 'btns');
+    if (statusFilter) { var sf = el('button', 'btn', 'Show every status'); sf.type = 'button'; sf.addEventListener('click', function () { statusFilter = ''; render(); }); btns.appendChild(sf); }
     if (current !== root) { var all = el('button', 'btn primary', 'Search all projects'); all.type = 'button'; all.addEventListener('click', function () { go(root); q.focus(); }); btns.appendChild(all); }
     if (query) { var clr = el('button', 'btn', 'Clear'); clr.type = 'button'; clr.addEventListener('click', function () { q.value = ''; render(); q.focus(); }); btns.appendChild(clr); }
     empty.appendChild(btns);
@@ -868,6 +950,11 @@ button.lnk:hover { text-decoration: underline; }
     if (openRow) { openRow.classList.remove('show'); openRow = null; }
   }
   function setDense(on) { dense = on; app.classList.toggle('compact', on); $('density').setAttribute('aria-pressed', String(on)); }
+  var folded = getRaw(K.side) === 'closed';
+  function setFolded(on, save) { // desktop: the sidebar folds to the rail of project dots
+    folded = on; app.classList.toggle('folded', on); if (save) setRaw(K.side, on ? 'closed' : 'open');
+    each('[data-menu]', function (b) { b.setAttribute('aria-expanded', String(!on)); });
+  }
   function applyTheme() { // no attribute = follow the system; the button cycles system, light, dark
     if (theme === 'system') html.removeAttribute('data-theme'); else html.setAttribute('data-theme', theme);
     var b = $('theme'), label = 'Theme: ' + (theme === 'system' ? 'follow system' : theme) + '. Change theme';
@@ -901,6 +988,7 @@ button.lnk:hover { text-decoration: underline; }
       var b = el('button', 'lnk', n.name); b.type = 'button'; b.addEventListener('click', function () { hideDialog(insp); go(n); }); where.appendChild(b);
     });
     $('insp-date').textContent = p.date ? p.date + (age(p) === Infinity ? '' : ' · ' + rel(p)) : 'not recorded';
+    $('insp-status').textContent = p.status ? cap(p.status) : 'none'; $('insp-status').className = p.status ? 's-' + p.status + ' st' : '';
     $('insp-kind-text').textContent = kindLabel(p.kind) + ' (from the title)';
     $('insp-url').value = A + p.id; $('insp-open').href = A + p.id; $('insp-open').setAttribute('data-id', p.id);
     var on = pins.indexOf(p.id) >= 0, pb = $('insp-pin'); pb.setAttribute('aria-pressed', String(on)); pb.lastChild.textContent = on ? 'Pinned' : 'Pin';
@@ -939,7 +1027,7 @@ button.lnk:hover { text-decoration: underline; }
 
   [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
     ['i', 'Details of the page'], [MOD + '↑  ' + MOD + '↓', 'Previous / next group'], ['Home  End', 'First / last page (in the list)'],
-    ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['v', 'Gallery or list'], ['Esc', 'Close, then clear the search, then leave it'], ['?', 'This list']]
+    ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['v', 'Gallery or list'], ['[', 'Hide or show the sidebar'], ['Esc', 'Close, then clear the search, then leave it'], ['?', 'This list']]
     .forEach(function (k) { $('keys-list').appendChild(el('dt')).appendChild(el('kbd', '', k[0])); $('keys-list').appendChild(el('dd', '', k[1])); });
 
   // ---- Events
@@ -958,10 +1046,14 @@ button.lnk:hover { text-decoration: underline; }
     }
   });
   // every opened page is remembered: left or middle click, or Enter (which clicks the link)
+  var wide = window.matchMedia ? matchMedia('(min-width: 1024px)') : { matches: false };
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[data-id]'); if (a) record(a.getAttribute('data-id'));
-    var m = e.target.closest && e.target.closest('[data-menu]'); if (m) { if (app.classList.contains('nav-open')) closeNav(true); else openNav(m); }
+    var m = e.target.closest && e.target.closest('[data-menu]');
+    if (m) { if (wide.matches) setFolded(!folded, true); else if (app.classList.contains('nav-open')) closeNav(true); else openNav(m); }
+    if (swatchOpen && !(e.target.closest && e.target.closest('.sw, .dotbtn'))) { swatchOpen = false; renderBar(q.value.trim()); }
   });
+  $('fold').addEventListener('click', function () { setFolded(true, true); $('side-open').focus(); });
   document.addEventListener('auxclick', function (e) { var a = e.button === 1 && e.target.closest && e.target.closest('a[data-id]'); if (a) record(a.getAttribute('data-id')); });
   // Continue working is refreshed when the viewer comes back from the opened page, not under their cursor
   function refresh() { if (stale && !document.hidden) { stale = false; renderSide(); render(); } }
@@ -1008,6 +1100,7 @@ button.lnk:hover { text-decoration: underline; }
     else if (e.key === 'p' && active) togglePin(active._p);
     else if (e.key === 'i' && active) { e.preventDefault(); inspect(active._p, inList ? list : null); }
     else if (e.key === 'v') { setView(view === 'gallery' ? 'list' : 'gallery', true); render(); }
+    else if (e.key === '[' && wide.matches) setFolded(!folded, true);
   });
 
   // sticky group headers sit just under the sticky search header, whatever its height
@@ -1017,6 +1110,6 @@ button.lnk:hover { text-decoration: underline; }
   measure();
 
   trail(current).forEach(function (x) { expanded[x.key] = true; }); // the folder opened at load is shown open
-  applyTheme(); setSort(sort); setView(view, false); setDense(dense); renderSide(); render();
+  applyTheme(); setSort(sort); setView(view, false); setDense(dense); setFolded(folded, false); renderSide(); render();
 })();
 </script>

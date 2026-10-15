@@ -27,6 +27,17 @@
   Subfolder chips scroll sideways too.
 - The intro sentence under the title is gone: the pages start right under the search
   box. The shortcuts are still one `?` away.
+- Status on a page: `draft`, `review`, `final` or `archived`, an optional fifth item in the
+  row, set in plain words ("mark the pricing page final"). A small label on the page, one
+  filter chip per status; archived pages stay in the hub but show only through their chip.
+- Project colour from the page: the colour dot next to an open project's name opens the
+  eight swatches. The choice is kept in that browser; ask Claude to make it permanent.
+- The sidebar folds to the rail of project dots on desktop (the button in its corner, the
+  menu button, or `[`), and the choice is remembered.
+- A third hook, on `SessionStart`: if pages were published from this repository in the
+  last 30 days, Claude is told the two most recent ones, in one line, so "continue the
+  pricing page" goes to the right page. Silent otherwise.
+- Relative dates: "0mo" no longer appears; 30 to 44 days read as weeks.
 - A second hook, on `Stop`: if a page was published this turn and the hub was not
   republished, Claude gets one reminder to file it. Once per page, never repeated.
 - Replaced pages: a new page with the title of a known page is marked as replacing it

@@ -43,7 +43,12 @@ so creating a subfolder is just using a new path, and a folder exists only while
 pages.
 
 Each row stays `[title, id, description, date]`, with the date written like `'3 Oct'`
-(no year; the page reads it as the most recent such day).
+(no year; the page reads it as the most recent such day). A row may carry a fifth item,
+its status: `'draft'`, `'review'`, `'final'` or `'archived'`. Leave it out otherwise.
+The page shows the status as a small label, offers one filter chip per status, and hides
+archived pages unless their chip is pressed. The user sets it in plain words: "mark the
+pricing page final", "this one is a draft", "archive the old logo page" (archive, never
+delete: the row stays). Do it by adding or changing that fifth item and republishing.
 
 A project may also have an optional `color`, one of `teal`, `indigo`, `amber`, `rose`,
 `green`, `violet`, `sky`, `clay`:
@@ -55,6 +60,9 @@ A project may also have an optional `color`, one of `teal`, `indigo`, `amber`, `
 Leave it out and the project takes the colour of its place in `PROJECTS` (first teal,
 second indigo, and so on), so colours stay fixed as long as the order does. Set it only
 when the user asks for a colour, or to keep a project's colour when you reorder projects.
+On the page itself, the colour dot next to an open project's name offers the eight
+swatches; a choice made there is kept in that browser only, and the page says to ask you
+to make it permanent: when the user does, set `color` here.
 
 The artifact id is the last part of the page's link. Only that array changes; leave the
 styles and the rest of the script alone.

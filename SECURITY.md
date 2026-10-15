@@ -2,11 +2,12 @@
 
 ## What this plugin can do
 
-It registers two hooks. `PostToolUse`, matcher `Artifact|mcp__claude_ai_Claude_Docs__batch`
+It registers three hooks. `PostToolUse`, matcher `Artifact|mcp__claude_ai_Claude_Docs__batch`
 (the Artifact tool, and the Claude Docs connector call that creates a document), starts
-`hooks/on-artifact.js`. `Stop` starts `hooks/on-stop.js`. Both run with Node.js in exec
-form (no shell). There is no `SessionStart` hook, no MCP server, no agent and no
-dependency to install.
+`hooks/on-artifact.js`. `Stop` starts `hooks/on-stop.js`. `SessionStart` (startup and
+resume) starts `hooks/on-session.js`, which reads the two JSON files and prints one line
+or nothing. All run with Node.js in exec form (no shell). There is no MCP server, no
+agent and no dependency to install.
 
 The scripts:
 
@@ -23,7 +24,7 @@ variables or credentials, or change any Claude Code setting or permission.
 
 ## Check it yourself
 
-The scripts are 137 and 36 lines: [hooks/on-artifact.js](hooks/on-artifact.js), [hooks/on-stop.js](hooks/on-stop.js). These should
+The scripts are 137, 36 and 50 lines: [on-artifact.js](hooks/on-artifact.js), [on-stop.js](hooks/on-stop.js), [on-session.js](hooks/on-session.js). These should
 all print nothing:
 
 ```

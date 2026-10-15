@@ -79,7 +79,9 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 | **Keep working on a page** | "Copy for Claude Code" in the details panel gives you one line to paste into a new session, with the link, so Claude updates that page instead of making another. |
 | **Your list, in a file** | "Download this list as Markdown" at the bottom saves every folder, title, description and link, made in your browser. Nothing is sent anywhere. |
 | **Search** | One box searches titles, descriptions and folders at once, forgives typos, puts the best match first and highlights what matched. Pick a folder to search inside it. |
-| **Pins and Continue working** | Pin the pages you keep going back to; the ones you opened last wait under "Continue working". Kept in your browser only. |
+| **Pins and Continue working** | Pin the pages you keep going back to; the ones you opened last wait under "Continue working". Kept in your browser only. At session start, Claude also knows the last pages you published from the repository you are in. |
+| **Status** | Say "mark the pricing page final" or "archive the old logo page": a small label on the page and a filter chip per status (draft, review, final, archived). Archived pages stay in the hub, out of the way. |
+| **Your colours** | Each project has a colour; the dot next to an open project offers eight swatches. |
 | **Quick to use** | Keyboard shortcuts (`/` to search, arrows to move, Enter to open, `i` for details, `v` to switch views, `?` for the rest), copy a link in one click, sort by recent, updated or A–Z, compact rows, light or dark. Works on a phone, with a folder drawer and touch-size buttons. |
 | **Nothing extra to do** | Publish as usual. The page is filed under the project of the repository you are working in. A document made with the Claude Docs connector is filed the same way. |
 | **Deleted pages are cleaned up** | Delete an artifact and its row leaves the hub. |
@@ -155,7 +157,7 @@ A plugin can run code on your machine, so here is all of it.
 
 | | |
 |---|---|
-| **Runs** | Two hooks. `PostToolUse` for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document) starts `hooks/on-artifact.js` (137 lines). `Stop` starts `hooks/on-stop.js` (36 lines), which only speaks when a page published that turn was not filed. Plain Node.js, no dependencies, no shell in between. Nothing runs at session start. |
+| **Runs** | Three hooks. `PostToolUse` for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document) starts `hooks/on-artifact.js` (137 lines). `Stop` starts `hooks/on-stop.js` (36 lines), which only speaks when a page published that turn was not filed. `SessionStart` starts `hooks/on-session.js` (50 lines), which adds one line naming the last two pages published from the current repository in the past 30 days, and nothing when there are none. Plain Node.js, no dependencies, no shell in between. |
 | **Reads** | The result of that tool call, the `<title>` of the file just published (or the new document's name), Claude's last message of the turn, and your hub settings. During setup or a rebuild, Claude reads the list of your own artifacts through its own Artifact tool. |
 | **Writes** | Two files in `~/.claude/artifact-hub/`: `pages.json` (your published links) and `hub.json` (your hub's address and folder rules), plus a small `.pending` marker between a publish and its filing. And your hub artifact. |
 | **Sends** | Nothing. No network request, no server, no analytics, no account. |
@@ -164,7 +166,7 @@ Check it yourself in a minute: [SECURITY.md](SECURITY.md). The script's behaviou
 
 ## What it costs
 
-- Nothing at session start: no extra context, no startup step.
+- At session start: one line of about 40 words, only in a repository you published from in the last 30 days; otherwise nothing.
 - One reminder of about 80 words, only in a turn where Claude publishes or deletes an artifact.
 - Filing a page is one read and one republish of the hub.
 
@@ -250,7 +252,7 @@ Issues and pull requests are welcome. The whole plugin is small:
 
 ```
 .claude-plugin/   plugin and marketplace manifests
-hooks/            hooks.json, on-artifact.js and on-stop.js (the only code that runs)
+hooks/            hooks.json, on-artifact.js, on-stop.js, on-session.js (the only code that runs)
 skills/hub/       rebuild, filing, folders; template.html is the hub page
 skills/find/      find a page by a few words and hand its link to the session
 skills/setup/     first-time setup
