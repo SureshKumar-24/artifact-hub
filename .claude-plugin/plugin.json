@@ -1,6 +1,6 @@
 {
   "name": "artifact-hub",
-  "description": "Folders for your Claude artifacts: every page you publish is saved to a local list and filed into project folders and subfolders on one index page (Project Hub).",
+  "description": "Every Claude artifact you publish, filed and searchable: links saved on your machine at publish time and filed into project folders on one private index page, with a gallery, search, details, status, pins and a weekly digest.",
   "version": "1.5.0",
   "author": {
     "name": "Suresh Kumar"
