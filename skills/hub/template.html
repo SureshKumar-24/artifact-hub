@@ -165,6 +165,8 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .s-final { background: var(--accent-soft); color: var(--c-green); }
 .s-archived { background: var(--hover); color: var(--muted); }
 .s-unsaved { background: transparent; color: var(--c-amber); border: 1px dashed var(--c-amber); }
+.s-by { background: var(--accent-soft); color: var(--accent); text-transform: none; letter-spacing: 0; }
+.kinds .stf svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .save { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--c-amber); border-radius: 10px; background: var(--surface); font-size: 14px; }
 .save > span { flex: 1 1 200px; }
 .side-h .lnk { font: 500 11px/1 var(--mono); letter-spacing: 0; text-transform: none; }
@@ -489,19 +491,24 @@ button.lnk:hover { text-decoration: underline; }
   ];
   var KIND_ICON = {
     design: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>',
+    designsystem: '<circle cx="8" cy="8" r="3"/><rect x="13" y="5" width="6" height="6" rx="1"/><path d="M5 19l3-5 3 5zM13 16h6v3h-6z"/>',
+    dashboard: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h18M10 10v11M14 15l2-2 2 2"/>',
     code: '<path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/>',
     report: '<path d="M4 20h16M7 17v-6M12 17V7M17 17v-3"/>',
     slides: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M8 10h8M8 13h5"/>',
     doc: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
     page: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'
   };
+  // Kinds Claude itself records (a page made from one of its types) come first; the rest are read from the title
+  var KIND_LABEL = { slides: 'Slides', design: 'Design', designsystem: 'Design system', dashboard: 'Dashboard', doc: 'Document', code: 'Code', report: 'Report', page: 'Page' };
   function kindOf(p) {
+    if (p.known) return p.known;
     var t = p.ft, d = p.fd;
     for (var i = 0; i < KINDS.length; i++) if (KINDS[i][2].test(t)) return KINDS[i][0];
     for (var j = 0; j < KINDS.length; j++) if (KINDS[j][2].test(d)) return KINDS[j][0];
     return 'page';
   }
-  function kindLabel(k) { for (var i = 0; i < KINDS.length; i++) if (KINDS[i][0] === k) return KINDS[i][1]; return 'Page'; }
+  function kindLabel(k) { return KIND_LABEL[k] || 'Page'; }
   function kindIcon(k) {
     var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = KIND_ICON[k] || KIND_ICON.page; return s;
@@ -565,8 +572,11 @@ button.lnk:hover { text-decoration: underline; }
         .forEach(function (part) { node = child(node, part); });
       (s[1] || []).forEach(function (pg) {
         if (!pg) return;
-        var st = String(pg[4] || '').toLowerCase();
-        var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''), status: STATUSES.indexOf(st) >= 0 ? st : '', node: node, proj: pn };
+        // the fifth item is a status word, or an object { status, kind, by } when more is known
+        var x = pg[4] && typeof pg[4] === 'object' ? pg[4] : { status: pg[4] };
+        var st = String(x.status || '').toLowerCase(), kd = String(x.kind || '').toLowerCase().replace(/[^a-z]/g, '');
+        var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''),
+          status: STATUSES.indexOf(st) >= 0 ? st : '', known: KIND_LABEL[kd] ? kd : '', by: x.by ? String(x.by) : '', node: node, proj: pn };
         rec.home = node; rec.status0 = rec.status; // what the hub's data says, before any edit made on this page
         node.pages.push(rec); PAGES.push(rec); if (!byId[rec.id]) byId[rec.id] = rec;
       });
@@ -581,8 +591,11 @@ button.lnk:hover { text-decoration: underline; }
   function index(p) { // the search index and the folder label of one page
     p.path = trail(p.node).slice(2).map(function (x) { return x.name; }).join(' / ');
     p.where = p.proj.name + (p.path ? ' / ' + p.path : '');
-    p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.fw = fold(p.where + (p.status ? ' ' + p.status : '')); p.kind = kindOf(p);
+    p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.kind = kindOf(p);
+    p.fw = fold(p.where + (p.status ? ' ' + p.status : '') + ' ' + kindLabel(p.kind) + (p.by ? ' ' + p.by : ''));
   }
+  var kindFilter = ''; // '' = every kind
+  function countKinds(pool) { var c = {}; pool.forEach(function (p) { c[p.kind] = (c[p.kind] || 0) + 1; }); return c; }
   // ---- Edits made on this page (a page moved to another folder, a status set) live in this browser
   // until Claude writes them into the hub's data. Each page keeps a note of what changed.
   var edits = getJSON(K.edits, {}); if (!edits || typeof edits !== 'object') edits = {};
@@ -617,7 +630,7 @@ button.lnk:hover { text-decoration: underline; }
     return lines.join('\n');
   }
   var statusFilter = ''; // '' = every page but archived ones; a status name = only those
-  function visible(p) { return statusFilter ? p.status === statusFilter : p.status !== 'archived'; }
+  function visible(p) { return (kindFilter ? p.kind === kindFilter : true) && (statusFilter ? p.status === statusFilter : p.status !== 'archived'); }
   function countStatus(pool) { var c = {}; pool.forEach(function (p) { if (p.status) c[p.status] = (c[p.status] || 0) + 1; }); return c; }
 
   // ---- Viewer state (all optional; bad or missing values fall back to defaults)
@@ -711,7 +724,7 @@ button.lnk:hover { text-decoration: underline; }
       if (res.length) secs.push({ key: 'res', label: 'Best matches', items: res, path: 'rel' });
       return secs;
     }
-    if (current === root && !statusFilter) { // continue working: pinned pages, then the 8 opened last (this browser only)
+    if (current === root && !statusFilter && !kindFilter) { // continue working: pinned pages, then the 8 opened last (this browser only)
       var pinned = pins.map(function (id) { return byId[id]; }).filter(Boolean).filter(visible);
       if (pinned.length) secs.push({ key: 'pin', label: 'Pinned', items: pinned, path: 'rel' });
       var recent = recentIds(8).map(function (id) { return byId[id]; }).filter(visible);
@@ -749,6 +762,7 @@ button.lnk:hover { text-decoration: underline; }
     var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + exact(p) : '') + (p.status ? '\n' + cap(p.status) : '');
     var tl = el('span', 'tl'), t = el('span', 'title', p.title), d = el('span', 'desc'), path = el('span', 'path'), dt = el('span', 'dtext');
     tl.appendChild(t); if (p.status) tl.appendChild(el('span', 'st s-' + p.status, cap(p.status)));
+    if (p.by) { var by = el('span', 'st s-by', p.by); by.title = 'Shared with you by ' + p.by; tl.appendChild(by); }
     if (p.unsaved) { var u = el('span', 'st s-unsaved', 'Unsaved'); u.title = 'Changed on this page, not yet written to the hub'; tl.appendChild(u); }
     d.appendChild(path); d.appendChild(dt); a.appendChild(tl); a.appendChild(d);
     return { a: a, t: t, path: path, dt: dt };
@@ -881,8 +895,19 @@ button.lnk:hover { text-decoration: underline; }
         bar.appendChild(sw);
       }
     }
-    var all = under(current), total = all.filter(visible).length, counts = countStatus(all);
+    var all = under(current), total = all.filter(visible).length, counts = countStatus(all), kinds = countKinds(all);
     bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
+    if (Object.keys(kinds).length > 1) { // kind chips, like the gallery's type filter: one per kind present here
+      var kf = el('div', 'sts kinds'); kf.setAttribute('role', 'group'); kf.setAttribute('aria-label', 'Kind');
+      Object.keys(KIND_LABEL).forEach(function (k) {
+        if (!kinds[k]) return;
+        var b = el('button', 'stf'); b.type = 'button'; b.setAttribute('aria-pressed', String(kindFilter === k));
+        b.appendChild(kindIcon(k)); b.appendChild(el('span', '', KIND_LABEL[k])); b.appendChild(el('small', '', String(kinds[k])));
+        b.addEventListener('click', function () { kindFilter = kindFilter === k ? '' : k; render(); });
+        kf.appendChild(b);
+      });
+      bar.appendChild(kf);
+    }
     if (Object.keys(counts).length) { // status chips: a filter each; archived pages appear only through theirs
       var sts = el('div', 'sts'); sts.setAttribute('role', 'group'); sts.setAttribute('aria-label', 'Status');
       STATUSES.forEach(function (s) {
@@ -910,9 +935,9 @@ button.lnk:hover { text-decoration: underline; }
     empty.hidden = shown.length > 0; empty.textContent = '';
     if (shown.length) return;
     if (!PAGES.length) { empty.appendChild(el('p', '', 'No pages listed yet. Ask Claude to run the hub rebuild.')); return; }
-    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : statusFilter ? 'No ' + statusFilter + ' pages here.' : 'This folder is empty.'));
+    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : statusFilter || kindFilter ? 'No such pages here.' : 'This folder is empty.'));
     var btns = el('div', 'btns');
-    if (statusFilter) { var sf = el('button', 'btn', 'Show every status'); sf.type = 'button'; sf.addEventListener('click', function () { statusFilter = ''; render(); }); btns.appendChild(sf); }
+    if (statusFilter || kindFilter) { var sf = el('button', 'btn', 'Show every kind and status'); sf.type = 'button'; sf.addEventListener('click', function () { statusFilter = ''; kindFilter = ''; render(); }); btns.appendChild(sf); }
     if (current !== root) { var all = el('button', 'btn primary', 'Search all projects'); all.type = 'button'; all.addEventListener('click', function () { go(root); q.focus(); }); btns.appendChild(all); }
     if (query) { var clr = el('button', 'btn', 'Clear'); clr.type = 'button'; clr.addEventListener('click', function () { q.value = ''; render(); q.focus(); }); btns.appendChild(clr); }
     empty.appendChild(btns);
@@ -1052,7 +1077,7 @@ button.lnk:hover { text-decoration: underline; }
     var none = el('option', '', 'Keep in ' + pathOf(p.node)); none.value = p.node.key; ms.appendChild(none);
     (function walk(n) { n.kids.forEach(function (k) { if (k !== p.node) { var o = el('option', '', pathOf(k)); o.value = k.key; ms.appendChild(o); } walk(k); }); })(root);
     $('insp-unsaved').hidden = !p.unsaved;
-    $('insp-kind-text').textContent = kindLabel(p.kind) + ' (from the title)';
+    $('insp-kind-text').textContent = kindLabel(p.kind) + (p.known ? ' (recorded by Claude)' : ' (from the title)') + (p.by ? ' · shared by ' + p.by : '');
     $('insp-url').value = A + p.id; $('insp-open').href = A + p.id; $('insp-open').setAttribute('data-id', p.id);
     var on = pins.indexOf(p.id) >= 0, pb = $('insp-pin'); pb.setAttribute('aria-pressed', String(on)); pb.lastChild.textContent = on ? 'Pinned' : 'Pin';
   }

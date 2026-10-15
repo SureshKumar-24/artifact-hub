@@ -76,9 +76,14 @@ test('a real PROJECTS array injected between the markers still parses and evalua
     for (const [folder, rows] of p.shelves) {
       assert.strictEqual(typeof folder, 'string');
       for (const row of rows) {
-        assert.ok(row.length === 4 || row.length === 5, 'title, id, description, date, and an optional status');
-        assert.ok(row.every((x) => typeof x === 'string'));
-        if (row.length === 5) assert.ok(['draft', 'review', 'final', 'archived'].includes(row[4]), row[4]);
+        assert.ok(row.length === 4 || row.length === 5, 'title, id, description, date, and an optional fifth item');
+        assert.ok(row.slice(0, 4).every((x) => typeof x === 'string'));
+        if (row.length === 5) {
+          const x = typeof row[4] === 'object' ? row[4] : { status: row[4] };
+          if (x.status) assert.ok(['draft', 'review', 'final', 'archived'].includes(x.status), x.status);
+          if (x.kind) assert.ok(['slides', 'design', 'designsystem', 'dashboard', 'doc', 'code', 'report', 'page'].includes(x.kind), x.kind);
+          if (x.by) assert.strictEqual(typeof x.by, 'string');
+        }
       }
     }
   }

@@ -175,7 +175,7 @@ Check it yourself in a minute: [SECURITY.md](SECURITY.md). The script's behaviou
 ## Limits
 
 - **Claude Code only.** Pages made in the claude.ai chat app are picked up when you run `/artifact-hub:hub`.
-- **Pages from before you installed** come from the gallery listing, which shows the 50 most recently updated. Older ones have to be added by name once.
+- **Pages from before you installed** come from the gallery listing, which covers the 200 most recently updated. Older ones can be added by pasting their links once.
 - **The folders live on your hub page.** They do not change Claude's own gallery.
 - **Covers are drawn, not screenshots.** The hub holds a title, a description, a date and a link per page, never the page itself, so a card's cover is a symbol for the kind of page read from its title. Real thumbnails would need a safe way to capture a private page; there is none today, so the hub does not pretend.
 - **Filing is done by Claude** after a reminder. The saved list is the safety net; a rebuild catches up.
@@ -211,7 +211,13 @@ No. A page missing from the gallery listing is treated as old, not deleted. A ro
 <details>
 <summary><b>Does it work for a team?</b></summary>
 
-Each person has their own hub. You can share your hub page like any artifact, but the pages it links to must be shared too for others to open them.
+Each person has their own hub, and it can hold the team's pages too: pages other people shared with you go under "Shared with me", with the owner's name on each, so your work and theirs sit under one roof. Those rows are listed, not edited: only the owner can republish a page. You can share your hub page like any artifact, but the pages it links to must be shared too for others to open them.
+</details>
+
+<details>
+<summary><b>What kinds of pages does it know?</b></summary>
+
+The kinds Claude records itself: Slides, Design, Design system, Dashboard and Docs, taken from the type a page was made from. For a plain page the kind is read from the title (Document, Report, Code, Design) and the details panel says so. One filter chip per kind, like the gallery's type filter.
 </details>
 
 <details>

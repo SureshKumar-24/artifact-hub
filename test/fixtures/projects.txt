@@ -12,7 +12,9 @@
         ['Seasonal Calendar Audit', 'Fj8LpQ3nWc5Ya2Tk7Rv9Ux', 'What to build for small gardens, and how to scale', '3 Oct']
       ]],
       ['Market research', [
-        ['Planner Idea Research', 'Dt6MvR1xHs8Kb3Wq9Pn2Zy', 'Four ideas checked against products worldwide', '6 Oct']
+        ['Planner Idea Research', 'Dt6MvR1xHs8Kb3Wq9Pn2Zy', 'Four ideas checked against products worldwide', '6 Oct'],
+        ['Planner Pitch', 'Rt5KqM2nVw8Ls1Xp7Yc4Jb', 'Ten slides for the seed round', '2026-10-14T09:30:00.000Z', { kind: 'slides', status: 'review' }],
+        ['Competitor Teardown', 'Vb9NpL3kQm6Rs2Tw8Xz5Hc', 'Shared by a teammate', '12 Oct', { by: 'Priya', kind: 'doc' }]
       ]]
     ]}
   ];

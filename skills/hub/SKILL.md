@@ -45,12 +45,29 @@ pages.
 Each row stays `[title, id, description, date]`. Write the date as the exact time when
 you have it: the entry's `last` in `pages.json` (`'2026-10-16T18:42:11.000Z'`), so the
 page can show the day and the time. Otherwise write the day like `'3 Oct'` (no year; the
-page reads it as the most recent such day). A row may carry a fifth item,
-its status: `'draft'`, `'review'`, `'final'` or `'archived'`. Leave it out otherwise.
-The page shows the status as a small label, offers one filter chip per status, and hides
-archived pages unless their chip is pressed. The user sets it in plain words: "mark the
-pricing page final", "this one is a draft", "archive the old logo page" (archive, never
-delete: the row stays). Do it by adding or changing that fifth item and republishing.
+page reads it as the most recent such day). A row may carry a fifth item: a status word,
+or an object when more is known:
+
+```js
+['Q4 Pitch', '<id>', 'Ten slides for the board', '2026-10-14T09:30:00.000Z', { kind: 'slides', status: 'review' }]
+['Competitor Teardown', '<id>', 'From the growth team', '12 Oct', { by: 'Priya', kind: 'doc' }]
+```
+
+- `status`: `'draft'`, `'review'`, `'final'` or `'archived'`. The page shows it as a
+  label, offers one filter chip per status, and hides archived pages unless their chip is
+  pressed. The user sets it in plain words: "mark the pricing page final", "archive the
+  old logo page" (archive, never delete: the row stays).
+- `kind`: what Claude itself knows the page to be: `'slides'`, `'design'`,
+  `'designsystem'`, `'dashboard'` or `'doc'` (a page made from one of Claude's artifact
+  types, or a Claude Docs document). A `pages.json` entry with `type: 'doc'` is `'doc'`;
+  one with `typeId` was made from a type: `Artifact` `action: "list"`, `scope: "types"`
+  names each type and its `type_url`, and the id at the end of that URL is the `typeId`.
+  Set `kind` only when known this way; without it the page reads the kind from the title
+  and says so.
+- `by`: the owner's name, for a page shared with the user (see "Pages shared with the
+  user"). Leave it out for the user's own pages.
+
+Leave the fifth item out when none of these apply.
 
 A project may also have an optional `color`, one of `teal`, `indigo`, `amber`, `rose`,
 `green`, `violet`, `sky`, `clay`:
@@ -80,7 +97,9 @@ Run this whenever asked, and whenever you are unsure the hub is current. It must
 the hub correct on its own, without relying on any earlier step having happened.
 
 1. `Artifact` `action: "read"` with `hubUrl`. Build on the file it returns.
-2. `Artifact` `action: "list"`, `scope: "mine"`, `limit: 50`.
+2. `Artifact` `action: "list"`, `scope: "mine"`, `limit: 200` (the most it returns; it
+   says how many more exist). Then `scope: "shared"`, `limit: 200`, for pages other
+   people shared with the user.
 3. Read `~/.claude/artifact-hub/pages.json` if it exists. The plugin writes one entry
    there for every page published while it is installed (`url`, `title`, `folder`,
    `first`, `last`, and `deleted` once the page was deleted), so it also holds pages too
@@ -93,9 +112,10 @@ the hub correct on its own, without relying on any earlier step having happened.
 4. For every page in the listing or in that file that is not in `PROJECTS`, add a row.
    For pages already there, update the title and date if they changed. An entry's
    `folder` is the folder it was published from: use it to pick the project.
-5. **Never remove a row because it is missing from the listing.** The listing shows only
-   the 50 most recently updated pages, so an absent row is old, not deleted. Remove a
-   row only when the user says that page is gone or `pages.json` marks it `deleted`.
+5. **Never remove a row because it is missing from the listing.** The listing shows the
+   most recently updated pages, up to 200, and the gallery itself has been seen to drop
+   older pages that still exist, so an absent row is old, not deleted. Remove a row only
+   when the user says that page is gone or `pages.json` marks it `deleted`.
 6. Never add the hub itself as a row.
 7. Republish with `url` set to `hubUrl`. Never publish the hub without `url`: that
    creates a second hub.
@@ -163,6 +183,15 @@ if it had none; otherwise the new page (a gallery of cards or a list, a details 
 each page, search, pins, "Continue working", keyboard shortcuts, dark mode). Folder links
 (`#folder`), pins, recently opened pages and the folder the viewer last opened carry over,
 because the data and the browser keys are unchanged.
+
+## Pages shared with the user
+
+A team's pages can sit under the same roof. Pages from `scope: "shared"` go in a project
+named "Shared with me" (id `shared`), one subfolder per owner when there are several
+owners, each row with `by` set to the owner's name as the listing gives it. They are
+listed, never changed: the user cannot republish them, and the hub must never suggest
+they can. Ask once, the first time shared pages appear, whether the user wants them on
+the hub; remember the answer in `hub.json` as `"shared": true` or `false`.
 
 ## Changes the user made on the page
 

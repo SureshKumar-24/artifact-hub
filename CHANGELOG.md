@@ -27,6 +27,17 @@
   Subfolder chips scroll sideways too.
 - The intro sentence under the title is gone: the pages start right under the search
   box. The shortcuts are still one `?` away.
+- Kinds Claude records itself: a page made from one of Claude's artifact types (Slides,
+  Design, Design system, Dashboard, Docs) keeps that kind; the hook saves the type's id,
+  the skill names it, and the row carries `{ kind }`. Other pages still get a kind from
+  the title, and the details panel says which it was. One filter chip per kind in the
+  bar, like the gallery's type filter.
+- Pages shared with you, under one roof: a rebuild also lists `scope: "shared"` and files
+  them under "Shared with me" with the owner's name on each row (`{ by }`). Listed, not
+  edited. Asked once, remembered in `hub.json`.
+- The listing covers 200 pages, not 50: setup and rebuild ask for 200.
+- The fifth row item may be an object `{ status, kind, by }`; a bare status word still
+  works.
 - Move and set status on the page itself: the details panel has "Move to" and "Status".
   A change shows at once, marked "Unsaved", and a bar at the top counts the changes with
   "Save changes with Claude" (one message to paste, listing each change) and "Discard".

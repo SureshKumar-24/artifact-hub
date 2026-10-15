@@ -94,6 +94,13 @@ test('a new Claude Doc is saved and filed like a page; edits to an existing doc 
   assert.strictEqual(h.pages().length, 1);
 });
 
+test('a page made from an artifact type keeps the type id', () => {
+  const h = home();
+  h.run({ tool_input: { type_url: `${A}TYPE01`, title: 'Q4 deck' }, tool_response: published('AAA111') });
+  h.run({ tool_input: { title: 'Plain page' }, tool_response: published('BBB222') });
+  assert.deepStrictEqual(h.pages().map((p) => [p.title, p.typeId]), [['Q4 deck', 'TYPE01'], ['Plain page', undefined]]);
+});
+
 test('a new page with the title of a known page is marked as replacing it, and Claude is told', () => {
   const h = home(); h.hub(`${A}HUB000`);
   h.run({ tool_input: { title: 'Pricing page' }, tool_response: published('AAA111') });

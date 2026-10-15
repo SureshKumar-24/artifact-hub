@@ -109,7 +109,10 @@ function main(raw) {
     if (hit) { hit.last = now; delete hit.deleted; if (title) hit.title = title; if (folder) hit.folder = folder; return; }
     const twin = title && list.find((p) => p.title === title && !p.deleted && !p.replacedBy);
     if (twin) { twin.replacedBy = url; replaced = twin.url; }
-    list.push({ url, title: title || null, folder: folder || null, first: now, last: now, ...(newDoc ? { type: 'doc' } : {}) });
+    // what kind of page: a Claude Docs document, or a page made from one of Claude's artifact types
+    // (slides, design, dashboard...), kept as the type's own id for the hub skill to name
+    const kind = newDoc ? { type: 'doc' } : input.type_url && LINK.test(String(input.type_url)) ? { typeId: idOf(input.type_url) } : {};
+    list.push({ url, title: title || null, folder: folder || null, first: now, last: now, ...kind });
   });
   try { fs.writeFileSync(PENDING, JSON.stringify({ url, title, at: Date.now() })); } catch { /* read-only home */ }
 
