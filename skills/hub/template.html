@@ -102,11 +102,9 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 /* ---- Intro and the sticky header. Phones: a search row (menu, search, view) over one strip that
    scrolls sideways (sort, density, theme, shortcuts), so nothing wraps into a stray row. From 640px
    the strip dissolves and everything sits on one line: search, sort, view, the rest. */
-.intro { padding: 28px 0 14px; }
+.intro { padding: 24px 0 8px; }
 h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
-.lede { margin: 4px 0 0; color: var(--muted); max-width: 64ch; }
-@media (hover: none), (max-width: 639px) { .lede .keys { display: none; } }
-@media (max-width: 639px) { .intro { padding: 20px 0 10px; } h1 { font-size: 22px; } .lede { font-size: 14px; } }
+@media (max-width: 639px) { .intro { padding: 16px 0 6px; } h1 { font-size: 22px; } }
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
 .strip { flex: 1 0 100%; display: flex; align-items: center; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
@@ -310,7 +308,6 @@ dialog::backdrop { background: var(--scrim); }
   <main class="main">
     <div class="intro">
       <h1>Project Hub</h1>
-      <p class="lede">Every page you have published, by project. <span class="keys">Search with <kbd>/</kbd>, move with the arrow keys, <kbd>i</kbd> for details, <kbd>?</kbd> for all shortcuts.</span></p>
     </div>
 
     <header class="top" id="head">
@@ -817,7 +814,6 @@ dialog::backdrop { background: var(--scrim); }
     box.appendChild(ul);
   }
   function renderSide() {
-    trail(current).forEach(function (x) { expanded[x.key] = true; });
     tree.textContent = '';
     var li = el('li'), line = el('div', 'node'); line.appendChild(folderItem(root)); li.appendChild(line); tree.appendChild(li);
     root.kids.forEach(function (k) { branch(k, tree); });
@@ -836,6 +832,7 @@ dialog::backdrop { background: var(--scrim); }
   // ---- Actions
   function go(node) { // open a folder as the filter; a typed search keeps running inside it
     current = node; setRaw(K.folder, node.key); closeNav(true);
+    trail(node).forEach(function (x) { expanded[x.key] = true; }); // open the branch once; the caret can close it again
     renderSide(); render();
     if (window.scrollY > 0) window.scrollTo(0, 0);
   }
@@ -998,6 +995,7 @@ dialog::backdrop { background: var(--scrim); }
   if (window.ResizeObserver) new ResizeObserver(measure).observe(head); else window.addEventListener('resize', measure);
   measure();
 
+  trail(current).forEach(function (x) { expanded[x.key] = true; }); // the folder opened at load is shown open
   applyTheme(); setSort(sort); setView(view, false); setDense(dense); renderSide(); render();
 })();
 </script>
