@@ -169,6 +169,39 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .kinds .stf svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .save { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--c-amber); border-radius: 10px; background: var(--surface); font-size: 14px; }
 .save > span { flex: 1 1 200px; }
+.save.selbar { border-color: var(--accent); }
+.save select { min-height: 34px; max-width: 100%; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
+/* selected pages: a check in the corner of a card, at the left of a row */
+.chk { display: none; position: absolute; z-index: 1; width: 20px; height: 20px; border-radius: 999px; background: var(--accent); color: var(--on-accent); place-items: center; pointer-events: none; }
+.chk svg { width: 12px; height: 12px; stroke-width: 2; }
+.sel .chk { display: grid; }
+.row.sel { background: var(--accent-soft); }
+.row.sel::before, .row.sel + .row::before { border-color: transparent; }
+.row .chk { left: 6px; top: 50%; transform: translateY(-50%); }
+.row.sel .dot { visibility: hidden; }
+.card.sel { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.card .chk { top: 8px; left: 8px; }
+/* since the last visit */
+.since { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; color: var(--muted); }
+.since .stf { min-height: 28px; }
+/* a project's working note */
+.pnote { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 10px; }
+.pnote .ptext { flex: 0 1 auto; min-width: 0; margin: 0; max-width: 68ch; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.pnote .addnote { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 13px; color: var(--muted); }
+.pnote .addnote:hover { color: var(--accent); text-decoration: none; }
+.pnote .addnote svg { width: 14px; height: 14px; }
+#sel select { flex: 0 1 260px; min-width: 0; }
+.pnote .ib.small { width: 28px; height: 28px; }
+.pnote textarea { flex: 1 1 100%; max-width: 68ch; min-height: 56px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: 14px/1.45 var(--sans); color: var(--ink); background: var(--surface); resize: vertical; }
+.pnote textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+/* filters: kind and status chips on one wrapping row */
+.filters { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.filters .sts { flex-basis: auto; }
+/* the empty hub: example cards, greyed and inert */
+.empty .eh { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--ink); }
+.empty .sample { text-align: left; max-width: 760px; margin: 20px auto; opacity: 0.6; pointer-events: none; filter: saturate(0.6); }
+.empty .sample .card { box-shadow: none; }
+.empty code { font: 13px var(--mono); padding: 2px 6px; border-radius: 4px; background: var(--hover); color: var(--ink); }
 [hidden] { display: none !important; } /* the page's own display rules never override hidden */
 .side-h .lnk { font: 500 11px/1 var(--mono); letter-spacing: 0; text-transform: none; }
 .insp select { max-width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
@@ -188,9 +221,11 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .swatch[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 2px var(--surface); }
 @media (max-width: 639px) { /* subfolder chips scroll sideways under the gutter instead of stacking */
   .bar { padding-top: 8px; min-height: 0; }
-  .subs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
-  .subs::-webkit-scrollbar { display: none; }
+  .subs, .filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
+  .subs::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
   .subs button { flex: none; min-height: 34px; }
+  .filters .sts { flex: none; flex-wrap: nowrap; }
+  .filters .stf { flex: none; min-height: 34px; }
 }
 
 /* ---- Groups: sticky headers under the search header, whatever its measured height */
@@ -379,6 +414,13 @@ button.lnk:hover { text-decoration: underline; }
       <button class="btn primary" type="button" id="save-copy" title="Copies a message for Claude Code that writes these changes into the hub">Save changes with Claude</button>
       <button class="btn" type="button" id="save-drop">Discard</button>
     </div>
+    <div class="save selbar" id="sel" hidden role="status" aria-label="Selected pages">
+      <span id="sel-n"></span>
+      <select id="sel-move" aria-label="Move the selected pages to a folder"></select>
+      <select id="sel-status" aria-label="Set the status of the selected pages"><option value="">Status…</option><option value="draft">Draft</option><option value="review">Review</option><option value="final">Final</option><option value="archived">Archived</option><option value="-">No status</option></select>
+      <button class="btn" type="button" id="sel-copy"><span data-icon="copy"></span>Copy links</button>
+      <button class="btn" type="button" id="sel-clear">Clear</button>
+    </div>
     <div class="bar" id="bar"></div>
     <p class="sr" id="live" aria-live="polite"></p>
     <div id="list" role="listbox" tabindex="0" aria-label="Pages"></div>
@@ -441,7 +483,7 @@ button.lnk:hover { text-decoration: underline; }
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
   var K = { folder: 'project-hub.folder.v2', pins: 'project-hub.pins.v1', opened: 'project-hub.opened.v1',
     sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1',
-    colors: 'project-hub.colors.v1', side: 'project-hub.side.v1', edits: 'project-hub.edits.v1' };
+    colors: 'project-hub.colors.v1', side: 'project-hub.side.v1', edits: 'project-hub.edits.v1', visit: 'project-hub.visit.v1' };
   function getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setRaw(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not saved */ } }
   function getJSON(k, d) { try { var v = JSON.parse(getRaw(k)); return v == null ? d : v; } catch (e) { return d; } }
@@ -468,6 +510,8 @@ button.lnk:hover { text-decoration: underline; }
     all: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
     folder: '<path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/>',
     fold: '<rect x="2.5" y="3" width="11" height="10" rx="1.5"/><path d="M6 3v10M10.5 6.5 9 8l1.5 1.5"/>',
+    check: '<path d="M3.5 8.5 6.5 11.5 12.5 5"/>',
+    pen: '<path d="M3 13h3l7-7-3-3-7 7zM9 4l3 3"/>',
     system: '<circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/>',
     light: '<circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/>',
     dark: '<path d="M13.5 9.6A5.5 5.5 0 0 1 6.4 2.5a5.5 5.5 0 1 0 7.1 7.1z"/>'
@@ -564,7 +608,8 @@ button.lnk:hover { text-decoration: underline; }
   PROJECTS.forEach(function (p, pi) {
     var pn = child(root, String(p.name || 'Untitled'), slug(p.id || p.name));
     if (!pn.color) {
-      pn.about = p.about || ''; pn.base = COLORS.indexOf(p.color) >= 0 ? p.color : COLORS[pi % COLORS.length];
+      pn.about = p.about || ''; pn.note = String(p.note || '').slice(0, 200); pn.note0 = pn.note; // a short working note, editable on the page
+      pn.base = COLORS.indexOf(p.color) >= 0 ? p.color : COLORS[pi % COLORS.length];
       pn.color = COLORS.indexOf(myColors[pn.key]) >= 0 ? myColors[pn.key] : pn.base;
     }
     (p.shelves || []).forEach(function (s) {
@@ -602,6 +647,7 @@ button.lnk:hover { text-decoration: underline; }
   var edits = getJSON(K.edits, {}); if (!edits || typeof edits !== 'object') edits = {};
   Object.keys(edits).forEach(function (id) {
     var p = byId[id], e = edits[id];
+    if (!p && e && typeof e.note === 'string' && byKey[id] && byKey[id] !== root && byKey[id].up === root) { byKey[id].note = e.note.slice(0, 200); byKey[id].unsaved = true; return; } // a project note
     if (!p || !e) { delete edits[id]; return; }
     if (e.status !== undefined && (e.status === '' || STATUSES.indexOf(e.status) >= 0)) { p.status = e.status; p.unsaved = true; }
     if (e.folder && byKey[e.folder] && byKey[e.folder] !== root && byKey[e.folder] !== p.node) { var to = byKey[e.folder]; p.node.pages.splice(p.node.pages.indexOf(p), 1); to.pages.push(p); p.node = to; p.proj = to.proj; p.unsaved = true; }
@@ -620,18 +666,34 @@ button.lnk:hover { text-decoration: underline; }
   }
   function movePage(p, node) { if (node === p.node || node === root) return; p.node.pages.splice(p.node.pages.indexOf(p), 1); node.pages.push(p); p.node = node; p.proj = node.proj; noteEdit(p, { folder: node.key }); }
   function setStatus(p, s) { p.status = s; noteEdit(p, { status: s }); }
+  function setNote(pn, text) { // a project's working note, kept here until Claude writes it
+    text = String(text || '').trim().slice(0, 200); pn.note = text;
+    if (text === pn.note0) { delete edits[pn.key]; pn.unsaved = false; } else { edits[pn.key] = { note: text }; pn.unsaved = true; }
+    setJSON(K.edits, edits); render();
+  }
   function discardEdits() { edits = {}; setJSON(K.edits, edits); location.reload(); }
   function editsText() { // one message for Claude, naming each change
     var lines = ['Update my Project Hub at ' + location.href.split('#')[0] + ' with these changes I made on the page, then republish it to the same URL:'];
     Object.keys(edits).forEach(function (id) {
-      var p = byId[id], e = edits[id]; if (!p) return;
+      var p = byId[id], e = edits[id];
+      if (!p) { if (e && typeof e.note === 'string' && byKey[id]) lines.push('- set the note of project ' + byKey[id].name + ' to: ' + (e.note || '(nothing)')); return; }
       if (e.folder && byKey[e.folder]) lines.push('- move "' + p.title + '" (' + A + id + ') to the folder ' + pathOf(byKey[e.folder]));
       if (e.status !== undefined) lines.push('- ' + (e.status ? 'mark "' + p.title + '" (' + A + id + ') as ' + e.status : 'remove the status from "' + p.title + '" (' + A + id + ')'));
     });
     return lines.join('\n');
   }
   var statusFilter = ''; // '' = every page but archived ones; a status name = only those
-  function visible(p) { return (kindFilter ? p.kind === kindFilter : true) && (statusFilter ? p.status === statusFilter : p.status !== 'archived'); }
+  // since the last visit: pages whose date is newer than when this browser last opened the hub
+  var lastVisit = +getRaw(K.visit) || 0, sinceFilter = false, sinceGone = false; setRaw(K.visit, String(Date.now()));
+  function isNew(p) { return lastVisit > 0 && p.t > lastVisit; }
+  var sinceN = PAGES.filter(isNew).length;
+  function visible(p) { return (kindFilter ? p.kind === kindFilter : true) && (statusFilter ? p.status === statusFilter : p.status !== 'archived') && (!sinceFilter || isNew(p)); }
+  // selection, for acting on several pages at once (shift-click, or x on the selected page)
+  var selected = {};
+  function toggleSel(p) { if (selected[p.id]) delete selected[p.id]; else selected[p.id] = true; markSel(); renderSel(); }
+  function clearSel() { selected = {}; markSel(); renderSel(); }
+  function markSel() { Object.keys(itemCache).forEach(function (k) { var r = itemCache[k]; r.classList.toggle('sel', !!selected[r._p.id]); }); }
+  function selPages() { return Object.keys(selected).map(function (id) { return byId[id]; }).filter(Boolean); }
   function countStatus(pool) { var c = {}; pool.forEach(function (p) { if (p.status) c[p.status] = (c[p.status] || 0) + 1; }); return c; }
 
   // ---- Viewer state (all optional; bad or missing values fall back to defaults)
@@ -772,6 +834,8 @@ button.lnk:hover { text-decoration: underline; }
   function finish(r, p, kind, parts) {
     r.id = 'r-' + kind + '-' + p.i; r.setAttribute('role', 'option'); r.setAttribute('aria-selected', 'false');
     r._p = p; r._t = parts.t; r._d = parts.dt; r._path = parts.path; r._star = r.querySelector('[data-act="pin"]'); r._sig = null;
+    var chk = el('span', 'chk'); chk.setAttribute('aria-hidden', 'true'); chk.appendChild(icon('check')); r.appendChild(chk);
+    if (selected[p.id]) r.classList.add('sel');
     (itemsById[p.id] = itemsById[p.id] || []).push(r); markPin(r);
     return r;
   }
@@ -863,7 +927,7 @@ button.lnk:hover { text-decoration: underline; }
   // ---- Context bar: the open folder with its note and subfolders, the page count, status
   // filters, the empty state. Inside a project the colour dot is a button: eight swatches, the
   // choice kept in this browser (Claude can make it permanent in the hub's data).
-  var swatchOpen = false;
+  var swatchOpen = false, noteOpen = null;
   function recolor(pn, color) {
     pn.color = color || pn.base;
     if (color && color !== pn.base) myColors[pn.key] = color; else delete myColors[pn.key];
@@ -875,6 +939,14 @@ button.lnk:hover { text-decoration: underline; }
     bar.textContent = ''; app.classList.toggle('at-root', current === root);
     var n = Object.keys(edits).length; $('save').hidden = !n;
     if (n) $('save-n').textContent = n + (n === 1 ? ' change made here, not yet in the hub' : ' changes made here, not yet in the hub');
+    if (sinceN && !sinceGone) { // a quiet line: what changed since this browser last opened the hub
+      var since = el('div', 'since'); since.setAttribute('role', 'status');
+      since.appendChild(el('span', '', sinceN + (sinceN === 1 ? ' page updated' : ' pages updated') + ' since your last visit'));
+      var show = el('button', 'stf'); show.type = 'button'; show.setAttribute('aria-pressed', String(sinceFilter)); show.textContent = sinceFilter ? 'Showing only these' : 'Show';
+      show.addEventListener('click', function () { sinceFilter = !sinceFilter; render(); });
+      var dis = el('button', 'lnk', 'Dismiss'); dis.type = 'button'; dis.addEventListener('click', function () { sinceGone = true; sinceFilter = false; render(); });
+      since.appendChild(show); since.appendChild(dis); bar.appendChild(since);
+    }
     if (current !== root) {
       var ctx = el('div', 'ctx'), up = trail(current).slice(1, -1).map(function (n) { return n.name; }).join(' / '), pn = current.proj;
       var db = el('button', 'dotbtn'); db.type = 'button'; db.title = 'Project colour'; db.setAttribute('aria-label', 'Change the colour of ' + pn.name); db.setAttribute('aria-expanded', String(swatchOpen));
@@ -898,6 +970,32 @@ button.lnk:hover { text-decoration: underline; }
     }
     var all = under(current), total = all.filter(visible).length, counts = countStatus(all), kinds = countKinds(all);
     bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
+    if (current.about && !query) bar.appendChild(el('p', 'about', current.about)); // what the project is, right under its name
+    if (current !== root && current === current.proj && !query) { // the project's working note, editable here
+      var pn2 = current, nt = el('div', 'pnote');
+      if (noteOpen === pn2.key) {
+        var ta = el('textarea'); ta.maxLength = 200; ta.rows = 2; ta.value = pn2.note; ta.setAttribute('aria-label', 'Note for ' + pn2.name); ta.placeholder = 'A short working note for this project';
+        var ok = el('button', 'btn primary', 'Keep'), no = el('button', 'btn', 'Cancel'); ok.type = 'button'; no.type = 'button';
+        ok.addEventListener('click', function () { noteOpen = null; setNote(pn2, ta.value); });
+        no.addEventListener('click', function () { noteOpen = null; render(); });
+        ta.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); noteOpen = null; render(); } if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); noteOpen = null; setNote(pn2, ta.value); } });
+        var row = el('div', 'btns'); row.appendChild(ok); row.appendChild(no); nt.appendChild(ta); nt.appendChild(row);
+        setTimeout(function () { ta.focus(); }, 0);
+      } else if (pn2.note) { // the note, with a pencil to change it
+        var txt = el('p', 'ptext', pn2.note);
+        var ed = el('button', 'ib small'); ed.type = 'button'; ed.title = 'Edit note'; ed.setAttribute('aria-label', 'Edit the note for ' + pn2.name); ed.appendChild(icon('pen'));
+        ed.addEventListener('click', function () { noteOpen = pn2.key; render(); });
+        nt.appendChild(txt); nt.appendChild(ed);
+        if (pn2.unsaved) { var u1 = el('span', 'st s-unsaved', 'Unsaved'); u1.title = 'Changed on this page, not yet written to the hub'; nt.appendChild(u1); }
+      } else { // no note: one quiet link, no placeholder text
+        var add = el('button', 'lnk addnote'); add.type = 'button'; add.appendChild(icon('pen')); add.appendChild(document.createTextNode(' Add a note'));
+        add.setAttribute('aria-label', 'Add a note for ' + pn2.name); add.addEventListener('click', function () { noteOpen = pn2.key; render(); });
+        nt.appendChild(add);
+        if (pn2.unsaved) { var u = el('span', 'st s-unsaved', 'Unsaved'); u.title = 'The note was cleared here, not yet written to the hub'; nt.appendChild(u); }
+      }
+      bar.appendChild(nt);
+    }
+    var filters = el('div', 'filters'); // kind and status chips share one row; project chips take the next
     if (Object.keys(kinds).length > 1) { // kind chips, like the gallery's type filter: one per kind present here
       var kf = el('div', 'sts kinds'); kf.setAttribute('role', 'group'); kf.setAttribute('aria-label', 'Kind');
       Object.keys(KIND_LABEL).forEach(function (k) {
@@ -907,7 +1005,7 @@ button.lnk:hover { text-decoration: underline; }
         b.addEventListener('click', function () { kindFilter = kindFilter === k ? '' : k; render(); });
         kf.appendChild(b);
       });
-      bar.appendChild(kf);
+      filters.appendChild(kf);
     }
     if (Object.keys(counts).length) { // status chips: a filter each; archived pages appear only through theirs
       var sts = el('div', 'sts'); sts.setAttribute('role', 'group'); sts.setAttribute('aria-label', 'Status');
@@ -918,9 +1016,9 @@ button.lnk:hover { text-decoration: underline; }
         b.addEventListener('click', function () { statusFilter = statusFilter === s ? '' : s; render(); });
         sts.appendChild(b);
       });
-      bar.appendChild(sts);
+      filters.appendChild(sts);
     }
-    if (current.about && !query) bar.appendChild(el('p', 'about', current.about));
+    if (filters.childNodes.length) bar.appendChild(filters);
     if (current.kids.length && !query) {
       var subs = el('div', 'subs');
       current.kids.forEach(function (k) {
@@ -932,12 +1030,30 @@ button.lnk:hover { text-decoration: underline; }
       bar.appendChild(subs);
     }
   }
+  // the empty hub shows what it will look like: six example cards, clearly marked, that go nowhere
+  var SAMPLE = [['Launch Checklist', 'What is left before the store opens, by stage', 'doc', 'teal'], ['Checkout Screens', 'Cart, address and payment mockups for the phone', 'design', 'teal'],
+    ['September Report', 'Sign-ups, orders and where people drop off', 'report', 'indigo'], ['Orders API Routes', 'Every route, its inputs and who may call it', 'code', 'indigo'],
+    ['Kickoff Deck', 'Ten slides for the first client meeting', 'slides', 'amber'], ['Keyword Research', 'What people search before they buy', 'doc', 'amber']];
   function renderEmpty(query) {
     empty.hidden = shown.length > 0; empty.textContent = '';
     if (shown.length) return;
-    if (!PAGES.length) { empty.appendChild(el('p', '', 'No pages listed yet. Ask Claude to run the hub rebuild.')); return; }
-    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : statusFilter || kindFilter ? 'No such pages here.' : 'This folder is empty.'));
+    if (!PAGES.length) {
+      empty.appendChild(el('h2', 'eh', 'Your pages will appear here, filed by project'));
+      empty.appendChild(el('p', '', 'Every page you publish is saved and filed. This is what the hub looks like once it has a few:'));
+      var g = el('div', 'grid sample'); g.setAttribute('aria-hidden', 'true');
+      SAMPLE.forEach(function (s) {
+        var c = el('div', 'card c-' + s[3]), cover = el('div', 'cover'); cover.appendChild(kindIcon(s[2])); cover.appendChild(el('span', 'kind', 'Example'));
+        var t = el('div', 'txt'), tl = el('span', 'tl'); tl.appendChild(el('span', 'title', s[0])); t.appendChild(tl); t.appendChild(el('span', 'desc', s[1]));
+        var f = el('div', 'foot'); f.appendChild(el('span', 'where', kindLabel(s[2]))); f.appendChild(el('span', 'when', '2d'));
+        c.appendChild(cover); c.appendChild(t); c.appendChild(f); g.appendChild(c);
+      });
+      empty.appendChild(g);
+      var ask = el('p', ''); ask.appendChild(document.createTextNode('Ask Claude to run ')); ask.appendChild(el('code', '', '/artifact-hub:hub')); ask.appendChild(document.createTextNode(' to fill it from your gallery.'));
+      empty.appendChild(ask); return;
+    }
+    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : sinceFilter ? 'Nothing here changed since your last visit.' : statusFilter || kindFilter ? 'No such pages here.' : 'This folder is empty.'));
     var btns = el('div', 'btns');
+    if (sinceFilter) { var sv = el('button', 'btn', 'Show every page'); sv.type = 'button'; sv.addEventListener('click', function () { sinceFilter = false; render(); }); btns.appendChild(sv); }
     if (statusFilter || kindFilter) { var sf = el('button', 'btn', 'Show every kind and status'); sf.type = 'button'; sf.addEventListener('click', function () { statusFilter = ''; kindFilter = ''; render(); }); btns.appendChild(sf); }
     if (current !== root) { var all = el('button', 'btn primary', 'Search all projects'); all.type = 'button'; all.addEventListener('click', function () { go(root); q.focus(); }); btns.appendChild(all); }
     if (query) { var clr = el('button', 'btn', 'Clear'); clr.type = 'button'; clr.addEventListener('click', function () { q.value = ''; render(); q.focus(); }); btns.appendChild(clr); }
@@ -1112,18 +1228,32 @@ button.lnk:hover { text-decoration: underline; }
   $('insp-url').addEventListener('focus', function () { this.select(); });
   $('insp-status').addEventListener('change', function () { if (inspected) { setStatus(inspected, this.value); fillInspector(inspected); } });
   $('insp-move').addEventListener('change', function () { if (inspected && byKey[this.value]) { movePage(inspected, byKey[this.value]); fillInspector(inspected); } });
+  // the selection bar: what to do with the selected pages
+  function renderSel() {
+    var ps = selPages(), n = ps.length; $('sel').hidden = !n; if (!n) return;
+    $('sel-n').textContent = n + (n === 1 ? ' page selected' : ' pages selected');
+    var ms = $('sel-move'); ms.textContent = ''; var ph = el('option', '', 'Move to…'); ph.value = ''; ms.appendChild(ph);
+    (function walk(nd) { nd.kids.forEach(function (k) { var o = el('option', '', pathOf(k)); o.value = k.key; ms.appendChild(o); walk(k); }); })(root);
+    $('sel-status').value = '';
+  }
+  $('sel-move').addEventListener('change', function () { var to = byKey[this.value]; if (!to) return; var ps = selPages(); clearSel(); ps.forEach(function (p) { movePage(p, to); }); toast('Moved ' + ps.length + ' to ' + pathOf(to)); });
+  $('sel-status').addEventListener('change', function () { var v = this.value; if (!v) return; var ps = selPages(); clearSel(); ps.forEach(function (p) { setStatus(p, v === '-' ? '' : v); }); toast(v === '-' ? 'Status removed' : 'Marked ' + ps.length + ' as ' + v); });
+  $('sel-copy').addEventListener('click', function () { var ps = selPages(); copyText(ps.map(function (p) { return A + p.id; }).join('\n'), 'Copied ' + ps.length + (ps.length === 1 ? ' link' : ' links')); });
+  $('sel-clear').addEventListener('click', clearSel);
   $('save-copy').addEventListener('click', function () { copyText(editsText(), 'Copied: paste it into Claude Code'); });
   $('save-drop').addEventListener('click', function () { var n = Object.keys(edits).length; if (!n) return; this.textContent = 'Discard ' + n + ' change' + (n > 1 ? 's' : '') + '? Click again'; var self = this; if (self._armed) discardEdits(); else { self._armed = true; setTimeout(function () { self._armed = false; self.textContent = 'Discard'; }, 4000); } });
 
   [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
     ['i', 'Details of the page'], [MOD + '↑  ' + MOD + '↓', 'Previous / next group'], ['Home  End', 'First / last page (in the list)'],
-    ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['v', 'Gallery or list'], ['[', 'Hide or show the sidebar'], ['Esc', 'Close, then clear the search, then leave it'], ['?', 'This list']]
+    ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['x', 'Select or unselect the page (shift-click too)'], ['o  then  1–9', 'Open the 1st to 9th page shown'],
+    ['v', 'Gallery or list'], ['[', 'Hide or show the sidebar'], ['Esc', 'Clear the selection, close, clear the search, then leave it'], ['?', 'This list']]
     .forEach(function (k) { $('keys-list').appendChild(el('dt')).appendChild(el('kbd', '', k[0])); $('keys-list').appendChild(el('dd', '', k[1])); });
 
   // ---- Events
   q.addEventListener('input', render);
   list.addEventListener('focus', function () { if (!active && shown.length) setActive(shown[0], true); });
   list.addEventListener('click', function (e) {
+    if (e.shiftKey) { var sr = e.target.closest && e.target.closest('[role="option"]'); if (sr) { e.preventDefault(); setActive(sr, false); toggleSel(sr._p); return; } }
     var b = e.target.closest && e.target.closest('[data-act]'), r = b && b.closest('[role="option"]');
     if (!r) return;
     var act = b.getAttribute('data-act');
@@ -1158,13 +1288,15 @@ button.lnk:hover { text-decoration: underline; }
   keys.addEventListener('click', function (e) { if (e.target === keys) hideDialog(keys); }); // a click on the backdrop
   window.addEventListener('hashchange', function () { var n = fromHash(); if (n && n !== current) go(n); });
 
+  var quick = 0; // when "o" was pressed, waiting for a digit
   document.addEventListener('keydown', function (e) {
     if (keys.open || insp.open || e.isComposing) return; // an open dialog handles its own Esc
     var t = e.target, inSearch = t === q, inList = t === list, mod = e.metaKey || e.ctrlKey;
     var typing = !inSearch && t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
     if (mod && !e.altKey && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); q.focus(); q.select(); return; }
     if (e.key === 'Escape') {
-      if (app.classList.contains('nav-open')) { e.preventDefault(); closeNav(true); }
+      if (Object.keys(selected).length) { e.preventDefault(); clearSel(); }
+      else if (app.classList.contains('nav-open')) { e.preventDefault(); closeNav(true); }
       else if (openRow) { openRow.classList.remove('show'); openRow.querySelector('.more').setAttribute('aria-expanded', 'false'); openRow = null; }
       else if (inSearch) { e.preventDefault(); if (q.value) { q.value = ''; render(); } else q.blur(); }
       else if (inList) q.focus();
@@ -1178,8 +1310,12 @@ button.lnk:hover { text-decoration: underline; }
       if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); setActive(e.key === 'Home' ? shown[0] : shown[shown.length - 1], true); return; }
     }
     if (mod || e.altKey) return;
+    // o then a digit: open the 1st to 9th page shown
+    if (quick && Date.now() - quick < 1500 && /^[1-9]$/.test(e.key)) { e.preventDefault(); quick = 0; var qr = shown[+e.key - 1]; if (qr) { setActive(qr, true); qr.querySelector('a.txt').click(); } else toast('Only ' + shown.length + ' pages shown'); return; }
     // single-key shortcuts; never while typing in a field
-    if (e.key === '/') { e.preventDefault(); q.focus(); q.select(); }
+    if (e.key === 'o' && shown.length) { e.preventDefault(); quick = Date.now(); toast('Open which? 1–9'); }
+    else if (e.key === 'x' && active) { e.preventDefault(); toggleSel(active._p); }
+    else if (e.key === '/') { e.preventDefault(); q.focus(); q.select(); }
     else if (e.key === '?') { e.preventDefault(); showDialog(keys); }
     else if (e.key === 'j' || e.key === 'k') {
       e.preventDefault();

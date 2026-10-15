@@ -16,6 +16,7 @@ const DIR = path.join(os.homedir(), '.claude', 'artifact-hub');
 const CONFIG = path.join(DIR, 'hub.json');
 const PAGES = path.join(DIR, 'pages.json');
 const PENDING = path.join(DIR, '.pending'); // a page asked to be filed; cleared by the hub's republish or by on-stop.js
+const ACTIVITY = path.join(DIR, 'activity.log'); // one line per publish and per filing, for the week skill; the 500 latest
 const LINK = /https:\/\/claude\.ai\/(?:code\/)?artifact\/[A-Za-z0-9_-]+/;
 const DOCS = 'mcp__claude_ai_Claude_Docs__batch';
 
@@ -47,6 +48,16 @@ function projectFolder(cwd) {
     dir = up;
   }
   return path.basename(path.resolve(String(cwd)));
+}
+
+/** Appends one line to the activity log and keeps only the 500 latest lines. */
+function log(text) {
+  try {
+    fs.mkdirSync(DIR, { recursive: true });
+    const lines = (() => { try { return fs.readFileSync(ACTIVITY, 'utf8').split('\n').filter(Boolean); } catch { return []; } })();
+    lines.push(`${new Date().toISOString()} ${text}`);
+    fs.writeFileSync(ACTIVITY, `${lines.slice(-500).join('\n')}\n`);
+  } catch { /* read-only home */ }
 }
 
 /** Reads the list, lets `change` edit it, and swaps the whole file in. Never drops an entry. */
@@ -96,7 +107,8 @@ function main(raw) {
   const url = found[0];
   // the hub's own republish is not a page to record, and must not ask for another hub update;
   // it also means the pending page was filed
-  if (hub && hub.hubUrl && idOf(url) === idOf(hub.hubUrl)) { try { fs.unlinkSync(PENDING); } catch { /* none pending */ } return; }
+  if (hub && hub.hubUrl && idOf(url) === idOf(hub.hubUrl)) { try { fs.unlinkSync(PENDING); } catch { /* none pending */ } log('filed'); return; }
+  log(`published ${url}`);
 
   const folder = projectFolder(event.cwd);
   const title = newDoc ? (typeof newDoc.name === 'string' && newDoc.name.trim()) || null

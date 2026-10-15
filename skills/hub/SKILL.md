@@ -184,6 +184,25 @@ each page, search, pins, "Continue working", keyboard shortcuts, dark mode). Fol
 (`#folder`), pins, recently opened pages and the folder the viewer last opened carry over,
 because the data and the browser keys are unchanged.
 
+## Project notes
+
+A project may carry `note: '…'`, separate from `about`: a short line of what matters now
+("client wants v2 by November", "on hold until the audit"), under 200 characters, plain
+words. The page shows it under the project's heading. The user sets it in plain words
+("note on Shop: launch moved to 3 Nov") or on the page, whose "Save changes with Claude"
+message may contain a line like `- set the note of project Shop to: launch moved to
+3 Nov`. Put it in the `note` field, or remove the field when told to clear it.
+
+## Checking links
+
+Only when the user asks ("check my links", "are any pages gone?"). For each row,
+`Artifact` `action: "read"` with the page's link. A page that comes back not found or
+without access is marked in the row's fifth item with `gone: true` (keep every other
+field: `{ status: 'final', gone: true }`), never removed; a page that opens again on a
+later check loses the mark. Then republish the hub and report how many were checked
+and how many are gone, with their titles. This is slow, one read per page: say so, and
+ask before running it on more than 40 pages (offer one project at a time).
+
 ## Pages shared with the user
 
 A team's pages can sit under the same roof. Pages from `scope: "shared"` go in a project

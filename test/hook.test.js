@@ -157,6 +157,23 @@ test('at session start, the last pages published from this repository are mentio
   assert.strictEqual(session(h, h.dir), '', 'a folder with no pages');
 });
 
+test('publishes and filings are logged, and the log keeps the 500 latest lines', () => {
+  const h = home(); h.hub(`${A}HUB000`);
+  const logFile = path.join(h.store, 'activity.log');
+  h.run({ tool_input: { title: 'One' }, tool_response: published('AAA111') });
+  h.run({ tool_input: { url: `${A}HUB000` }, tool_response: published('HUB000') });
+  const lines = fs.readFileSync(logFile, 'utf8').trim().split('\n');
+  assert.strictEqual(lines.length, 2);
+  assert.match(lines[0], new RegExp(`^\\d{4}-\\d{2}-\\d{2}T.* published ${A}AAA111$`));
+  assert.match(lines[1], /^\d{4}-\d{2}-\d{2}T.* filed$/);
+  fs.writeFileSync(logFile, Array.from({ length: 600 }, (_, i) => `2026-01-01T00:00:00.000Z old ${i}`).join('\n') + '\n');
+  h.run({ tool_input: { title: 'Two' }, tool_response: published('BBB222') });
+  const after = fs.readFileSync(logFile, 'utf8').trim().split('\n');
+  assert.strictEqual(after.length, 500);
+  assert.match(after[0], /old 101$/);
+  assert.match(after[499], /published .*BBB222$/);
+});
+
 test('a damaged list is replaced, not crashed on', () => {
   const h = home(); fs.mkdirSync(h.store, { recursive: true }); fs.writeFileSync(path.join(h.store, 'pages.json'), '{broken');
   h.run({ tool_input: {}, tool_response: published('AAA111') });

@@ -2,6 +2,21 @@
 
 ## 1.5.0
 
+- `/artifact-hub:week`: a short digest from the files on your machine: published this
+  week by project, untouched for 60 days, likely duplicates (same title, two links),
+  and pages shared with you. Nothing is sent anywhere.
+- `/artifact-hub:pin`: pins the hub to the sidebar, or unpins it.
+- Link check, when asked: Claude reads each page once; a page that no longer opens is
+  marked `gone` in its row, never removed. Slow, so it asks before more than 40 pages.
+- Project notes: one short line per project of what matters now, under its heading;
+  set in plain words, or on the page and saved through "Save changes with Claude".
+- The hook keeps `activity.log` (one line per publish and per filing, the 500 latest)
+  as the local source for the digest.
+- On the page: a "Since you were here" line with how many pages changed since the last
+  visit and a chip to show them; quick open with `o` and a digit; bulk selection
+  (shift-click) to move pages, set a status or copy their links in one go; an empty hub
+  shows a designed empty state with example rows marked as examples.
+
 - Gallery or list: a switch next to the sort buttons (or press `v`). The gallery shows
   each page as a card with a drawn cover: a symbol for the kind of page, read from the
   words in its title (Document, Report, Code, Design, Slides, or Page), on a tint of the

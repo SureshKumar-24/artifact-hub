@@ -41,6 +41,10 @@ test('has the gallery / list switch, the details panel and the shortcut sheet', 
   for (const id of ['insp-close', 'insp-url', 'insp-open', 'insp-pin', 'insp-copy', 'insp-go']) assert.match(TEMPLATE, new RegExp(`id="${id}"`), id);
   assert.match(TEMPLATE, /id="insp-open"[^>]*target="_blank"[^>]*rel="noopener"/, 'opens the saved link in a new tab, safely');
   assert.match(TEMPLATE, /<dialog id="keys"/);
+  assert.match(TEMPLATE, /id="sel"[^>]*hidden/, 'the selection bar starts hidden');
+  for (const id of ['sel-move', 'sel-status', 'sel-copy', 'sel-clear', 'save-copy', 'save-drop']) assert.match(TEMPLATE, new RegExp(`id="${id}"`), id);
+  assert.match(script(TEMPLATE), /\['o  then  1–9', 'Open the 1st to 9th page shown'\]/, 'quick open is in the shortcut sheet');
+  assert.match(script(TEMPLATE), /\['x', 'Select or unselect the page/);
   assert.match(TEMPLATE, /id="q"[^>]*role="combobox"/);
   assert.match(TEMPLATE, /id="list" role="listbox" tabindex="0"/);
 });
@@ -57,7 +61,7 @@ test('every storage access is guarded, and the view has its own key', () => {
   assert.ok(uses.length > 0);
   for (const line of uses) assert.match(line, /try \{/, line.trim());
   const keys = script(TEMPLATE).match(/var K = \{[\s\S]*?\};/)[0];
-  for (const k of ['folder.v2', 'pins.v1', 'opened.v1', 'sort.v1', 'density.v1', 'theme.v1', 'view.v1', 'colors.v1', 'side.v1']) assert.match(keys, new RegExp(`project-hub\\.${k.replace('.', '\\.')}`), k);
+  for (const k of ['folder.v2', 'pins.v1', 'opened.v1', 'sort.v1', 'density.v1', 'theme.v1', 'view.v1', 'colors.v1', 'side.v1', 'edits.v1', 'visit.v1']) assert.match(keys, new RegExp(`project-hub\\.${k.replace('.', '\\.')}`), k);
 });
 
 test('the empty template script parses', () => {
@@ -71,6 +75,8 @@ test('a real PROJECTS array injected between the markers still parses and evalua
   const projects = vm.runInNewContext(page.match(DATA)[2] + '\nPROJECTS;');
   assert.strictEqual(projects.length, 2);
   assert.strictEqual(projects[1].color, 'indigo');
+  assert.strictEqual(typeof projects[1].note, 'string');
+  assert.ok(projects[1].note.length <= 200, 'a project note is short');
   for (const p of projects) {
     assert.ok(p.id && p.name && Array.isArray(p.shelves));
     for (const [folder, rows] of p.shelves) {

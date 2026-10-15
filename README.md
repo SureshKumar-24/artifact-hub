@@ -88,6 +88,12 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 | **Nothing extra to do** | Publish as usual. The page is filed under the project of the repository you are working in. A document made with the Claude Docs connector is filed the same way. |
 | **Deleted pages are cleaned up** | Delete an artifact and its row leaves the hub. |
 | **Find by asking** | "Where is my pricing page?" gets you the link. |
+| **This week** | `/artifact-hub:week`: what you published this week by project, what has sat untouched for two months, likely duplicates, and pages shared with you. From the files on your machine; nothing is sent. |
+| **Project notes** | One short line per project of what matters now ("client wants v2 by November"), shown under its heading, set in plain words or on the page. |
+| **Link check** | Ask "check my links" and Claude reads each page; one that no longer opens is marked gone, never removed. |
+| **Since you were here** | Opening the hub shows how many pages changed since your last visit, with a chip to show them. |
+| **Bulk actions** | Select several pages (shift-click) to move them, set a status, or copy their links in one go. |
+| **Quick open** | Press `o` and a digit to open that result without the mouse. |
 | **Private** | The hub is a private artifact in your own Claude account. Nothing leaves your machine except through Claude's own publish. The hub lists links: copying one does not change who can open that page. |
 
 ## How it works
@@ -118,6 +124,9 @@ There are two layers, on purpose:
 | You publish a page again from a new session | Nothing | The hub keeps one row, pointing at the new page; the old link still opens. |
 | You want to reorganise | Ask: "move the SEO pages into Shop / Marketing" | Claude moves them and remembers the rule. |
 | Any time | `/artifact-hub:hub` | Rebuilds the hub from the gallery and the saved list. Adds what is new, never removes what is there. |
+| Once a week | `/artifact-hub:week` | A short digest: published this week, untouched for 60 days, likely duplicates, shared with you. |
+| You want it one click away | `/artifact-hub:pin` | Pins the hub to your sidebar; unpins on request. |
+| You suspect dead links | Ask: "check my links" | Each page is read once; a page that no longer opens is marked gone, never removed. Slow, so Claude asks first past 40 pages. |
 
 ## Folders and subfolders
 
@@ -159,9 +168,9 @@ A plugin can run code on your machine, so here is all of it.
 
 | | |
 |---|---|
-| **Runs** | Three hooks. `PostToolUse` for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document) starts `hooks/on-artifact.js` (137 lines). `Stop` starts `hooks/on-stop.js` (36 lines), which only speaks when a page published that turn was not filed. `SessionStart` starts `hooks/on-session.js` (56 lines), which adds one line naming the last two pages published from the current repository in the past 30 days, and nothing when there are none. Plain Node.js, no dependencies, no shell in between. |
+| **Runs** | Three hooks. `PostToolUse` for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document) starts `hooks/on-artifact.js` (152 lines). `Stop` starts `hooks/on-stop.js` (36 lines), which only speaks when a page published that turn was not filed. `SessionStart` starts `hooks/on-session.js` (56 lines), which adds one line naming the last two pages published from the current repository in the past 30 days, and nothing when there are none. Plain Node.js, no dependencies, no shell in between. |
 | **Reads** | The result of that tool call, the `<title>` of the file just published (or the new document's name), Claude's last message of the turn, and your hub settings. During setup or a rebuild, Claude reads the list of your own artifacts through its own Artifact tool. |
-| **Writes** | Two files in `~/.claude/artifact-hub/`: `pages.json` (your published links) and `hub.json` (your hub's address and folder rules), plus a small `.pending` marker between a publish and its filing. And your hub artifact. |
+| **Writes** | Three files in `~/.claude/artifact-hub/`: `pages.json` (your published links), `hub.json` (your hub's address and folder rules) and `activity.log` (one line per publish and per filing, the 500 latest, for the weekly digest), plus a small `.pending` marker between a publish and its filing. And your hub artifact. |
 | **Sends** | Nothing. No network request, no server, no analytics, no account. |
 
 Check it yourself in a minute: [SECURITY.md](SECURITY.md). The script's behaviour is covered by tests that run on Linux, macOS and Windows for every change.
@@ -263,6 +272,8 @@ Issues and pull requests are welcome. The whole plugin is small:
 hooks/            hooks.json, on-artifact.js, on-stop.js, on-session.js (the only code that runs)
 skills/hub/       rebuild, filing, folders; template.html is the hub page
 skills/find/      find a page by a few words and hand its link to the session
+skills/week/      the weekly digest
+skills/pin/       pin or unpin the hub
 skills/setup/     first-time setup
 test/             node --test test/
 ```
