@@ -159,8 +159,10 @@ test('the page can save itself: a serializer, a guarded runtime, one marker pair
   assert.match(js, /hubWriteDenied = true; done\(\); renderSaveBar\(\)/, 'a read-only view hides the button for good');
   assert.match(js, /function claudeUse\(name\) \{ try \{ if \(typeof claude !== 'undefined'/, 'the runtime is never assumed');
   assert.strictEqual((js.replace(/\/\/[^\n]*/g, '').match(/\bclaude\.use\(/g) || []).length, 1, 'claude.use is called in one guarded place only');
-  assert.match(js, /pn\.color0 = COLORS\.indexOf\(p\.color\) >= 0 \? p\.color : ''/, 'only the data\'s colour is written back, never a swatch picked in the browser');
-  assert.match(js, /if \(pn\.color0\) head \+= ', color: '/);
+  assert.match(js, /pn\.color0 = COLORS\.indexOf\(p\.color\) >= 0 \? p\.color : ''/, 'the data\'s colour is kept apart from the browser preference');
+  assert.match(js, /edits\[pn\.key\]\.color !== undefined \? edits\[pn\.key\]\.color : pn\.color0/, 'a swatch picked on the page is written by Save to hub');
+  assert.match(js, /set the colour of project/, 'and named in the message for Claude');
+  assert.match(js, /if \(pc\) head \+= ', color: '/);
   assert.match(TEMPLATE, /id="save-hub" hidden/, 'Save to hub starts hidden and lights up with the runtime');
   assert.match(TEMPLATE, /id="dl-wrap" hidden/, 'downloads start hidden too');
   assert.match(js, /downloader\.save\(\{ filename: name, data: text \}\)/);

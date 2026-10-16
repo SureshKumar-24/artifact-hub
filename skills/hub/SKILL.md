@@ -84,8 +84,8 @@ Leave it out and the project takes the colour of its place in `PROJECTS` (first 
 second indigo, and so on), so colours stay fixed as long as the order does. Set it only
 when the user asks for a colour, or to keep a project's colour when you reorder projects.
 On the page itself, the colour dot next to an open project's name offers the eight
-swatches; a choice made there is kept in that browser only, and the page says to ask you
-to make it permanent: when the user does, set `color` here.
+swatches; a choice made there is saved with "Save to hub", or arrives in the message for
+you as `- set the colour of project Shop to amber`: then set `color` here.
 
 The artifact id is the last part of the page's link. Only that array changes; leave the
 styles and the rest of the script alone.

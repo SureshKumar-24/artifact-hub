@@ -834,9 +834,12 @@ button.lnk:hover { text-decoration: underline; }
   var editsChanged = false;
   Object.keys(edits).forEach(function (id) {
     var p = byId[id], e = edits[id];
-    if (!p && e && typeof e.note === 'string' && byKey[id] && byKey[id] !== root && byKey[id].up === root) { // a project note
-      if ((byKey[id].note || '') === e.note.slice(0, 200)) { delete edits[id]; editsChanged = true; return; }
-      byKey[id].note = e.note.slice(0, 200); byKey[id].unsaved = true; return;
+    if (!p && e && byKey[id] && byKey[id] !== root && byKey[id].up === root && (typeof e.note === 'string' || e.color !== undefined)) { // a project's note or colour
+      var pj = byKey[id];
+      if (typeof e.note === 'string') { if ((pj.note || '') === e.note.slice(0, 200)) { delete e.note; editsChanged = true; } else { pj.note = e.note.slice(0, 200); pj.unsaved = true; } }
+      if (e.color !== undefined) { var c = COLORS.indexOf(e.color) >= 0 ? e.color : ''; if (c === pj.color0) { delete e.color; editsChanged = true; } else { pj.color = c || pj.base; pj.unsaved = true; } }
+      if (typeof e.note !== 'string' && e.color === undefined) { delete edits[id]; editsChanged = true; }
+      return;
     }
     if (!p || !e) { delete edits[id]; editsChanged = true; return; }
     if (e.status !== undefined && (e.status === '' || STATUSES.indexOf(e.status) >= 0)) {
@@ -866,7 +869,10 @@ button.lnk:hover { text-decoration: underline; }
   function setStatus(p, s, quiet) { if (s === p.status) return false; p.status = s; noteEdit(p, { status: s }, quiet); return true; }
   function setNote(pn, text) { // a project's working note, kept here until Claude writes it
     text = String(text || '').trim().slice(0, 200); pn.note = text;
-    if (text === pn.note0) { delete edits[pn.key]; pn.unsaved = false; } else { edits[pn.key] = { note: text }; pn.unsaved = true; }
+    var pe = edits[pn.key] || {};
+    if (text === pn.note0) delete pe.note; else pe.note = text;
+    if (Object.keys(pe).length) edits[pn.key] = pe; else delete edits[pn.key];
+    pn.unsaved = !!(pe.note !== undefined || pe.color !== undefined);
     setJSON(K.edits, edits); render(); toast(text ? 'Note kept here. Save it from the bar above when ready.' : 'Note cleared');
   }
   function discardEdits() { edits = {}; setJSON(K.edits, edits); location.reload(); }
@@ -877,7 +883,11 @@ button.lnk:hover { text-decoration: underline; }
     var lines = ['Update my Project Hub' + at + ' with these changes I made on the page, then republish it to the same URL:'];
     Object.keys(edits).forEach(function (id) {
       var p = byId[id], e = edits[id];
-      if (!p) { if (e && typeof e.note === 'string' && byKey[id]) lines.push('- set the note of project ' + byKey[id].name + ' to: ' + (e.note || '(nothing)')); return; }
+      if (!p) {
+        if (e && typeof e.note === 'string' && byKey[id]) lines.push('- set the note of project ' + byKey[id].name + ' to: ' + (e.note || '(nothing)'));
+        if (e && e.color !== undefined && byKey[id]) lines.push('- ' + (e.color ? 'set the colour of project ' + byKey[id].name + ' to ' + e.color : 'remove the colour of project ' + byKey[id].name + ' (back to the default)'));
+        return;
+      }
       if (e.folder && byKey[e.folder]) lines.push('- move "' + p.title + '" (' + urlOf(id) + ') to the folder ' + pathOf(byKey[e.folder]));
       if (e.status !== undefined) lines.push('- ' + (e.status ? 'mark "' + p.title + '" (' + urlOf(id) + ') as ' + e.status : 'remove the status from "' + p.title + '" (' + urlOf(id) + ')'));
     });
@@ -1177,18 +1187,22 @@ button.lnk:hover { text-decoration: underline; }
 
   // ---- Context bar: the open folder with its note and subfolders, the page count, status
   // filters, the empty state. Inside a project the colour dot is a button: eight swatches, the
-  // choice kept in this browser (Claude can make it permanent in the hub's data).
+  // choice shows at once and is saved with Save to hub (or named in the message for Claude).
   var swatchOpen = false, noteOpen = null;
   function recolor(pn, color) {
     pn.color = color || pn.base;
     if (color && color !== pn.base) myColors[pn.key] = color; else delete myColors[pn.key];
     setJSON(K.colors, myColors);
+    var pe = edits[pn.key] || {}, want = color && color !== pn.base ? color : ''; // '' = the default for its place in the list
+    if (want === pn.color0) delete pe.color; else pe.color = want;
+    if (Object.keys(pe).length) edits[pn.key] = pe; else delete edits[pn.key];
+    pn.unsaved = !!(pe.note !== undefined || pe.color !== undefined); setJSON(K.edits, edits);
     Object.keys(itemCache).forEach(function (k) { var r = itemCache[k]; if (r._p.proj === pn) { r.className = r.className.replace(/\bc-\w+/, 'c-' + pn.color); } });
-    renderSide(); render(); toast(color ? 'Colour kept in this browser. Ask Claude to make it permanent.' : 'Default colour');
+    renderSide(); render(); toast(pe.color !== undefined ? (color ? cap(color) + ' for ' + pn.name + '. Save to hub to keep it everywhere.' : 'Default colour. Save to hub to keep it.') : 'Colour as the hub has it');
   }
   function renderBar(query) {
     bar.textContent = ''; app.classList.toggle('at-root', current === root);
-    var n = Object.keys(edits).reduce(function (c, id) { var e = edits[id]; return c + (e.folder ? 1 : 0) + (e.status !== undefined ? 1 : 0) + (typeof e.note === 'string' ? 1 : 0); }, 0); $('save').hidden = !n;
+    var n = Object.keys(edits).reduce(function (c, id) { var e = edits[id]; return c + (e.folder ? 1 : 0) + (e.status !== undefined ? 1 : 0) + (typeof e.note === 'string' ? 1 : 0) + (e.color !== undefined ? 1 : 0); }, 0); $('save').hidden = !n;
     if (n) $('save-n').textContent = n + (n === 1 ? ' change made here, not yet in the hub' : ' changes made here, not yet in the hub');
     if (sinceN && !sinceGone) { // a quiet line: what changed since this browser last opened the hub
       var since = el('div', 'since'); since.setAttribute('role', 'status');
@@ -1677,7 +1691,8 @@ button.lnk:hover { text-decoration: underline; }
     root.kids.forEach(function (pn, i) {
       var head = '    { id: ' + q1(pn.id0 || pn.key) + ', name: ' + q1(pn.name) + ', about: ' + q1(pn.about);
       if (pn.note) head += ', note: ' + q1(pn.note);
-      if (pn.color0) head += ', color: ' + q1(pn.color0); // a swatch picked on the page stays in the browser; only the data's colour is written
+      var pc = edits[pn.key] && edits[pn.key].color !== undefined ? edits[pn.key].color : pn.color0; // a swatch picked here, or the data's colour
+      if (pc) head += ', color: ' + q1(pc);
       var shelves = []; (function walk(x) { if (x.pages.length) shelves.push(x); x.kids.forEach(walk); })(pn);
       if (!shelves.length) { out.push(head + ', shelves: [] }' + (i < root.kids.length - 1 ? ',' : '')); return; }
       out.push(head + ', shelves: [');
