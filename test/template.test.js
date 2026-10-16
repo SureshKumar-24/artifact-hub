@@ -102,6 +102,13 @@ test('o then a digit: the first nine pages wear their digit, and the badges go o
   assert.match(js, /\['o  then  1–9', 'Open the 1st to 9th page shown'\]/, 'listed in the shortcuts sheet');
 });
 
+test('a bare day reads as a local day, and Claude Code page ids link under /code/artifact/', () => {
+  assert.match(TEMPLATE, /\^\\s\*\(\\d\{4\}\)-\(\\d\{2\}\)-\(\\d\{2\}\)\\s\*\$\/\.exec\(s\)/, 'parseDate handles YYYY-MM-DD itself');
+  assert.match(TEMPLATE, /new Date\(\+iso\[1\], \+iso\[2\] - 1, \+iso\[3\]\)/, 'as a local date, not UTC midnight');
+  assert.match(TEMPLATE, /function urlOf\(id\)/);
+  assert.strictEqual((TEMPLATE.match(/\bA \+ /g) || []).length, 0, 'every link goes through urlOf');
+});
+
 test('the empty template script parses', () => {
   assert.doesNotThrow(() => new vm.Script(script(TEMPLATE)));
 });

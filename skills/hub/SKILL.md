@@ -44,8 +44,10 @@ pages.
 
 Each row stays `[title, id, description, date]`. Write the date as the exact time when
 you have it: the entry's `last` in `pages.json` (`'2026-10-16T18:42:11.000Z'`), so the
-page can show the day and the time. Otherwise write the day like `'3 Oct'` (no year; the
-page reads it as the most recent such day). A row may carry a fifth item: a status word,
+page can show the day and the time. Otherwise write the day as `'2026-09-17'` or like
+`'3 Oct'` (no year; the page reads it as the most recent such day).
+The artifact id is the last part of the page's link; for a page at
+`claude.ai/code/artifact/<uuid>` the id is that uuid, and the page links it correctly. A row may carry a fifth item: a status word,
 or an object when more is known:
 
 ```js
@@ -65,7 +67,8 @@ or an object when more is known:
   Set `kind` only when known this way; without it the page reads the kind from the title
   and says so.
 - `by`: the owner's name, for a page shared with the user (see "Pages shared with the
-  user"). Leave it out for the user's own pages.
+  user"); when the listing gives no name, write `by: 'Shared'` and the page says only
+  "shared with you". Leave it out for the user's own pages.
 
 Leave the fifth item out when none of these apply.
 

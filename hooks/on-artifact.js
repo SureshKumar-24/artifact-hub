@@ -87,7 +87,7 @@ function update(change) {
 function main(raw) {
   let event = {};
   try { event = JSON.parse(raw || '{}'); } catch { return; }
-  // the matcher also lets through tools whose name merely starts with "Artifact"
+  // the guard below also covers a matcher that lets through other tools whose name starts with "Artifact"
   const isDoc = event.tool_name === DOCS;
   if (event.tool_name && event.tool_name !== 'Artifact' && !isDoc) return;
   const input = event.tool_input || {};
@@ -113,6 +113,7 @@ function main(raw) {
   if (action !== 'publish' || input.asset) return;
   // a refused or failed publish has no page to record; when a result names several links
   // (a document and its viewer, say), the first one is the page
+  if (/publish refused|nothing was merged or published|was not published/i.test(response)) return; // a refusal quotes the live page's link
   const found = response.match(LINK);
   if (!found) return;
   const url = found[0];
