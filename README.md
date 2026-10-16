@@ -106,7 +106,7 @@ That gives you the `hub`, `find` and `pin` skills against a hub you already have
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add `@v1.5.7` to the first command |
+| Install a fixed, reviewed version | Add the tag to the first command, for example `@v1.5.9` |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) |
 
@@ -201,7 +201,7 @@ There are two layers, on purpose:
 | `p` | Pin or unpin the page |
 | `x` | Select the page (shift-click does the same) |
 | `v` | Gallery or list |
-| `o` then `1`–`9` | Open that result |
+| `o` then `1`–`9` | Open the page wearing that digit (the first nine shown) |
 | `[` | Hide or show the sidebar |
 | `?` | All shortcuts |
 | `Esc` | Clear the selection, then the search, then leave it |

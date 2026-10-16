@@ -189,6 +189,9 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 .ctx button { width: 26px; height: 26px; flex: none; padding: 0; border: 0; border-radius: 999px; background: var(--accent-soft); color: var(--muted); cursor: pointer; display: grid; place-items: center; }
 .ctx button:hover { color: var(--ink); background: var(--hover); }
 .count { margin-left: auto; font: 400 12px/1.4 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.sec-more { padding: 6px 0 2px 24px; font-size: 13px; }
+.grid + .sec-more { padding-left: 0; }
+#insp-title:focus { outline: none; }
 .about { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; }
 .subs { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 .subs button { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 13px; cursor: pointer; }
@@ -196,7 +199,7 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 /* status: a small label on the page, a filter chip in the bar; one hue per status, readable in both themes */
 .tl { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .tl .title { min-width: 0; }
-.st { flex: none; font: 500 10px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--hover); color: var(--muted); }
+.st { flex: none; font: 500 11px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--hover); color: var(--muted); }
 .s-draft { background: var(--hover); color: var(--c-amber); }
 .s-review { background: var(--accent-soft); color: var(--c-sky); }
 .s-final { background: var(--accent-soft); color: var(--c-green); }
@@ -281,9 +284,9 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 #list:focus-visible .card.active { box-shadow: 0 0 0 2px var(--focus); } /* the keyboard ring on a card is outside its border */
 /* touch: every small control grows to a finger-sized target */
 @media (hover: none) {
-  .ctx button, .dotbtn, .swatch, .pnote .ib.small, .caret { width: 36px; height: 36px; }
-  .caret { width: 28px; }
-  .stf, .subs button, .since .stf, .pnote .addnote, button.lnk { min-height: 36px; }
+  .ctx button, .dotbtn, .swatch, .pnote .ib.small, .caret, .mini, .ib { width: 40px; height: 40px; }
+  .caret { width: 32px; }
+  .stf, .subs button, .since .stf, .pnote .addnote, button.lnk { min-height: 40px; }
   .side-h .lnk { min-height: 0; }
 }
 .hint { color: var(--muted); font-size: 12px; }
@@ -346,7 +349,9 @@ mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
   .row { grid-template-columns: 8px minmax(0, 1fr) auto 32px; column-gap: 8px; }
   .more { display: grid; }
   .row .acts { right: 44px; }
-  .acts button, .acts a, .more { width: 36px; height: 36px; }
+  .acts button, .acts a, .more { width: 40px; height: 40px; }
+  .row.active .st, .row.show .st, .row:focus-within .st { display: none; } /* the actions cover that space on a phone */
+  .count { display: none; }
 }
 /* Compact density: one 32px line, title then description */
 .compact .row { min-height: 32px; padding-top: 0; padding-bottom: 0; contain-intrinsic-size: auto 32px; }
@@ -431,7 +436,7 @@ dialog::backdrop { background: var(--scrim); }
 .insp { display: flex; flex-direction: column; gap: 14px; padding: 20px 24px max(20px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; max-height: inherit; }
 .insp-h { display: flex; align-items: center; gap: 10px; }
 .insp-h .badge { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border-radius: 999px; font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase;
-  color: var(--dot, var(--accent)); background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 12%, var(--surface)); }
+  color: var(--dot, var(--accent)); color: color-mix(in srgb, var(--dot, var(--accent)) 72%, var(--ink)); background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 12%, var(--surface)); }
 .insp-h .badge svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .insp-h .ib { margin-left: auto; }
 .insp h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
@@ -941,7 +946,9 @@ button.lnk:hover { text-decoration: underline; }
       pool.slice().sort(cmp).forEach(function (p) { var g = dateGroup(p); (groups[g] = groups[g] || []).push(p); });
       ['Today', 'This week', 'This month', 'Earlier'].forEach(function (g) { if (groups[g]) secs.push({ key: 'd:' + g, label: g, items: groups[g], path: 'rel' }); });
     } else if (current === root) { // one group per project, in PROJECTS order
-      root.kids.forEach(function (pn) { var it = under(pn).filter(visible).sort(cmp); if (it.length) secs.push({ key: 'p:' + pn.key, label: pn.name, color: pn.color, items: it, path: 'folder', about: pn.about }); });
+      root.kids.forEach(function (pn) { var it = under(pn).filter(visible).sort(cmp); if (!it.length) return;
+        var cap = it.length > CAP + 2 ? CAP : it.length; // a crowded project shows its first pages here; the rest are one step away
+        secs.push({ key: 'p:' + pn.key, label: pn.name, color: pn.color, items: it.slice(0, cap), total: it.length, more: cap < it.length ? pn : null, path: 'folder', about: pn.about }); });
     } else { // inside a folder: its own pages, then each folder below it under its path
       var base = trail(current).length;
       (function walk(n) {
@@ -1014,18 +1021,21 @@ button.lnk:hover { text-decoration: underline; }
     paint(r._t, p.title, h && h.t); paint(r._d, p.desc, h && h.d); paint(r._path, path, h && path === p.where ? h.w : null);
     if (r._where) { paint(r._where, path || p.proj.name, h && path === p.where ? h.w : null); r._where.parentNode.title = p.where; }
   }
+  var CAP = 8;
   function getSec(s) {
     var c = secCache[s.key];
     if (!c) {
-      c = secCache[s.key] = { el: el('section', 'sec'), h: el('div', 'sec-h'), body: el('div') };
+      c = secCache[s.key] = { el: el('section', 'sec'), h: el('div', 'sec-h'), body: el('div'), more: el('div', 'sec-more') };
       c.h.id = 'h-' + slug(s.key) + '-' + Object.keys(secCache).length; c.h.setAttribute('aria-hidden', 'true');
-      c.el.setAttribute('role', 'group'); c.el.setAttribute('aria-labelledby', c.h.id); c.el.appendChild(c.h); c.el.appendChild(c.body);
+      c.el.setAttribute('role', 'group'); c.el.setAttribute('aria-labelledby', c.h.id); c.el.appendChild(c.h); c.el.appendChild(c.body); c.el.appendChild(c.more);
     }
     c.h.textContent = '';
     if (s.color) c.h.appendChild(el('span', 'dot c-' + s.color));
-    c.h.appendChild(el('span', '', s.label)); c.h.appendChild(el('small', '', '· ' + s.items.length));
+    c.h.appendChild(el('span', '', s.label)); c.h.appendChild(el('small', '', '· ' + (s.total || s.items.length)));
     c.h.title = s.about || s.label;
     c.body.className = view === 'gallery' ? 'grid' : 'rows'; c.body.textContent = '';
+    c.more.textContent = ''; c.more.hidden = !s.more;
+    if (s.more) { var m = el('button', 'lnk', 'All ' + s.total + ' in ' + s.label + ' →'); m.type = 'button'; m.setAttribute('aria-label', 'Open ' + s.label + ', all ' + s.total + ' pages'); m.addEventListener('click', function () { go(s.more); }); c.more.appendChild(m); }
     return c;
   }
 
@@ -1116,7 +1126,7 @@ button.lnk:hover { text-decoration: underline; }
       }
     }
     var all = under(current).filter(function (p) { return !hiddenPage(p); }), total = all.filter(visible).length, counts = countStatus(all), kinds = countKinds(all);
-    bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
+    if (total) bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
     if (current.about && !query) bar.appendChild(el('p', 'about', current.about)); // what the project is, right under its name
     if (current !== root && current === current.proj && !query) { // the project's working note, editable here
       var pn2 = current, nt = el('div', 'pnote');
@@ -1364,7 +1374,7 @@ button.lnk:hover { text-decoration: underline; }
   }
   function inspect(p, from) {
     inspected = p; inspFrom = from || document.activeElement; fillInspector(p); showDialog(insp);
-    $('insp-close').focus();
+    var ttl = $('insp-title'); ttl.tabIndex = -1; ttl.focus(); // read first; the close button is one Tab away
   }
   insp.addEventListener('close', function () { var f = inspFrom; inspFrom = null; if (f && f.focus && document.contains(f)) f.focus(); else list.focus({ preventScroll: true }); });
   insp.addEventListener('click', function (e) { if (e.target === insp) hideDialog(insp); }); // a click on the backdrop
@@ -1484,9 +1494,6 @@ button.lnk:hover { text-decoration: underline; }
   function renderSel() {
     var ps = selPages(), n = ps.length; $('sel').hidden = !n; if (!n) return;
     $('sel-n').textContent = n + (n === 1 ? ' page selected' : ' pages selected');
-    var ms = $('sel-move'); ms.textContent = ''; var ph = el('option', '', 'Move to…'); ph.value = ''; ms.appendChild(ph);
-    (function walk(nd) { nd.kids.forEach(function (k) { var o = el('option', '', pathOf(k)); o.value = k.key; ms.appendChild(o); walk(k); }); })(root);
-    $('sel-status').value = '';
   }
   // bulk actions change every selected page first and draw once at the end
   $('sel-move').addEventListener('click', function () { menu(this, folderOptions(null), null, function (v) { var to = byKey[v]; if (!to) return; var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (movePage(p, to, true)) n++; }); redraw(); toast(n ? 'Moved ' + n + ' to ' + pathOf(to) : 'Already there'); }); });
