@@ -110,7 +110,7 @@ That gives you the `hub`, `find` and `pin` skills against a hub you already have
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add the tag to the first command, for example `@v1.7.1` |
+| Install a fixed, reviewed version | Add the tag to the first command, for example `@v1.7.2` |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) |
 
@@ -139,7 +139,7 @@ That gives you the `hub`, `find` and `pin` skills against a hub you already have
 | **Status** | Draft, review, final, archived: a label on the page and a filter chip. Archived pages stay in the hub, out of the way. Set it in words or in the details panel. |
 | **Move and bulk actions** | "Move to" in the details panel, or select several pages (shift-click, `x`) to move them, set a status or copy their links in one go. Changes show at once, marked "Unsaved", and one button copies the list for Claude to write into the hub, so the data has one owner. |
 | **Project notes** | One short line per project of what matters now ("client wants v2 by November"), under its heading, editable on the page. |
-| **Kinds Claude knows** | A page made from one of Claude's artifact types (Slides, Design, Design system, Dashboard, Docs) keeps that kind. Others get a kind from the title, and the panel says which. |
+| **Kinds Claude knows** | A page made from one of Claude's artifact types (Docs, Slides, Design, Design system, Dashboard, and Motion where the plan has it) keeps that kind, with its own cover and filter chip. Others get a kind from the title, and the panel says which. Docs, Slides and Design are on every plan since 8 October 2026, so every one of them lands here. |
 | **Shared with you** | Pages other people shared with you can sit under "Shared with me", with the owner's name on each. Listed, never edited. |
 
 **Working**
