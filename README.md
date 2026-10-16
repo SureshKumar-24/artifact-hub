@@ -14,7 +14,7 @@ A Claude Code plugin. The moment a page is published, its link is saved on your 
 
 ![Project Hub in the gallery view: a folder tree on the left, pinned pages first, then each project's pages as cards with a drawn cover, a status label and the folder](docs/hub.png)
 
-<sub>Example data. Covers are drawn from each page's kind, never screenshots.</sub>
+<sub>Example data, in the default look that matches claude.ai; a second look (warm paper, teal) is one click away under <code>?</code>. Covers are drawn from each page's kind, never screenshots.</sub>
 
 </div>
 

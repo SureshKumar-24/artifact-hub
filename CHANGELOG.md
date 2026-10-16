@@ -2,10 +2,10 @@
 
 ## 1.5.2
 
-- A second look, "Match Claude": the cream, charcoal and terracotta of claude.ai, with
-  serif headings. Pick it under `?` → Look; remembered in the browser
-  (`project-hub.look.v1`). Project colours stay the same in both looks. The default is
-  still the hub's own look (warm paper, teal).
+- A new default look that matches claude.ai: cream background, charcoal text, terracotta
+  accent, serif headings, in light and dark. The hub's own look (warm paper, teal) is
+  still there under `?` → Look; the choice is remembered in the browser
+  (`project-hub.look.v1`). Project colours are the same in both looks.
 
 ## 1.5.1
 
