@@ -25,7 +25,7 @@ variables or credentials, or change any Claude Code setting or permission.
 
 ## Check it yourself
 
-The scripts are 152, 36 and 56 lines: [on-artifact.js](hooks/on-artifact.js), [on-stop.js](hooks/on-stop.js), [on-session.js](hooks/on-session.js). These should
+The scripts are 163, 36 and 56 lines: [on-artifact.js](hooks/on-artifact.js), [on-stop.js](hooks/on-stop.js), [on-session.js](hooks/on-session.js). These should
 all print nothing:
 
 ```
@@ -40,7 +40,7 @@ its own Artifact tool and to read and write the files above, nothing else.
 To avoid picking up future changes without reviewing them, install a tagged release:
 
 ```
-/plugin marketplace add SureshKumar-24/artifact-hub@v1.3.0
+/plugin marketplace add SureshKumar-24/artifact-hub@v1.5.1
 ```
 
 ## Report a problem

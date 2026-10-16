@@ -34,6 +34,16 @@ test('follows the artifact page contract', () => {
   assert.doesNotMatch(TEMPLATE, /<iframe|<img\s|fetch\(|XMLHttpRequest/, 'the page embeds and fetches nothing');
 });
 
+test('the selection bar sits above the save bar, and small controls grow for touch', () => {
+  assert.ok(TEMPLATE.indexOf('id="sel"') < TEMPLATE.indexOf('id="save"'), 'selection (transient) before unsaved changes (persistent)');
+  assert.match(TEMPLATE, /id="sel-clear"[^>]*title="Clear the selection \(Esc\)"/);
+  const touch = TEMPLATE.match(/@media \(hover: none\) \{\s*\.ctx button, \.dotbtn, \.swatch[^}]*\}/);
+  assert.ok(touch, 'a hover-less block sizes the small controls to 36px');
+  assert.match(touch[0], /36px/);
+  assert.match(script(TEMPLATE), /'Text to copy'/, 'the copy fallback box is labelled for any text, not only links');
+  assert.match(script(TEMPLATE), /function redraw\(\)/, 'bulk actions draw once');
+});
+
 test('has the gallery / list switch, the details panel and the shortcut sheet', () => {
   assert.match(TEMPLATE, /data-view="gallery"[^>]*aria-pressed=/);
   assert.match(TEMPLATE, /data-view="list"[^>]*aria-pressed=/);

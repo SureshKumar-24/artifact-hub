@@ -186,7 +186,7 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 .since .stf { min-height: 28px; }
 /* a project's working note */
 .pnote { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 10px; }
-.pnote .ptext { flex: 0 1 auto; min-width: 0; margin: 0; max-width: 68ch; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.pnote .ptext { flex: 1 1 160px; min-width: 0; margin: 0; max-width: 68ch; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; } /* shrinks so the pencil stays on its line */
 .pnote .addnote { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 13px; color: var(--muted); }
 .pnote .addnote:hover { color: var(--accent); text-decoration: none; }
 .pnote .addnote svg { width: 14px; height: 14px; }
@@ -205,12 +205,23 @@ h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
 [hidden] { display: none !important; } /* the page's own display rules never override hidden */
 .side-h .lnk { font: 500 11px/1 var(--mono); letter-spacing: 0; text-transform: none; }
 .insp select { max-width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
-.card .tl { align-items: flex-start; }
-.card .st { margin-top: 2px; }
+.card .tl { flex-wrap: wrap; align-items: flex-start; row-gap: 4px; } /* labels drop under the title instead of squeezing it */
+.card .tl .title { flex: 1 1 100%; }
+.card .st { margin-top: 0; }
 .sts { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 .stf { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; cursor: pointer; color: var(--ink); }
 .stf small { font: 400 11px/1 var(--mono); color: var(--muted); }
+.stf:hover { border-color: var(--accent); }
 .stf[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.swatch:hover { box-shadow: 0 0 0 2px var(--line); }
+#list:focus-visible .card.active { box-shadow: 0 0 0 2px var(--focus); } /* the keyboard ring on a card is outside its border */
+/* touch: every small control grows to a finger-sized target */
+@media (hover: none) {
+  .ctx button, .dotbtn, .swatch, .pnote .ib.small, .caret { width: 36px; height: 36px; }
+  .caret { width: 28px; }
+  .stf, .subs button, .since .stf, .pnote .addnote, button.lnk { min-height: 36px; }
+  .side-h .lnk { min-height: 0; }
+}
 .hint { color: var(--muted); font-size: 12px; }
 /* colour swatches for the open project */
 .dotbtn { width: 28px; height: 28px; flex: none; padding: 0; border: 0; border-radius: 999px; background: transparent; cursor: pointer; display: grid; place-items: center; }
@@ -326,10 +337,10 @@ mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
 .btn[aria-pressed="true"] { background: var(--accent-soft); }
 .note { margin: 32px 0 0; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 .toast { position: fixed; z-index: 50; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
-  display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px); padding: 8px 14px; border-radius: 8px;
-  background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: var(--shadow); }
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; width: max-content; max-width: calc(100vw - 32px); padding: 8px 14px; border-radius: 8px;
+  background: var(--ink); color: var(--bg); font-size: 13px; box-shadow: var(--lift); }
 .toast:empty { display: none; }
-.toast input { min-width: 0; width: 220px; max-width: 60vw; padding: 4px 6px; border: 0; border-radius: 4px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
+.toast input { flex: 1 1 160px; min-width: 0; max-width: 100%; padding: 6px 8px; border: 0; border-radius: 4px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
 dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); color: var(--ink); box-shadow: var(--lift); }
 dialog::backdrop { background: var(--scrim); }
 .sheet { padding: 20px 24px; }
@@ -409,17 +420,17 @@ button.lnk:hover { text-decoration: underline; }
       </div>
     </header>
 
-    <div class="save" id="save" hidden role="status">
-      <span id="save-n"></span>
-      <button class="btn primary" type="button" id="save-copy" title="Copies a message for Claude Code that writes these changes into the hub">Save changes with Claude</button>
-      <button class="btn" type="button" id="save-drop">Discard</button>
-    </div>
-    <div class="save selbar" id="sel" hidden role="status" aria-label="Selected pages">
+    <div class="save selbar" id="sel" hidden role="region" aria-label="Selected pages">
       <span id="sel-n"></span>
       <select id="sel-move" aria-label="Move the selected pages to a folder"></select>
       <select id="sel-status" aria-label="Set the status of the selected pages"><option value="">Status…</option><option value="draft">Draft</option><option value="review">Review</option><option value="final">Final</option><option value="archived">Archived</option><option value="-">No status</option></select>
       <button class="btn" type="button" id="sel-copy"><span data-icon="copy"></span>Copy links</button>
-      <button class="btn" type="button" id="sel-clear">Clear</button>
+      <button class="btn" type="button" id="sel-clear" title="Clear the selection (Esc)">Clear</button>
+    </div>
+    <div class="save" id="save" hidden role="region" aria-label="Changes not yet saved">
+      <span id="save-n"></span>
+      <button class="btn primary" type="button" id="save-copy" title="Copies a message for Claude Code that writes these changes into the hub">Save changes with Claude</button>
+      <button class="btn" type="button" id="save-drop">Discard</button>
     </div>
     <div class="bar" id="bar"></div>
     <p class="sr" id="live" aria-live="polite"></p>
@@ -654,22 +665,23 @@ button.lnk:hover { text-decoration: underline; }
   });
   PAGES.forEach(index);
   function pathOf(node) { return trail(node).slice(1).map(function (x) { return x.name; }).join(' / '); }
-  function noteEdit(p, change) { // remember one change for this page, forget the item cache for it, redraw
+  function noteEdit(p, change, quiet) { // remember one change for this page, forget the item cache for it, redraw (unless batched)
     var e = edits[p.id] || (edits[p.id] = {});
     Object.keys(change).forEach(function (k) { e[k] = change[k]; });
     if (e.folder && byKey[e.folder] === p.home) delete e.folder;
     if (e.status !== undefined && e.status === p.status0) delete e.status;
     if (!Object.keys(e).length) { delete edits[p.id]; p.unsaved = false; } else p.unsaved = true;
-    setJSON(K.edits, edits);
     Object.keys(itemCache).forEach(function (k) { if (k.slice(k.lastIndexOf(':') + 1) === String(p.i)) delete itemCache[k]; });
-    itemsById[p.id] = []; underCache = {}; index(p); renderSide(); render();
+    itemsById[p.id] = []; underCache = {}; index(p);
+    if (!quiet) redraw();
   }
-  function movePage(p, node) { if (node === p.node || node === root) return; p.node.pages.splice(p.node.pages.indexOf(p), 1); node.pages.push(p); p.node = node; p.proj = node.proj; noteEdit(p, { folder: node.key }); }
-  function setStatus(p, s) { p.status = s; noteEdit(p, { status: s }); }
+  function redraw() { setJSON(K.edits, edits); renderSide(); render(); } // one write and one draw, after one change or a batch
+  function movePage(p, node, quiet) { if (node === p.node || node === root) return false; p.node.pages.splice(p.node.pages.indexOf(p), 1); node.pages.push(p); p.node = node; p.proj = node.proj; noteEdit(p, { folder: node.key }, quiet); return true; }
+  function setStatus(p, s, quiet) { if (s === p.status) return false; p.status = s; noteEdit(p, { status: s }, quiet); return true; }
   function setNote(pn, text) { // a project's working note, kept here until Claude writes it
     text = String(text || '').trim().slice(0, 200); pn.note = text;
     if (text === pn.note0) { delete edits[pn.key]; pn.unsaved = false; } else { edits[pn.key] = { note: text }; pn.unsaved = true; }
-    setJSON(K.edits, edits); render();
+    setJSON(K.edits, edits); render(); toast(text ? 'Note kept here. Save it with Claude when ready.' : 'Note cleared');
   }
   function discardEdits() { edits = {}; setJSON(K.edits, edits); location.reload(); }
   function editsText() { // one message for Claude, naming each change
@@ -690,8 +702,9 @@ button.lnk:hover { text-decoration: underline; }
   function visible(p) { return (kindFilter ? p.kind === kindFilter : true) && (statusFilter ? p.status === statusFilter : p.status !== 'archived') && (!sinceFilter || isNew(p)); }
   // selection, for acting on several pages at once (shift-click, or x on the selected page)
   var selected = {};
-  function toggleSel(p) { if (selected[p.id]) delete selected[p.id]; else selected[p.id] = true; markSel(); renderSel(); }
-  function clearSel() { selected = {}; markSel(); renderSel(); }
+  function toggleSel(p) { if (selected[p.id]) delete selected[p.id]; else selected[p.id] = true; markSel(); renderSel(); announceSel(); }
+  function clearSel() { var had = Object.keys(selected).length; selected = {}; markSel(); renderSel(); if (had) $('live').textContent = 'Selection cleared'; }
+  function announceSel() { var n = Object.keys(selected).length; $('live').textContent = n ? n + (n === 1 ? ' page selected' : ' pages selected') : 'Selection cleared'; }
   function markSel() { Object.keys(itemCache).forEach(function (k) { var r = itemCache[k]; r.classList.toggle('sel', !!selected[r._p.id]); }); }
   function selPages() { return Object.keys(selected).map(function (id) { return byId[id]; }).filter(Boolean); }
   function countStatus(pool) { var c = {}; pool.forEach(function (p) { if (p.status) c[p.status] = (c[p.status] || 0) + 1; }); return c; }
@@ -869,7 +882,7 @@ button.lnk:hover { text-decoration: underline; }
     if (r._sig === sig) return; r._sig = sig;
     var h = query ? p.hit : null;
     paint(r._t, p.title, h && h.t); paint(r._d, p.desc, h && h.d); paint(r._path, path, h && path === p.where ? h.w : null);
-    if (r._where) paint(r._where, path || p.proj.name, h && path === p.where ? h.w : null);
+    if (r._where) { paint(r._where, path || p.proj.name, h && path === p.where ? h.w : null); r._where.parentNode.title = p.where; }
   }
   function getSec(s) {
     var c = secCache[s.key];
@@ -881,7 +894,7 @@ button.lnk:hover { text-decoration: underline; }
     c.h.textContent = '';
     if (s.color) c.h.appendChild(el('span', 'dot c-' + s.color));
     c.h.appendChild(el('span', '', s.label)); c.h.appendChild(el('small', '', '· ' + s.items.length));
-    c.h.title = s.about || '';
+    c.h.title = s.about || s.label;
     c.body.className = view === 'gallery' ? 'grid' : 'rows'; c.body.textContent = '';
     return c;
   }
@@ -1123,11 +1136,14 @@ button.lnk:hover { text-decoration: underline; }
   var toastTimer = 0;
   function toast(msg, text) {
     var t = $('toast'); clearTimeout(toastTimer); t.textContent = ''; t.appendChild(el('span', '', msg));
-    if (text) { var i = el('input'); i.readOnly = true; i.value = text; i.setAttribute('aria-label', 'Link to copy'); t.appendChild(i); i.focus(); i.select(); }
+    if (text) { var i = el('input'); i.readOnly = true; i.value = text; i.setAttribute('aria-label', 'Text to copy'); t.appendChild(i); i.focus(); i.select(); }
     toastTimer = setTimeout(function () { t.textContent = ''; }, text ? 8000 : 1500);
   }
   function copyText(text, done) { // clipboard first; if refused, show the text selected so it can be copied by hand
-    function byHand() { toast('Press ' + MOD + 'C to copy', text); }
+    function byHand() {
+      if (insp.open) { var u = $('insp-url'); u.value = text; u.focus(); u.select(); toast('Press ' + MOD + 'C to copy'); } // the toast sits outside the modal
+      else toast('Press ' + MOD + 'C to copy', text);
+    }
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(done || 'Copied'); }, byHand);
       else byHand();
@@ -1236,8 +1252,9 @@ button.lnk:hover { text-decoration: underline; }
     (function walk(nd) { nd.kids.forEach(function (k) { var o = el('option', '', pathOf(k)); o.value = k.key; ms.appendChild(o); walk(k); }); })(root);
     $('sel-status').value = '';
   }
-  $('sel-move').addEventListener('change', function () { var to = byKey[this.value]; if (!to) return; var ps = selPages(); clearSel(); ps.forEach(function (p) { movePage(p, to); }); toast('Moved ' + ps.length + ' to ' + pathOf(to)); });
-  $('sel-status').addEventListener('change', function () { var v = this.value; if (!v) return; var ps = selPages(); clearSel(); ps.forEach(function (p) { setStatus(p, v === '-' ? '' : v); }); toast(v === '-' ? 'Status removed' : 'Marked ' + ps.length + ' as ' + v); });
+  // bulk actions change every selected page first and draw once at the end
+  $('sel-move').addEventListener('change', function () { var to = byKey[this.value]; if (!to) return; var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (movePage(p, to, true)) n++; }); redraw(); toast(n ? 'Moved ' + n + ' to ' + pathOf(to) : 'Already there'); });
+  $('sel-status').addEventListener('change', function () { var v = this.value; if (!v) return; var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (setStatus(p, v === '-' ? '' : v, true)) n++; }); redraw(); toast(v === '-' ? 'Status removed from ' + n : 'Marked ' + n + ' as ' + v); });
   $('sel-copy').addEventListener('click', function () { var ps = selPages(); copyText(ps.map(function (p) { return A + p.id; }).join('\n'), 'Copied ' + ps.length + (ps.length === 1 ? ' link' : ' links')); });
   $('sel-clear').addEventListener('click', clearSel);
   $('save-copy').addEventListener('click', function () { copyText(editsText(), 'Copied: paste it into Claude Code'); });
@@ -1268,7 +1285,7 @@ button.lnk:hover { text-decoration: underline; }
   // every opened page is remembered: left or middle click, or Enter (which clicks the link)
   var wide = window.matchMedia ? matchMedia('(min-width: 1024px)') : { matches: false };
   document.addEventListener('click', function (e) {
-    var a = e.target.closest && e.target.closest('a[data-id]'); if (a) record(a.getAttribute('data-id'));
+    var a = !e.defaultPrevented && e.target.closest && e.target.closest('a[data-id]'); if (a) record(a.getAttribute('data-id')); // a shift-click selects, it does not open
     var m = e.target.closest && e.target.closest('[data-menu]');
     if (m) { if (wide.matches) setFolded(!folded, true); else if (app.classList.contains('nav-open')) closeNav(true); else openNav(m); }
     if (swatchOpen && !(e.target.closest && e.target.closest('.sw, .dotbtn'))) { swatchOpen = false; renderBar(q.value.trim()); }
@@ -1294,8 +1311,14 @@ button.lnk:hover { text-decoration: underline; }
     var t = e.target, inSearch = t === q, inList = t === list, mod = e.metaKey || e.ctrlKey;
     var typing = !inSearch && t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
     if (mod && !e.altKey && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); q.focus(); q.select(); return; }
+    if (e.key === 'Tab' && app.classList.contains('nav-open') && !wide.matches) { // the phone drawer keeps focus inside it
+      var fs = Array.prototype.filter.call($('side').querySelectorAll('button, a[href]'), function (x) { return x.offsetParent !== null; });
+      if (fs.length) { var at = fs.indexOf(document.activeElement); if (e.shiftKey && (at <= 0)) { e.preventDefault(); fs[fs.length - 1].focus(); } else if (!e.shiftKey && (at < 0 || at === fs.length - 1)) { e.preventDefault(); fs[0].focus(); } }
+      return;
+    }
     if (e.key === 'Escape') {
       if (Object.keys(selected).length) { e.preventDefault(); clearSel(); }
+      else if (swatchOpen) { e.preventDefault(); swatchOpen = false; renderBar(q.value.trim()); var dbtn = bar.querySelector('.dotbtn'); if (dbtn) dbtn.focus(); }
       else if (app.classList.contains('nav-open')) { e.preventDefault(); closeNav(true); }
       else if (openRow) { openRow.classList.remove('show'); openRow.querySelector('.more').setAttribute('aria-expanded', 'false'); openRow = null; }
       else if (inSearch) { e.preventDefault(); if (q.value) { q.value = ''; render(); } else q.blur(); }

@@ -32,6 +32,7 @@ A Claude Code plugin. The moment a page is published, its link is saved on your 
 - [What you get](#what-you-get)
 - [How it works](#how-it-works)
 - [Using it](#using-it)
+- [Keyboard](#keyboard)
 - [Folders and subfolders](#folders-and-subfolders)
 - [What it runs, reads and sends](#what-it-runs-reads-and-sends)
 - [What it costs](#what-it-costs)
@@ -89,7 +90,7 @@ Then run this once:
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add `@v1.5.0` to the first command |
+| Install a fixed, reviewed version | Add `@v1.5.1` to the first command |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) |
 
@@ -171,6 +172,23 @@ There are two layers, on purpose:
 | You want it one click away | `/artifact-hub:pin` | Pins the hub to your sidebar; unpins on request. |
 | You suspect dead links | Ask: "check my links" | Each page is read once; a page that no longer opens is marked gone, never removed. Slow, so Claude asks first past 40 pages. |
 
+## Keyboard
+
+| Key | Does |
+|---|---|
+| `/` or `⌘K` | Search |
+| `j` `k` or `↑` `↓` | Move between pages (the gallery in reading order) |
+| `Enter` | Open the page in a new tab |
+| `i` | Details of the page |
+| `c` | Copy the page link |
+| `p` | Pin or unpin the page |
+| `x` | Select the page (shift-click does the same) |
+| `v` | Gallery or list |
+| `o` then `1`–`9` | Open that result |
+| `[` | Hide or show the sidebar |
+| `?` | All shortcuts |
+| `Esc` | Clear the selection, then the search, then leave it |
+
 ## Folders and subfolders
 
 A project is a top-level folder. Inside it you can have folders within folders:
@@ -211,7 +229,7 @@ A plugin can run code on your machine, so here is all of it.
 
 | | |
 |---|---|
-| **Runs** | Three hooks. `PostToolUse` for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document) starts `hooks/on-artifact.js` (152 lines). `Stop` starts `hooks/on-stop.js` (36 lines), which only speaks when a page published that turn was not filed. `SessionStart` starts `hooks/on-session.js` (56 lines), which adds one line naming the last two pages published from the current repository in the past 30 days, and nothing when there are none. Plain Node.js, no dependencies, no shell in between. |
+| **Runs** | Three hooks. `PostToolUse` for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document) starts `hooks/on-artifact.js` (163 lines). `Stop` starts `hooks/on-stop.js` (36 lines), which only speaks when a page published that turn was not filed. `SessionStart` starts `hooks/on-session.js` (56 lines), which adds one line naming the last two pages published from the current repository in the past 30 days, and nothing when there are none. Plain Node.js, no dependencies, no shell in between. |
 | **Reads** | The result of that tool call, the `<title>` of the file just published (or the new document's name), Claude's last message of the turn, and your hub settings. During setup or a rebuild, Claude reads the list of your own artifacts through its own Artifact tool. |
 | **Writes** | Three files in `~/.claude/artifact-hub/`: `pages.json` (your published links), `hub.json` (your hub's address and folder rules) and `activity.log` (one line per publish and per filing, the 500 latest, for the weekly digest), plus a small `.pending` marker between a publish and its filing. And your hub artifact. |
 | **Sends** | Nothing. No network request, no server, no analytics, no account. |

@@ -25,7 +25,10 @@ Do this once per user.
    more than eight pages, nesting (`'Area / Topic'`) only where a subfolder would itself
    be crowded; otherwise use one entry named "All pages". Show the proposed folders in
    the table you ask the user to confirm. Each row is
-   `['Page title', '<artifact id>', 'What it is, under 12 plain words', '3 Oct']`.
+   `['Page title', '<artifact id>', 'What it is, under 12 plain words', '3 Oct']`; use
+   the exact time from `pages.json` (`last`) as the date when the entry has one, and
+   add `{ kind }` for a page made from a Claude type (see the `hub` skill). One row per
+   id: a page listed twice (gallery and `pages.json`) is one row.
    Leave out the optional project `color` unless the user asks for one; each project then
    gets a fixed colour by its place in the list (see the `hub` skill).
 5. Publish it with `Artifact` (no `url`, icon `folder`). The page's `<title>` is

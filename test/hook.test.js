@@ -94,6 +94,24 @@ test('a new Claude Doc is saved and filed like a page; edits to an existing doc 
   assert.strictEqual(h.pages().length, 1);
 });
 
+test('titles come out as plain text: entities decoded, whitespace collapsed, from a file or the input', () => {
+  const h = home();
+  const file = path.join(h.dir, 'p.html'); fs.writeFileSync(file, '<title>\n  Fish &amp; Chips &#8212; Q4 &quot;plan&quot;   &#x1F600;\n</title>');
+  h.run({ tool_input: { file_path: file }, tool_response: published('AAA111') });
+  h.run({ tool_input: { title: '  Two   words &lt;b&gt; ' }, tool_response: published('BBB222') });
+  const empty = path.join(h.dir, 'launch-plan.html'); fs.writeFileSync(empty, '<title> &nbsp; </title>');
+  h.run({ tool_input: { file_path: empty }, tool_response: published('CCC333') });
+  assert.deepStrictEqual(h.pages().map((p) => p.title), ['Fish & Chips — Q4 "plan" 😀', 'Two words <b>', 'launch-plan']);
+});
+
+test('a result given as an object, a nested cwd with a trailing separator, and several links in one result', () => {
+  const h = home();
+  const repo = path.join(h.dir, 'My Shop'); fs.mkdirSync(path.join(repo, '.git'), { recursive: true }); fs.mkdirSync(path.join(repo, 'src', 'deep'), { recursive: true });
+  const out = h.run({ cwd: path.join(repo, 'src', 'deep', path.sep), tool_input: { title: 'Nested' }, tool_response: { content: [{ type: 'text', text: `Created ${A}DOC001 (viewer ${A}VIEW02)` }] } });
+  assert.match(out, /artifact-hub:setup/, 'no hub yet, so setup is offered once');
+  assert.deepStrictEqual(h.pages().map((p) => [p.url, p.folder]), [[`${A}DOC001`, 'My Shop']]);
+});
+
 test('a page made from an artifact type keeps the type id', () => {
   const h = home();
   h.run({ tool_input: { type_url: `${A}TYPE01`, title: 'Q4 deck' }, tool_response: published('AAA111') });

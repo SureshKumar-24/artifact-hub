@@ -25,6 +25,15 @@ const say = (text) =>
 const readJson = (file, fallback) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } };
 const idOf = (url) => String(url || '').split(/[/?#]/).filter(Boolean).pop();
 
+const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+/** Plain text from a title's HTML: entities decoded, whitespace collapsed. */
+const plain = (s) => String(s)
+  .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => {
+    if (e[0] === '#') { const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10); return Number.isFinite(n) && n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m; }
+    return ENTITIES[e.toLowerCase()] ?? m;
+  })
+  .replace(/\s+/g, ' ').trim();
+
 /** The page's own <title>, read from the file that was just published (first 8 KB, as the gallery does). */
 function titleOf(filePath) {
   try {
@@ -33,7 +42,8 @@ function titleOf(filePath) {
     const n = fs.readSync(fd, buf, 0, buf.length, 0);
     fs.closeSync(fd);
     const m = buf.toString('utf8', 0, n).match(/<title[^>]*>([^<]{1,200})<\/title>/i);
-    return m ? m[1].trim() : path.basename(filePath).replace(/\.[^.]+$/, '');
+    const t = m ? plain(m[1]) : '';
+    return t || path.basename(filePath).replace(/\.[^.]+$/, '');
   } catch { return null; }
 }
 
@@ -101,7 +111,8 @@ function main(raw) {
   }
 
   if (action !== 'publish' || input.asset) return;
-  // a refused or failed publish has no page to record
+  // a refused or failed publish has no page to record; when a result names several links
+  // (a document and its viewer, say), the first one is the page
   const found = response.match(LINK);
   if (!found) return;
   const url = found[0];
@@ -111,8 +122,8 @@ function main(raw) {
   log(`published ${url}`);
 
   const folder = projectFolder(event.cwd);
-  const title = newDoc ? (typeof newDoc.name === 'string' && newDoc.name.trim()) || null
-    : input.file_path ? titleOf(String(input.file_path)) : input.title || null;
+  const title = newDoc ? (typeof newDoc.name === 'string' && plain(newDoc.name)) || null
+    : input.file_path ? titleOf(String(input.file_path)) : (typeof input.title === 'string' && plain(input.title)) || null;
   // a new page with the title of a known page is most likely that page published again from a
   // session that had lost the link; the old entry is marked, never removed, and Claude is told
   let replaced = null;

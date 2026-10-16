@@ -13,14 +13,16 @@ date]` between `HUB-DATA-START` and `HUB-DATA-END`).
 
 1. Take the words the user gave. Look in `pages.json` first (titles and folders), then
    in the hub's rows (titles and descriptions) if the hub exists. Match loosely: any of
-   the words, any case, partial words.
+   the words, any case, partial words. If neither file exists, say the plugin has not
+   recorded a page yet and point to the `setup` skill.
 2. Skip entries marked `deleted`. For an entry with `replacedBy`, prefer the newer page it
    points to and mention the older link exists.
 3. One match: answer in one line with the title, its folder and the full link, and ask
    whether to open it (`Artifact` `action: "open"`) or to read it (`action: "read"`) so
    the next publish goes to the same URL. Never publish without `url` when the user means
    this page: that makes a second page.
-4. Several matches: list them (title, folder, date), newest first, and ask which one.
+4. Several matches: list them (title, folder, date), newest first, at most ten, and ask
+   which one. More than ten: say how many and ask for another word.
 5. None: say so, and offer a rebuild (`hub` skill) in case the page was never filed.
 
 Do not open or read a page the user did not pick, and do not change the hub here.
