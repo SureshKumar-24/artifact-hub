@@ -132,6 +132,11 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 @media (hover: none) { .mini { visibility: visible; width: 36px; height: 36px; } }
 .item.faint { opacity: 0.55; }
 .side-foot { margin: 12px 8px 0; font-size: 13px; }
+/* o then a digit: while waiting for the digit, the first nine pages wear it */
+.qk { position: absolute; z-index: 2; top: 50%; left: 0; width: 18px; height: 18px; margin-top: -9px; border-radius: 999px; background: var(--accent); color: var(--on-accent);
+  font: 600 11px/18px var(--mono); text-align: center; box-shadow: var(--lift); pointer-events: none; }
+.card .qk { top: 8px; left: 8px; margin-top: 0; }
+.row:has(> .qk) > .dot { visibility: hidden; }
 @media (max-width: 1023px) { .item { min-height: 40px; } }
 
 /* ---- Intro and the sticky header. Phones: a search row (menu, search, view) over one strip that
@@ -587,7 +592,7 @@ button.lnk:hover { text-decoration: underline; }
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
   var K = { folder: 'project-hub.folder.v2', pins: 'project-hub.pins.v1', opened: 'project-hub.opened.v1',
     sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1', look: 'project-hub.look.v1', hidden: 'project-hub.hidden.v1',
-    colors: 'project-hub.colors.v1', side: 'project-hub.side.v1', edits: 'project-hub.edits.v1', visit: 'project-hub.visit.v1' };
+    colors: 'project-hub.colors.v1', side: 'project-hub.side.v1', edits: 'project-hub.edits.v1', visit: 'project-hub.visit.v1', hint: 'project-hub.hint.v1' };
   function getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setRaw(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not saved */ } }
   function getJSON(k, d) { try { var v = JSON.parse(getRaw(k)); return v == null ? d : v; } catch (e) { return d; } }
@@ -1026,7 +1031,7 @@ button.lnk:hover { text-decoration: underline; }
 
   function render() {
     var query = q.value.trim(), secs = sections(query), frag = document.createDocumentFragment(), build = view === 'gallery' ? getCard : getRow;
-    var keep = active && active._p; shown = [];
+    var keep = active && active._p; shown = []; if (quick) clearQuick();
     secs.forEach(function (s) {
       var sec = getSec(s), kind = s.key === 'pin' || s.key === 'rec' ? s.key : 'm';
       s.items.forEach(function (p) { var r = build(p, kind); fillItem(r, p, s.path, query); sec.body.appendChild(r); shown.push(r); });
@@ -1164,12 +1169,13 @@ button.lnk:hover { text-decoration: underline; }
     if (current.kids.length && !query) {
       var subs = el('div', 'subs');
       current.kids.forEach(function (k) {
+        if (isHidden(k) && !showHidden && !inCurrent(k)) return; // hidden folders leave the chips too (the tablet rail shows them at the top level)
         var b = el('button'); b.type = 'button';
         if (k.up === root) b.appendChild(el('span', 'dot c-' + k.color)); else b.appendChild(icon('folder'));
         b.appendChild(el('span', '', k.name)); b.appendChild(el('small', '', String(under(k).length)));
         b.addEventListener('click', function () { go(k); }); subs.appendChild(b);
       });
-      bar.appendChild(subs);
+      if (subs.childNodes.length) bar.appendChild(subs);
     }
   }
   // the empty hub shows what it will look like: six example cards, clearly marked, that go nowhere
@@ -1250,7 +1256,7 @@ button.lnk:hover { text-decoration: underline; }
     var foot = $('side-hidden'); foot.textContent = '';
     if (hidden.length) { // one quiet line: how many folders are hidden, and a way to see them
       var t = el('button', 'lnk'); t.type = 'button'; t.textContent = showHidden ? 'Hide them again' : hidden.length + (hidden.length === 1 ? ' hidden folder · Show' : ' hidden folders · Show');
-      t.addEventListener('click', function () { showHidden = !showHidden; renderSide(); }); foot.appendChild(t);
+      t.addEventListener('click', function () { showHidden = !showHidden; renderSide(); render(); }); foot.appendChild(t); // render too: the chip row follows
     }
     var dots = $('rail-dots'); dots.textContent = '';
     [root].concat(root.kids.filter(function (n) { return !isHidden(n) || inCurrent(n); })).forEach(function (n) {
@@ -1270,10 +1276,10 @@ button.lnk:hover { text-decoration: underline; }
     if (window.scrollY > 0) window.scrollTo(0, 0);
   }
   var toastTimer = 0;
-  function toast(msg, text) {
+  function toast(msg, text, ms) {
     var t = $('toast'); clearTimeout(toastTimer); t.textContent = ''; t.appendChild(el('span', '', msg));
     if (text) { var i = el('input'); i.readOnly = true; i.value = text; i.setAttribute('aria-label', 'Text to copy'); t.appendChild(i); i.focus(); i.select(); }
-    toastTimer = setTimeout(function () { t.textContent = ''; }, text ? 8000 : 1500);
+    toastTimer = setTimeout(function () { t.textContent = ''; }, ms || (text ? 8000 : 1500));
   }
   function copyText(text, done) { // clipboard first; if refused, show the text selected so it can be copied by hand
     function byHand() {
@@ -1538,7 +1544,14 @@ button.lnk:hover { text-decoration: underline; }
   keys.addEventListener('click', function (e) { if (e.target === keys) hideDialog(keys); }); // a click on the backdrop
   window.addEventListener('hashchange', function () { var n = fromHash(); if (n && n !== current) go(n); });
 
-  var quick = 0; // when "o" was pressed, waiting for a digit
+  var quick = 0, quickTimer = 0; // when "o" was pressed, waiting for a digit
+  function armQuick() { // the first nine pages shown wear their digit until one is pressed, or 2.5s pass
+    clearQuick(); quick = Date.now();
+    shown.slice(0, 9).forEach(function (r, i) { var b = el('span', 'qk', String(i + 1)); b.setAttribute('aria-hidden', 'true'); r.appendChild(b); });
+    toast('Open which? 1–' + Math.min(9, shown.length), null, 2500);
+    quickTimer = setTimeout(clearQuick, 2500);
+  }
+  function clearQuick() { quick = 0; clearTimeout(quickTimer); each('.qk', function (b) { b.parentNode.removeChild(b); }); }
   document.addEventListener('keydown', function (e) {
     if (keys.open || insp.open || paste.open || e.isComposing) return; // an open dialog handles its own Esc
     var t = e.target, inSearch = t === q, inList = t === list, mod = e.metaKey || e.ctrlKey;
@@ -1550,7 +1563,8 @@ button.lnk:hover { text-decoration: underline; }
       return;
     }
     if (e.key === 'Escape') {
-      if (Object.keys(selected).length) { e.preventDefault(); clearSel(); }
+      if (quick) { e.preventDefault(); clearQuick(); $('toast').textContent = ''; }
+      else if (Object.keys(selected).length) { e.preventDefault(); clearSel(); }
       else if (swatchOpen) { e.preventDefault(); swatchOpen = false; renderBar(q.value.trim()); var dbtn = bar.querySelector('.dotbtn'); if (dbtn) dbtn.focus(); }
       else if (app.classList.contains('nav-open')) { e.preventDefault(); closeNav(true); }
       else if (openRow) { openRow.classList.remove('show'); openRow.querySelector('.more').setAttribute('aria-expanded', 'false'); openRow = null; }
@@ -1567,9 +1581,9 @@ button.lnk:hover { text-decoration: underline; }
     }
     if (mod || e.altKey) return;
     // o then a digit: open the 1st to 9th page shown
-    if (quick && Date.now() - quick < 1500 && /^[1-9]$/.test(e.key)) { e.preventDefault(); quick = 0; var qr = shown[+e.key - 1]; if (qr) { setActive(qr, true); qr.querySelector('a.txt').click(); } else toast('Only ' + shown.length + ' pages shown'); return; }
+    if (quick && Date.now() - quick < 2500 && /^[1-9]$/.test(e.key)) { e.preventDefault(); var qr = shown[+e.key - 1]; clearQuick(); if (qr) { setActive(qr, true); qr.querySelector('a.txt').click(); } else toast('Only ' + shown.length + ' pages shown'); return; }
     // single-key shortcuts; never while typing in a field
-    if (e.key === 'o' && shown.length) { e.preventDefault(); quick = Date.now(); toast('Open which? 1–9'); }
+    if (e.key === 'o' && shown.length) { e.preventDefault(); armQuick(); }
     else if (e.key === 'x' && active) { e.preventDefault(); toggleSel(active._p); }
     else if (e.key === '/') { e.preventDefault(); q.focus(); q.select(); }
     else if (e.key === '?') { e.preventDefault(); showDialog(keys); }
@@ -1593,5 +1607,12 @@ button.lnk:hover { text-decoration: underline; }
 
   trail(current).forEach(function (x) { expanded[x.key] = true; }); // the folder opened at load is shown open
   applyLook(false); applyTheme(); setSort(sort); setView(view, false); setDense(dense); setFolded(folded, false); renderSide(); render();
+
+  // first open in this browser: one quiet line on where the shortcuts and the details are; never on an empty hub
+  if (!getRaw(K.hint) && Object.keys(byId).length) setTimeout(function () {
+    if (getRaw(K.hint) || keys.open || insp.open || paste.open) return; setRaw(K.hint, '1');
+    var pointer = window.matchMedia && matchMedia('(hover: hover)').matches;
+    toast(pointer ? 'Press ? for shortcuts · i for details on any page' : 'Tap ⓘ on any page for details', null, 6000);
+  }, 1500);
 })();
 </script>

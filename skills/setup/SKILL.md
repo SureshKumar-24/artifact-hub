@@ -13,12 +13,18 @@ Do this once per user.
    `~/.claude/artifact-hub/pages.json` if it exists: the plugin has been saving every
    publish there since it was installed. Include those pages too (not ones marked
    `deleted`), using each entry's `folder` as a strong hint for its project.
+   If both are empty (a new account, or a fresh install with nothing published yet),
+   skip step 3: publish the hub with an empty `PROJECTS` array. The page shows a
+   designed empty state with example rows marked as examples, and the first real
+   publish fills it. Say so in one line.
 3. Work out the projects from the titles: pages that share a leading name or an obvious
    subject belong together. Propose the list to the user in a short table (project name,
    number of pages, two example titles) and ask them to confirm or rename. Pages you
    cannot place go under "Other". Do not invent projects with one page unless the title
    clearly names a project.
-4. Copy `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html` to a working file. Fill the
+4. Copy `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html` to a working file in your
+   scratchpad (when that variable is not set, as with a skills-only install, the
+   template is `skills/hub/template.html` next to this skill's folder). Fill the
    `PROJECTS` array between `HUB-DATA-START` and `HUB-DATA-END` with one entry per
    project. Each `shelves` entry is a folder path inside the project (see the
    `hub` skill). Split a project into two to four subfolders by subject only when it has
@@ -33,7 +39,8 @@ Do this once per user.
    gets a fixed colour by its place in the list (see the `hub` skill).
 5. Publish it with `Artifact` (no `url`, icon `folder`). The page's `<title>` is
    "Project Hub" unless the user wants another name.
-6. Write `~/.claude/artifact-hub/hub.json` with the published link as `hubUrl`, the title
+6. Write `~/.claude/artifact-hub/hub.json` (create the folder if needed) with the
+   published link as `hubUrl`, the title
    as `hubTitle`, and for each project an `id` (lowercase, no spaces), its `name`,
    `match` (the lowercase title words that identify it), `subfolders` (one
    `{ "path", "match" }` rule per subfolder you created) and `folders` (the name of the

@@ -180,7 +180,8 @@ words.
 
 If the hub you read has no `data-hub-template="3"` attribute, it uses an older page
 design (`data-hub-template="2"` is the 1.4 list page; a hub with no `id="tree"` element
-does not have folders yet either). Take `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`,
+does not have folders yet either). Take `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`
+(or `skills/hub/template.html` next to this skill when that variable is not set),
 put the hub's existing `PROJECTS` array into it unchanged, keep the hub's `<title>` and
 `<h1>`, and republish to the same URL. Tell the user in one line what changed: folders,
 if it had none; otherwise the new page (a gallery of cards or a list, a details panel for

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.8
+
+- First open in a browser: one quiet line, "Press ? for shortcuts · i for details on any
+  page" (on touch, "Tap ⓘ on any page for details"), shown once about a second after the
+  page loads and never on an empty hub (`project-hub.hint.v1`).
+- `o` then a digit: while the page waits for the digit, the first nine pages shown wear a
+  small numbered badge, so the mapping is visible instead of guessed. The badges go when a
+  digit is pressed, on Esc, or after 2.5 seconds.
+- A hidden folder no longer appears in the chip row at the top level (the row the tablet
+  rail shows), and "Show" in the sidebar brings it back there too.
+
 ## 1.5.7
 
 - After Claude writes your changes, the page forgets them on its own: an edit kept in the

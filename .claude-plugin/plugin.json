@@ -1,7 +1,7 @@
 {
   "name": "artifact-hub",
   "description": "Every Claude artifact you publish, filed and searchable: links saved on your machine at publish time and filed into project folders on one private index page, with a gallery, search, details, status, pins and a weekly digest.",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "author": {
     "name": "Suresh Kumar"
   },
@@ -10,9 +10,17 @@
   "repository": "https://github.com/SureshKumar-24/artifact-hub",
   "keywords": [
     "artifacts",
+    "claude-artifacts",
     "folders",
     "index",
     "organize",
-    "hooks"
+    "gallery",
+    "search",
+    "hooks",
+    "skills",
+    "productivity",
+    "digest",
+    "publish",
+    "links"
   ]
 }
