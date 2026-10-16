@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@500;600&display=swap">
 <style>
 /* Project Hub. Layout: a folder sidebar (a rail of project dots on tablets, a drawer on phones)
    and one ranked, grouped set of pages under a sticky search header, shown as a gallery of
@@ -17,7 +17,27 @@
   --c-green: #2F7A2A; --c-violet: #8239B0; --c-sky: #0B6FA4; --c-clay: #A0472A;
   --sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display: var(--sans); --h1-size: 24px; --h1-weight: 600; --h1-track: -0.015em;
   --head-h: 64px; --ease: 140ms ease-out; color-scheme: light;
+}
+/* "Match Claude" look: the cream, charcoal and terracotta of claude.ai, with a serif for the
+   headings. Project colours stay the same so folders keep their identity in both looks. */
+:root[data-look="claude"] {
+  --bg: #F4F3EE; --surface: #FFFFFF; --raised: #FFFFFF; --ink: #1F1E1D; --muted: #6B6962; --line: #E3E0D8;
+  --accent: #B85C38; --accent-soft: #F5E6DD; --focus: #B85C38; --hover: #ECEAE3; --mark: #F0D4C4; --on-accent: #FFFFFF;
+  --display: 'Source Serif 4', Georgia, 'Times New Roman', serif; --h1-size: 28px; --h1-weight: 500; --h1-track: -0.01em;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-look="claude"]:not([data-theme="light"]) {
+    --bg: #262624; --surface: #30302E; --raised: #393937; --ink: #F0EEE8; --muted: #A9A69E; --line: #45443F;
+    --accent: #E39A78; --accent-soft: #4A3328; --focus: #E39A78; --hover: #3A3936; --mark: #6A4532; --on-accent: #1F1E1D;
+    --scrim: rgb(0 0 0 / 0.55); --shadow: none; --lift: 0 12px 32px rgb(0 0 0 / 0.5);
+  }
+}
+:root[data-look="claude"][data-theme="dark"] {
+  --bg: #262624; --surface: #30302E; --raised: #393937; --ink: #F0EEE8; --muted: #A9A69E; --line: #45443F;
+  --accent: #E39A78; --accent-soft: #4A3328; --focus: #E39A78; --hover: #3A3936; --mark: #6A4532; --on-accent: #1F1E1D;
+  --scrim: rgb(0 0 0 / 0.55); --shadow: none; --lift: 0 12px 32px rgb(0 0 0 / 0.5);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -110,7 +130,11 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
    scrolls sideways (sort, density, theme, shortcuts), so nothing wraps into a stray row. From 640px
    the strip dissolves and everything sits on one line: search, sort, view, the rest. */
 .intro { padding: 24px 0 8px; }
-h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
+h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: var(--h1-track); }
+.sec-h, .ctx h2, .insp h2, .sheet h2 { font-family: var(--display); }
+:root[data-look="claude"] .sec-h { font-weight: 500; font-size: 19px; }
+:root[data-look="claude"] .ctx h2 { font-weight: 500; font-size: 20px; }
+:root[data-look="claude"] .insp h2 { font-weight: 500; font-size: 21px; }
 @media (max-width: 639px) { .intro { padding: 16px 0 6px; } h1 { font-size: 22px; } }
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
@@ -347,6 +371,8 @@ dialog::backdrop { background: var(--scrim); }
 .sheet h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
 .sheet dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0 0 16px; font-size: 14px; }
 .sheet dt { white-space: nowrap; } .sheet dd { margin: 0; color: var(--muted); }
+.looks { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.looks-l { font: 500 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 /* Details: a side panel from 640px, a bottom sheet on phones */
 #inspector { width: 100%; max-width: 100%; max-height: min(88vh, 100% - 24px); margin: auto 0 0; border-radius: 14px 14px 0 0; border-bottom: 0;
   padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -442,7 +468,14 @@ button.lnk:hover { text-decoration: underline; }
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <dialog id="keys" aria-labelledby="keys-h">
   <div class="sheet">
-    <h2 id="keys-h">Keyboard shortcuts</h2>
+    <h2 id="keys-h">Appearance and shortcuts</h2>
+    <div class="looks">
+      <span class="looks-l">Look</span>
+      <div class="seg" role="group" aria-label="Look">
+        <button type="button" data-look="hub" aria-pressed="false" title="Warm paper, teal accent, sans headings">Hub</button>
+        <button type="button" data-look="claude" aria-pressed="false" title="Cream, terracotta accent, serif headings, like claude.ai">Match Claude</button>
+      </div>
+    </div>
     <dl id="keys-list"></dl>
     <button class="btn" type="button" id="keys-close">Close</button>
   </div>
@@ -493,7 +526,7 @@ button.lnk:hover { text-decoration: underline; }
 
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
   var K = { folder: 'project-hub.folder.v2', pins: 'project-hub.pins.v1', opened: 'project-hub.opened.v1',
-    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1',
+    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1', look: 'project-hub.look.v1',
     colors: 'project-hub.colors.v1', side: 'project-hub.side.v1', edits: 'project-hub.edits.v1', visit: 'project-hub.visit.v1' };
   function getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setRaw(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not saved */ } }
@@ -1172,6 +1205,14 @@ button.lnk:hover { text-decoration: underline; }
     folded = on; app.classList.toggle('folded', on); if (save) setRaw(K.side, on ? 'closed' : 'open');
     each('[data-menu]', function (b) { b.setAttribute('aria-expanded', String(!on)); });
   }
+  var LOOK_DEFAULT = 'hub'; // 'hub' (warm paper, teal) or 'claude' (cream, terracotta, serif headings)
+  var look = getRaw(K.look); if (['hub', 'claude'].indexOf(look) < 0) look = LOOK_DEFAULT;
+  function applyLook(save) {
+    if (look === 'claude') html.setAttribute('data-look', 'claude'); else html.removeAttribute('data-look');
+    each('[data-look]', function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-look') === look)); });
+    if (save) setRaw(K.look, look);
+  }
+  each('[data-look]', function (b) { b.addEventListener('click', function () { look = b.getAttribute('data-look'); applyLook(true); }); });
   function applyTheme() { // no attribute = follow the system; the button cycles system, light, dark
     if (theme === 'system') html.removeAttribute('data-theme'); else html.setAttribute('data-theme', theme);
     var b = $('theme'), label = 'Theme: ' + (theme === 'system' ? 'follow system' : theme) + '. Change theme';
@@ -1359,6 +1400,6 @@ button.lnk:hover { text-decoration: underline; }
   measure();
 
   trail(current).forEach(function (x) { expanded[x.key] = true; }); // the folder opened at load is shown open
-  applyTheme(); setSort(sort); setView(view, false); setDense(dense); setFolded(folded, false); renderSide(); render();
+  applyLook(false); applyTheme(); setSort(sort); setView(view, false); setDense(dense); setFolded(folded, false); renderSide(); render();
 })();
 </script>
