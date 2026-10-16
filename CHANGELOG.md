@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1
+
+- Project colours save. A swatch picked on the page counts as a change: Save to hub writes
+  it into the hub's data (or the message for Claude names it), so it holds in every
+  browser. The page no longer says "ask Claude to make it permanent".
+
 ## 2.0.0
 
 The launch release. Everything since 1.0.0, in one place; the entries below it are the

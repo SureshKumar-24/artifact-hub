@@ -66,7 +66,7 @@ var PROJECTS = [
 - `date` is an ISO time, a bare day `YYYY-MM-DD` (read as a local day), or `'3 Oct'` (the most recent such day).
 - A shelf path is a folder path inside the project, parts separated by ` / `; `'All pages'` is the project folder itself. Folders exist only while they hold pages.
 - `id` of a Claude Code artifact is a uuid; `urlOf()` links it under `claude.ai/code/artifact/`.
-- `note` and `color` are optional; a colour picked on the page lives in the browser and is never written back unless Claude is asked to make it permanent.
+- `note` and `color` are optional; a note or a swatch picked on the page is an edit, saved by Save to hub or named in the message for Claude.
 - `<div id="app" data-hub-template="3">` marks the current page design; the hub skill upgrades older hubs by moving their block into the new template.
 
 ## The page
