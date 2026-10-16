@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.5
+
+- "Save changes with Claude" and "Copy for Claude Code" open a sheet instead of a passing
+  toast: the message in a box you can select, a line that says whether it reached the
+  clipboard (and what to press if it did not), the three steps to follow, and "Copy
+  again". Works when the viewer refuses the clipboard.
+
 ## 1.5.4
 
 - Menus instead of native selects, in the details panel and the selection bar: a
