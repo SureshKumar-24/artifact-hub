@@ -167,6 +167,20 @@ test('the page can save itself: a serializer, a guarded runtime, one marker pair
   for (const id of ['edits.save', 'edits.copy', 'export.md.download', 'export.json.download']) assert.match(js, new RegExp(`id: '${id}'`), id);
 });
 
+test('no dead CSS, no native selects, and every stored key goes through the guarded helpers', () => {
+  const css = TEMPLATE.slice(TEMPLATE.indexOf('<style>'), TEMPLATE.indexOf('</style>'));
+  const rest = TEMPLATE.slice(TEMPLATE.indexOf('</style>'));
+  const dynamic = /^(c|s|k)-/; // project colours, statuses and kinds are built as 'c-' + name and so on
+  const dead = [...new Set([...css.matchAll(/\.([a-zA-Z_][\w-]*)/g)].map((m) => m[1]))]
+    .filter((c) => !dynamic.test(c) && !new RegExp(`(?<![\\w-])${c}(?![\\w-])`).test(rest));
+  assert.deepStrictEqual(dead, [], 'every class the CSS styles appears in the markup or the script');
+  assert.doesNotMatch(TEMPLATE, /<select\b|\.save select/, 'menus are .field buttons, never native selects');
+  const js = TEMPLATE.slice(TEMPLATE.lastIndexOf('<script>'));
+  const direct = js.match(/(?:local|session)Storage\.[a-zA-Z]+/g) || [];
+  assert.deepStrictEqual([...new Set(direct)].sort(), ['localStorage.getItem', 'localStorage.setItem'], 'storage is touched only inside getRaw / setRaw');
+  assert.strictEqual((js.match(/localStorage\./g) || []).length, 2, 'one read and one write site, both guarded');
+});
+
 test('the empty template script parses', () => {
   assert.doesNotThrow(() => new vm.Script(script(TEMPLATE)));
 });

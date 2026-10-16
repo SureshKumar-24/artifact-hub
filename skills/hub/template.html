@@ -216,7 +216,6 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 .save { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 10px 14px; border: 1px solid var(--c-amber); border-radius: 10px; background: var(--surface); font-size: 14px; }
 .save > span { flex: 1 1 200px; }
 .save.selbar { border-color: var(--accent); }
-.save select { min-height: 34px; max-width: 100%; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
 /* selected pages: a check in the corner of a card, at the left of a row */
 .chk { display: none; position: absolute; z-index: 1; width: 20px; height: 20px; border-radius: 999px; background: var(--accent); color: var(--on-accent); place-items: center; pointer-events: none; }
 .chk svg { width: 12px; height: 12px; stroke-width: 2; }
@@ -392,7 +391,6 @@ mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
 .cover { position: relative; display: grid; place-items: center; height: 84px; border-radius: 9px 9px 0 0; border-bottom: 1px solid var(--line);
   background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 10%, var(--surface)); color: var(--dot, var(--accent)); }
 @media (min-width: 640px) { .cover { height: 104px; } }
-.cover.k-motion::before { background: repeating-linear-gradient(90deg, var(--pat) 0 6px, transparent 6px 14px); background-size: 100% 6px; background-repeat: repeat-x; background-position: 0 6px, 0 calc(100% - 6px); mask-image: linear-gradient(#000 0 14px, transparent 14px calc(100% - 14px), #000 calc(100% - 14px)); }
 /* a faint pattern per kind behind the glyph, so the cards of one project differ at a glance */
 .cover::before { content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0.5; pointer-events: none; --pat: color-mix(in srgb, var(--dot, var(--accent)) 16%, transparent); }
 .cover.k-doc::before { background: repeating-linear-gradient(0deg, transparent 0 11px, var(--pat) 11px 12px); mask-image: linear-gradient(to right, transparent 20%, #000 50%, transparent 80%); }
@@ -400,6 +398,7 @@ mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
 .cover.k-code::before { background: repeating-linear-gradient(135deg, transparent 0 13px, var(--pat) 13px 14px); mask-image: linear-gradient(to right, #000, transparent 45%); }
 .cover.k-design::before, .cover.k-designsystem::before, .cover.k-dashboard::before { background: linear-gradient(0deg, transparent 0 15px, var(--pat) 15px 16px), linear-gradient(90deg, transparent 0 15px, var(--pat) 15px 16px); background-size: 16px 16px; mask-image: radial-gradient(ellipse at center, transparent 30%, #000 85%); }
 .cover.k-slides::before { background: linear-gradient(var(--pat), var(--pat)) no-repeat center / 62% 70%, linear-gradient(var(--pat), var(--pat)) no-repeat center / 56% 64%; mask-image: linear-gradient(#000, #000); opacity: 0.35; }
+.cover.k-motion::before { background: repeating-linear-gradient(90deg, var(--pat) 0 6px, transparent 6px 14px); background-size: 100% 6px; background-repeat: repeat-x; background-position: 0 6px, 0 calc(100% - 6px); mask-image: linear-gradient(#000 0 14px, transparent 14px calc(100% - 14px), #000 calc(100% - 14px)); }
 .cover > * { position: relative; }
 .cover svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .kind { position: absolute; left: 10px; bottom: 8px; font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
@@ -1692,9 +1691,7 @@ button.lnk:hover { text-decoration: underline; }
     fetch(location.href, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }).then(function (src) {
       if (src.split(MK + 'START').length !== 2 || !DATA_RE.test(src) || !new RegExp('^\\s*<!' + 'doctype html>', 'i').test(src)) { fallback("Could not read this page's own source here; copy the message for Claude instead."); return; }
       var html = src.replace(DATA_RE, function (m, a, b, c) { return a + dataText() + c; });
-      try { sessionStorage.setItem('project-hub.saving.v1', JSON.stringify(edits)); } catch (e) { /* not kept */ }
       return hubWrite.publish(html).then(function () {
-        try { sessionStorage.removeItem('project-hub.saving.v1'); } catch (e) { /* none */ }
         toast('Saved to the hub'); // the viewer reloads every open view to the new version; at load the saved edits match the data and are forgotten
       }, function (err) {
         var code = err && err.code ? String(err.code) : 'upstream_error';
@@ -1833,7 +1830,6 @@ button.lnk:hover { text-decoration: underline; }
   var pal = $('palette'), palQ = $('pal-q'), palList = $('pal-list'), palFrom = null, palItems = [], palHi = 0;
   function activePage() { return active ? active._p : (insp.open && inspected) || null; }
   function withPage(fn) { var p = activePage(); if (p) fn(p); }
-  function pageLabel(l) { var p = activePage(); return p ? l : l; }
   var ACTIONS = [
     { id: 'view.gallery', label: 'Switch to gallery', kw: 'cards grid view', key: 'v', when: function () { return view !== 'gallery'; }, run: function () { setView('gallery', true); render(); } },
     { id: 'view.list', label: 'Switch to list', kw: 'rows table view', key: 'v', when: function () { return view === 'gallery'; }, run: function () { setView('list', true); render(); } },
