@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.6
+
+- The "Save changes with Claude" message no longer names the viewer's frame address as
+  the hub's link (the page cannot see its own claude.ai link from inside the viewer); it
+  says "my Project Hub" and the skill uses `hub.json`. Fixed from the first real use.
+
 ## 1.5.5
 
 - "Save changes with Claude" and "Copy for Claude Code" open a sheet instead of a passing
