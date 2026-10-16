@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.2
+
+- A second look, "Match Claude": the cream, charcoal and terracotta of claude.ai, with
+  serif headings. Pick it under `?` → Look; remembered in the browser
+  (`project-hub.look.v1`). Project colours stay the same in both looks. The default is
+  still the hub's own look (warm paper, teal).
+
 ## 1.5.1
 
 - Titles are saved as plain text: entities decoded (`&amp;` is `&`), whitespace
