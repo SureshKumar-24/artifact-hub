@@ -90,7 +90,7 @@ Then run this once:
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add `@v1.5.2` to the first command |
+| Install a fixed, reviewed version | Add `@v1.5.3` to the first command |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) |
 
@@ -105,7 +105,8 @@ Then run this once:
 | **Gallery or list** | Cards with a drawn cover for the kind of page (document, report, code, design, slides, dashboard), or a dense list. One switch, remembered. Same search, folders and sorting in both. |
 | **Search** | Titles, descriptions, folders, kinds and statuses at once. Forgives typos, puts the best match first, highlights what matched. Pick a folder to search inside it. |
 | **Filters** | One chip per kind, like the gallery's type filter, and one per status. Both combine with the folder you are in. |
-| **Pinned and Continue working** | The pages you pinned, then the ones you opened last, at the top of All pages. Kept in your browser only. |
+| **Pinned and Continue working** | The pages you pinned (unpin from the sidebar with one click), then the ones you opened last, at the top of All pages. Kept in your browser only. |
+| **Hide a folder** | The eye next to a folder takes it and its pages out of view on this page; the sidebar says how many are hidden and brings them back. |
 | **Since you were here** | "8 pages updated since your last visit", with a chip to show just those. |
 | **Find by asking** | "Where is my pricing page?" or `/artifact-hub:find pricing` returns the folder and link and offers to open the page so your next publish updates it. |
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.3
+
+- Unpin from the sidebar: each pinned page has its own × (on hover, or always on touch).
+- The sidebar no longer lists recent pages; "Continue working" on the home view is the one
+  place for them.
+- Hide a folder: the eye button next to an open folder's name, or on hover in the
+  sidebar, takes that folder and its pages out of All pages, the counts and the tree, on
+  this page only (kept in the browser, `project-hub.hidden.v1`). The sidebar says how
+  many folders are hidden and shows them again on request; opening a hidden folder by its
+  link still works and says it is hidden.
+
 ## 1.5.2
 
 - A new default look that matches claude.ai: cream background, charcoal text, terracotta
