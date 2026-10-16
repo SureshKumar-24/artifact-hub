@@ -71,7 +71,32 @@ test('every storage access is guarded, and the view has its own key', () => {
   assert.ok(uses.length > 0);
   for (const line of uses) assert.match(line, /try \{/, line.trim());
   const keys = script(TEMPLATE).match(/var K = \{[\s\S]*?\};/)[0];
-  for (const k of ['folder.v2', 'pins.v1', 'opened.v1', 'sort.v1', 'density.v1', 'theme.v1', 'view.v1', 'colors.v1', 'side.v1', 'hidden.v1', 'edits.v1', 'visit.v1']) assert.match(keys, new RegExp(`project-hub\\.${k.replace('.', '\\.')}`), k);
+  for (const k of ['folder.v2', 'pins.v1', 'opened.v1', 'sort.v1', 'density.v1', 'theme.v1', 'view.v1', 'colors.v1', 'side.v1', 'hidden.v1', 'edits.v1', 'visit.v1', 'hint.v1']) assert.match(keys, new RegExp(`project-hub\\.${k.replace('.', '\\.')}`), k);
+});
+
+test('the first-visit hint shows once, never on an empty hub, and is only a toast', () => {
+  const js = script(TEMPLATE);
+  const hint = js.match(/first open in this browser[\s\S]*?\}, 1500\);/);
+  assert.ok(hint, 'the hint block exists and waits 1.5s');
+  assert.match(hint[0], /!getRaw\(K\.hint\) && Object\.keys\(byId\)\.length/, 'guarded by the key and by the hub having pages');
+  assert.match(hint[0], /setRaw\(K\.hint, '1'\)/, 'the key is set when shown');
+  assert.match(hint[0], /toast\(/, 'uses the toast');
+  assert.doesNotMatch(hint[0], /showDialog|<dialog/, 'no new dialog');
+  assert.match(hint[0], /Press \? for shortcuts/);
+  assert.match(hint[0], /Tap ⓘ on any page/);
+  assert.match(hint[0], /6000/, 'stays about 6s');
+});
+
+test('o then a digit: the first nine pages wear their digit, and the badges go on Esc, a digit or a timeout', () => {
+  const js = script(TEMPLATE);
+  assert.match(js, /function armQuick\(\)[\s\S]*?shown\.slice\(0, 9\)[\s\S]*?el\('span', 'qk', String\(i \+ 1\)\)/, 'one badge per page, 1 to 9');
+  assert.match(js, /b\.setAttribute\('aria-hidden', 'true'\)/, 'badges are decoration');
+  assert.match(js, /function clearQuick\(\) \{ quick = 0;[\s\S]*?each\('\.qk'/, 'clearing removes every badge');
+  assert.match(js, /if \(quick\) \{ e\.preventDefault\(\); clearQuick\(\);/, 'Esc disarms');
+  assert.match(js, /\/\^\[1-9\]\$\/\.test\(e\.key\)\) \{ e\.preventDefault\(\); var qr = shown\[\+e\.key - 1\]; clearQuick\(\);/, 'a digit disarms');
+  assert.match(js, /quickTimer = setTimeout\(clearQuick, 2500\)/, 'a timeout disarms');
+  assert.match(TEMPLATE, /\.qk \{ position: absolute;[^}]*pointer-events: none;/, 'badges are not interactive');
+  assert.match(js, /\['o  then  1–9', 'Open the 1st to 9th page shown'\]/, 'listed in the shortcuts sheet');
 });
 
 test('the empty template script parses', () => {

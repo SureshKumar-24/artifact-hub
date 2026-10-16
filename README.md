@@ -4,11 +4,12 @@
 
 **Every Claude artifact you publish, filed, searchable, and one keystroke away.**
 
-A Claude Code plugin. The moment a page is published, its link is saved on your machine and filed into a project folder on one private index page: your Project Hub.
+The gallery drops older pages, links get lost, and a new session publishes a duplicate instead of updating the page you meant. This Claude Code plugin saves every published link on your machine the moment it exists and files it into a project folder on one private index page: your Project Hub.
 
 [![test](https://github.com/SureshKumar-24/artifact-hub/actions/workflows/test.yml/badge.svg)](https://github.com/SureshKumar-24/artifact-hub/actions/workflows/test.yml)
-[![release](https://img.shields.io/github/v/tag/SureshKumar-24/artifact-hub?label=release)](https://github.com/SureshKumar-24/artifact-hub/releases)
-[![licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
+[![release](https://img.shields.io/github/v/release/SureshKumar-24/artifact-hub?label=release)](https://github.com/SureshKumar-24/artifact-hub/releases/latest)
+[![licence](https://img.shields.io/github/license/SureshKumar-24/artifact-hub?label=licence)](LICENSE)
+[![stars](https://img.shields.io/github/stars/SureshKumar-24/artifact-hub?style=flat&label=stars)](https://github.com/SureshKumar-24/artifact-hub/stargazers)
 ![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 ![network calls](https://img.shields.io/badge/network%20calls-0-brightgreen)
 
@@ -57,7 +58,7 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 
 <table>
 <tr>
-<td width="50%"><img src="docs/details.png" alt="The details panel: title, description, folder as links, exact date and time, kind, status and move-to selects, the full link, Open page, Pinned, Show folder and Copy for Claude Code"></td>
+<td width="50%"><img src="docs/details.png" alt="The details panel with the Status menu open: title, description, folder as links, exact date and time, kind, Status and Move to menus, the full link, Open page, Pinned, Show folder and Copy for Claude Code; the sidebar shows one hidden folder"></td>
 <td width="50%"><img src="docs/dark-search.png" alt="Dark theme, list view, a search for 'plan' inside the Bakery shop folder with the match highlighted"></td>
 </tr>
 <tr>
@@ -75,7 +76,7 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 
 ## Install
 
-In Claude Code:
+**From this repository** (in Claude Code, or the same two commands as `claude plugin marketplace add …` and `claude plugin install …` in a terminal):
 
 ```
 /plugin marketplace add SureshKumar-24/artifact-hub
@@ -87,6 +88,21 @@ Then run this once:
 ```
 /artifact-hub:setup
 ```
+
+**From Anthropic's community marketplace**, once listed there:
+
+```
+/plugin marketplace add anthropics/claude-plugins-community
+/plugin install artifact-hub@claude-community
+```
+
+**Skills only**, into any agent that reads `SKILL.md` files:
+
+```
+npx skills add SureshKumar-24/artifact-hub
+```
+
+That gives you the `hub`, `find` and `pin` skills against a hub you already have, but not the hooks that save each link at publish time, so the saved list, the weekly digest and first-time setup need the plugin install.
 
 | You want to | Do this |
 |---|---|
