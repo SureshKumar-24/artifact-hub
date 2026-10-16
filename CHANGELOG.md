@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.1
+
+- Filter chips never lead to an empty page any more: each chip's count is what it would
+  show under the other filters that are on, and a chip whose count is zero is dimmed and
+  cannot be pressed. When a combination still comes up empty (after "Show what changed",
+  say), the empty state names each filter that is on, each with its own ×, next to "Show
+  every page here"; and the message says what was asked for ("No page pages marked final
+  here"), not "No such pages here".
+
 ## 1.7.0
 
 - The hub saves its own changes. Inside claude.ai the save bar's first button is "Save to
