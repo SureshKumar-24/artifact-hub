@@ -60,7 +60,8 @@ or an object when more is known:
   pressed. The user sets it in plain words: "mark the pricing page final", "archive the
   old logo page" (archive, never delete: the row stays).
 - `kind`: what Claude itself knows the page to be: `'slides'`, `'design'`,
-  `'designsystem'`, `'dashboard'` or `'doc'` (a page made from one of Claude's artifact
+  `'designsystem'`, `'dashboard'`, `'motion'` (an animation made with Claude Motion,
+  on the plans that have it) or `'doc'` (a page made from one of Claude's artifact
   types, or a Claude Docs document). A `pages.json` entry with `type: 'doc'` is `'doc'`;
   one with `typeId` was made from a type: `Artifact` `action: "list"`, `scope: "types"`
   names each type and its `type_url`, and the id at the end of that URL is the `typeId`.

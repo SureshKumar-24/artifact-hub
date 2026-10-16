@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.2
+
+- A `motion` kind for animations made with Claude Motion (in beta on Team and Enterprise
+  since 8 October 2026): its own cover, label and filter chip, recorded from the type id
+  like the other kinds, or read from the title (animation, explainer, video).
+- README notes that Docs, Slides and Design are on every plan now, and that each lands
+  on the hub with its kind.
+
 ## 1.7.1
 
 - Filter chips never lead to an empty page any more: each chip's count is what it would

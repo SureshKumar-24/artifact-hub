@@ -392,6 +392,7 @@ mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
 .cover { position: relative; display: grid; place-items: center; height: 84px; border-radius: 9px 9px 0 0; border-bottom: 1px solid var(--line);
   background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 10%, var(--surface)); color: var(--dot, var(--accent)); }
 @media (min-width: 640px) { .cover { height: 104px; } }
+.cover.k-motion::before { background: repeating-linear-gradient(90deg, var(--pat) 0 6px, transparent 6px 14px); background-size: 100% 6px; background-repeat: repeat-x; background-position: 0 6px, 0 calc(100% - 6px); mask-image: linear-gradient(#000 0 14px, transparent 14px calc(100% - 14px), #000 calc(100% - 14px)); }
 /* a faint pattern per kind behind the glyph, so the cards of one project differ at a glance */
 .cover::before { content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0.5; pointer-events: none; --pat: color-mix(in srgb, var(--dot, var(--accent)) 16%, transparent); }
 .cover.k-doc::before { background: repeating-linear-gradient(0deg, transparent 0 11px, var(--pat) 11px 12px); mask-image: linear-gradient(to right, transparent 20%, #000 50%, transparent 80%); }
@@ -710,6 +711,7 @@ button.lnk:hover { text-decoration: underline; }
     ['design', 'Design', /\b(ui|ux|mockups?|prototypes?|dashboards?|screens?|designs?|canvas|boards?|wireframes?|patterns?|brand|logo|theme|layout)\b/],
     ['code', 'Code', /\b(api|apis|schema|routes?|stack|tests?|bench|code|setup|technology|tech|migration|cutover|release|deploy|build|sdk|cli)\b/],
     ['report', 'Report', /\b(analytics|revenue|ledger|reports?|reviews?|trackers?|metrics|ga4|audits?|figures|funnel|results|numbers|stats|status)\b/],
+    ['motion', 'Motion', /\b(animations?|animated|motion|explainer|video|clips?)\b/],
     ['slides', 'Slides', /\b(slides?|deck|presentation|pitch)\b/],
     ['doc', 'Document', /\b(guides?|plans?|blueprints?|research|briefs?|notes?|playbooks?|checklists?|strategy|study|dossier|manual|scope|kit|path|queue|lists?|spec|docs?|faq|how)\b/]
   ];
@@ -717,6 +719,7 @@ button.lnk:hover { text-decoration: underline; }
     design: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>',
     designsystem: '<circle cx="8" cy="8" r="3"/><rect x="13" y="5" width="6" height="6" rx="1"/><path d="M5 19l3-5 3 5zM13 16h6v3h-6z"/>',
     dashboard: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h18M10 10v11M14 15l2-2 2 2"/>',
+    motion: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4-2.5z"/><path d="M3 9h3M3 15h3M18 9h3M18 15h3"/>',
     code: '<path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/>',
     report: '<path d="M4 20h16M7 17v-6M12 17V7M17 17v-3"/>',
     slides: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M8 10h8M8 13h5"/>',
@@ -724,7 +727,7 @@ button.lnk:hover { text-decoration: underline; }
     page: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'
   };
   // Kinds Claude itself records (a page made from one of its types) come first; the rest are read from the title
-  var KIND_LABEL = { slides: 'Slides', design: 'Design', designsystem: 'Design system', dashboard: 'Dashboard', doc: 'Document', code: 'Code', report: 'Report', page: 'Page' };
+  var KIND_LABEL = { slides: 'Slides', design: 'Design', designsystem: 'Design system', dashboard: 'Dashboard', motion: 'Motion', doc: 'Document', code: 'Code', report: 'Report', page: 'Page' };
   function kindOf(p) {
     if (p.known) return p.known;
     var t = p.ft, d = p.fd;
