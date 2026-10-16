@@ -286,6 +286,10 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 .stf small { font: 400 11px/1 var(--mono); color: var(--muted); }
 .stf:hover { border-color: var(--accent); }
 .stf[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.stf:disabled { opacity: 0.45; cursor: default; }
+.onchips { justify-content: center; align-items: center; gap: 8px; margin-bottom: 14px; }
+.onchips .hint { flex-basis: 100%; text-align: center; margin-bottom: 2px; }
+.onchips .x { font-size: 15px; line-height: 1; color: var(--muted); margin-left: 2px; }
 .swatch:hover { box-shadow: 0 0 0 2px var(--line); }
 #list:focus-visible .card.active { box-shadow: 0 0 0 2px var(--focus); } /* the keyboard ring on a card is outside its border */
 /* touch: every small control grows to a finger-sized target */
@@ -902,6 +906,11 @@ button.lnk:hover { text-decoration: underline; }
   }
   function isStale(p) { return p.status !== 'archived' && age(p) >= STALE && age(p) !== Infinity; }
   function visible(p) { return !hiddenPage(p) && (kindFilter ? p.kind === kindFilter : true) && (statusFilter ? p.status === statusFilter : p.status !== 'archived') && (!sinceFilter || isNew(p)) && (!dupFilter || p.dup) && (!staleFilter || isStale(p)); }
+  function visibleBut(p, skip) { // visible() with one filter set aside: what a chip of that group would show if pressed
+    return !hiddenPage(p) && (skip === 'kind' || !kindFilter || p.kind === kindFilter) && (skip === 'status' || (statusFilter ? p.status === statusFilter : p.status !== 'archived'))
+      && (!sinceFilter || isNew(p)) && (skip === 'dup' || !dupFilter || p.dup) && (skip === 'stale' || !staleFilter || isStale(p));
+  }
+  function chipOff(b, n, on) { if (!n && !on) { b.disabled = true; b.title = 'None with the filters that are on'; } }
   // selection, for acting on several pages at once (shift-click, or x on the selected page)
   var selected = {};
   function toggleSel(p) { if (selected[p.id]) delete selected[p.id]; else selected[p.id] = true; markSel(); renderSel(); announceSel(); }
@@ -1202,6 +1211,7 @@ button.lnk:hover { text-decoration: underline; }
       }
     }
     var all = under(current).filter(function (p) { return !hiddenPage(p); }), total = all.filter(visible).length, counts = countStatus(all), kinds = countKinds(all);
+    var kindsNow = countKinds(all.filter(function (p) { return visibleBut(p, 'kind'); })), countsNow = countStatus(all.filter(function (p) { return visibleBut(p, 'status'); })); // under the other filters
     if (total) bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
     if (current.about && !query) bar.appendChild(el('p', 'about', current.about)); // what the project is, right under its name
     if (current !== root && current === current.proj && !query) { // the project's working note, editable here
@@ -1234,7 +1244,7 @@ button.lnk:hover { text-decoration: underline; }
       Object.keys(KIND_LABEL).forEach(function (k) {
         if (!kinds[k]) return;
         var b = el('button', 'stf'); b.type = 'button'; b.setAttribute('aria-pressed', String(kindFilter === k));
-        b.appendChild(kindIcon(k)); b.appendChild(el('span', '', KIND_LABEL[k])); b.appendChild(el('small', '', String(kinds[k])));
+        b.appendChild(kindIcon(k)); b.appendChild(el('span', '', KIND_LABEL[k])); b.appendChild(el('small', '', String(kindsNow[k] || 0))); chipOff(b, kindsNow[k], kindFilter === k);
         b.addEventListener('click', function () { kindFilter = kindFilter === k ? '' : k; render(); });
         kf.appendChild(b);
       });
@@ -1245,13 +1255,13 @@ button.lnk:hover { text-decoration: underline; }
       STATUSES.forEach(function (s) {
         if (!counts[s]) return;
         var b = el('button', 'stf s-' + s); b.type = 'button'; b.setAttribute('aria-pressed', String(statusFilter === s));
-        b.appendChild(el('span', '', cap(s))); b.appendChild(el('small', '', String(counts[s])));
+        b.appendChild(el('span', '', cap(s))); b.appendChild(el('small', '', String(countsNow[s] || 0))); chipOff(b, countsNow[s], statusFilter === s);
         b.addEventListener('click', function () { statusFilter = statusFilter === s ? '' : s; render(); });
         sts.appendChild(b);
       });
       filters.appendChild(sts);
     }
-    var dupN = all.filter(function (p) { return p.dup; }).length, staleN = all.filter(isStale).length;
+    var dupN = all.filter(function (p) { return p.dup && visibleBut(p, 'dup'); }).length, staleN = all.filter(function (p) { return isStale(p) && visibleBut(p, 'stale'); }).length;
     if (dupN || staleN || dupFilter || staleFilter) { // the two ways pages get lost, as quiet chips; only when there is something to show
       var care = el('div', 'sts care'); care.setAttribute('role', 'group'); care.setAttribute('aria-label', 'Worth a look');
       if (dupN || dupFilter) { var bd = el('button', 'stf'); bd.type = 'button'; bd.setAttribute('aria-pressed', String(dupFilter)); bd.title = 'Pages that share a title with another page; one may be a republish without the link'; bd.appendChild(el('span', '', 'Duplicates')); bd.appendChild(el('small', '', String(dupN))); bd.addEventListener('click', function () { dupFilter = !dupFilter; render(); }); care.appendChild(bd); }
@@ -1292,9 +1302,21 @@ button.lnk:hover { text-decoration: underline; }
       var ask = el('p', ''); ask.appendChild(document.createTextNode('Ask Claude to run ')); ask.appendChild(el('code', '', '/artifact-hub:hub')); ask.appendChild(document.createTextNode(' to fill it from your gallery.'));
       empty.appendChild(ask); return;
     }
-    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : sinceFilter ? 'Nothing here changed since your last visit.' : dupFilter ? 'No two pages here share a title.' : staleFilter ? 'Nothing here is older than ' + STALE + ' days.' : statusFilter || kindFilter ? 'No such pages here.' : 'This folder is empty.'));
+    empty.appendChild(el('p', '', query ? 'No pages match “' + query + '”' + (current !== root ? ' in ' + current.name + '.' : '.') : sinceFilter ? 'Nothing here changed since your last visit.' : dupFilter ? 'No two pages here share a title.' : staleFilter ? 'Nothing here is older than ' + STALE + ' days.' : statusFilter && kindFilter ? 'No ' + KIND_LABEL[kindFilter].toLowerCase() + ' pages marked ' + statusFilter + ' here.' : statusFilter ? 'No pages marked ' + statusFilter + ' here.' : kindFilter ? 'No ' + KIND_LABEL[kindFilter].toLowerCase() + ' pages here.' : 'This folder is empty.'));
     var btns = el('div', 'btns');
     if (sinceFilter) { var sv = el('button', 'btn', 'Show every page'); sv.type = 'button'; sv.addEventListener('click', function () { sinceFilter = false; render(); }); btns.appendChild(sv); }
+    var on = []; // each filter that is on, as its own chip with an ×, so one can go while the others stay
+    if (kindFilter) on.push([KIND_LABEL[kindFilter], function () { kindFilter = ''; }]);
+    if (statusFilter) on.push([cap(statusFilter), function () { statusFilter = ''; }]);
+    if (dupFilter) on.push(['Duplicates', function () { dupFilter = false; }]);
+    if (staleFilter) on.push(['Untouched ' + STALE + 'd+', function () { staleFilter = false; }]);
+    if (sinceFilter) on.push(['Since your last visit', function () { sinceFilter = false; }]);
+    if (on.length > 1) {
+      var fl = el('div', 'sts onchips'); fl.setAttribute('aria-label', 'Filters that are on');
+      fl.appendChild(el('span', 'hint', 'Nothing is all of these at once:'));
+      on.forEach(function (f) { var c = el('button', 'stf'); c.type = 'button'; c.setAttribute('aria-pressed', 'true'); c.appendChild(el('span', '', f[0])); c.appendChild(el('span', 'x', '×')); c.title = 'Turn off ' + f[0]; c.setAttribute('aria-label', 'Turn off the ' + f[0] + ' filter'); c.addEventListener('click', function () { f[1](); render(); }); fl.appendChild(c); });
+      empty.appendChild(fl);
+    }
     if (statusFilter || kindFilter || dupFilter || staleFilter) { var sf = el('button', 'btn', 'Show every page here'); sf.type = 'button'; sf.addEventListener('click', function () { statusFilter = ''; kindFilter = ''; dupFilter = false; staleFilter = false; render(); }); btns.appendChild(sf); }
     if (current !== root) { var all = el('button', 'btn primary', 'Search all projects'); all.type = 'button'; all.addEventListener('click', function () { go(root); q.focus(); }); btns.appendChild(all); }
     if (query) { var clr = el('button', 'btn', 'Clear'); clr.type = 'button'; clr.addEventListener('click', function () { q.value = ''; render(); q.focus(); }); btns.appendChild(clr); }

@@ -47,7 +47,7 @@ its own Artifact tool and to read and write the files above, nothing else.
 To avoid picking up future changes without reviewing them, install a tagged release:
 
 ```
-/plugin marketplace add SureshKumar-24/artifact-hub@v1.7.0
+/plugin marketplace add SureshKumar-24/artifact-hub@v1.7.1
 ```
 
 ## Report a problem
