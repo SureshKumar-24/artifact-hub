@@ -1,0 +1,50 @@
+name: Something is broken
+description: A hook, a skill or the hub page did not do what the README says.
+labels: [bug]
+body:
+  - type: input
+    id: claude-version
+    attributes:
+      label: Claude Code version
+      description: From `claude --version`.
+      placeholder: 2.1.300
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: From `claude plugin list`.
+      placeholder: 1.7.2
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - On the hub page
+        - In Claude Code (a hook or a skill)
+        - Setup
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+      description: Steps in order, then the result. For a page problem, the look and theme from the `?` sheet (Claude or Hub, light or dark) and the width (phone, tablet, desktop).
+    validations:
+      required: true
+  - type: textarea
+    id: shot
+    attributes:
+      label: Screenshot or output
+      description: Drag an image here, or paste the hook's output. Please remove any link or title you would rather keep private.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Already tried
+      options:
+        - label: A new Claude Code session after updating the plugin
+        - label: "`/artifact-hub:hub` once"

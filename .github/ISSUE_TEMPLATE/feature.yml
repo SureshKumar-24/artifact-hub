@@ -1,0 +1,41 @@
+name: An idea
+description: Something the hub or the plugin should do, or do differently.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The moment it would help
+      description: What you were doing, and what got in the way. A concrete moment beats a feature name.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like to happen
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - On the hub page
+        - In Claude Code (a hook or a skill)
+        - Both
+        - Not sure
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: From `claude plugin list`.
+      placeholder: 1.7.2
+  - type: checkboxes
+    id: fit
+    attributes:
+      label: Fit
+      description: The plugin keeps three promises; please tick the ones your idea keeps.
+      options:
+        - label: Nothing leaves the machine (no server, no account, no analytics)
+        - label: The hub never claims to know what it does not (no fake thumbnails, no guessed sharing state)
+        - label: Rows are never removed by the plugin on its own

@@ -201,8 +201,8 @@ because the data and the browser keys are unchanged.
 A project may carry `note: '…'`, separate from `about`: a short line of what matters now
 ("client wants v2 by November", "on hold until the audit"), under 200 characters, plain
 words. The page shows it under the project's heading. The user sets it in plain words
-("note on Shop: launch moved to 3 Nov") or on the page, whose "Save changes with Claude"
-message may contain a line like `- set the note of project Shop to: launch moved to
+("note on Shop: launch moved to 3 Nov") or on the page: "Save to hub" writes it into the
+data itself, and the message for Claude (the paste path) may contain a line like `- set the note of project Shop to: launch moved to
 3 Nov`. Put it in the `note` field, or remove the field when told to clear it.
 
 ## Checking links

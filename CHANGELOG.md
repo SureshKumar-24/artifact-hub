@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.3
+
+- A code audit before the launch: a search keystroke over 154 pages renders in 2 ms
+  (the first in 50 ms while the rows are built once), the hooks finish well under their
+  200 ms budget, and every path in them exits quietly. Dead code and one unused browser
+  key were removed; the tests now fail on any CSS class nothing uses, on a native select,
+  and on a storage call outside the guarded helpers. Nothing changes in what the page
+  does.
+
 ## 1.7.2
 
 - A `motion` kind for animations made with Claude Motion (in beta on Team and Enterprise
