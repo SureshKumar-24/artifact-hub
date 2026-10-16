@@ -1205,7 +1205,7 @@ button.lnk:hover { text-decoration: underline; }
     folded = on; app.classList.toggle('folded', on); if (save) setRaw(K.side, on ? 'closed' : 'open');
     each('[data-menu]', function (b) { b.setAttribute('aria-expanded', String(!on)); });
   }
-  var LOOK_DEFAULT = 'hub'; // 'hub' (warm paper, teal) or 'claude' (cream, terracotta, serif headings)
+  var LOOK_DEFAULT = 'claude'; // 'claude' (cream, terracotta, serif headings, like claude.ai) or 'hub' (warm paper, teal)
   var look = getRaw(K.look); if (['hub', 'claude'].indexOf(look) < 0) look = LOOK_DEFAULT;
   function applyLook(save) {
     if (look === 'claude') html.setAttribute('data-look', 'claude'); else html.removeAttribute('data-look');
