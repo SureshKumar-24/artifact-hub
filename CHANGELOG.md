@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.9
+
+- Fixed: with pages selected, the selection bar's "Move to…" button was filled with every
+  folder path as plain text and ran off the bar (since 1.5.4). It is a menu button again.
+- All pages shows at most eight pages per project, newest first, with "All 64 in Fixkart →"
+  under them; a hub with a hundred pages opens on every project instead of one.
+- Details open with focus on the title, not the close button; on phones the status label
+  steps aside while a row's actions show; the kind badge in the details panel reads darker
+  in the light Claude look; status labels are 11px; touch targets are 40px; the page count
+  leaves the phone layout and the empty state.
+
 ## 1.5.8
 
 - First open in a browser: one quiet line, "Press ? for shortcuts · i for details on any

@@ -38,8 +38,8 @@ test('the selection bar sits above the save bar, and small controls grow for tou
   assert.ok(TEMPLATE.indexOf('id="sel"') < TEMPLATE.indexOf('id="save"'), 'selection (transient) before unsaved changes (persistent)');
   assert.match(TEMPLATE, /id="sel-clear"[^>]*title="Clear the selection \(Esc\)"/);
   const touch = TEMPLATE.match(/@media \(hover: none\) \{\s*\.ctx button, \.dotbtn, \.swatch[^}]*\}/);
-  assert.ok(touch, 'a hover-less block sizes the small controls to 36px');
-  assert.match(touch[0], /36px/);
+  assert.ok(touch, 'a hover-less block sizes the small controls to 40px');
+  assert.match(touch[0], /40px/);
   assert.match(script(TEMPLATE), /'Text to copy'/, 'the copy fallback box is labelled for any text, not only links');
   assert.match(script(TEMPLATE), /function redraw\(\)/, 'bulk actions draw once');
 });
@@ -53,6 +53,9 @@ test('has the gallery / list switch, the details panel and the shortcut sheet', 
   assert.match(TEMPLATE, /<dialog id="keys"/);
   assert.match(TEMPLATE, /id="sel"[^>]*hidden/, 'the selection bar starts hidden');
   for (const id of ['sel-move', 'sel-status', 'sel-copy', 'sel-clear', 'save-copy', 'save-drop']) assert.match(TEMPLATE, new RegExp(`id="${id}"`), id);
+  const renderSel = TEMPLATE.match(/function renderSel\(\) \{[\s\S]*?\n  \}/);
+  assert.ok(renderSel && !/option/.test(renderSel[0]), 'the selection bar buttons are menu buttons: renderSel never fills them with <option>s');
+  assert.match(TEMPLATE, /All ' \+ s\.total \+ ' in ' \+ s\.label/, 'a crowded project in All pages ends with a line to its folder');
   assert.match(script(TEMPLATE), /\['o  then  1–9', 'Open the 1st to 9th page shown'\]/, 'quick open is in the shortcut sheet');
   assert.match(script(TEMPLATE), /\['x', 'Select or unselect the page/);
   assert.match(TEMPLATE, /id="q"[^>]*role="combobox"/);
