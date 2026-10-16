@@ -172,7 +172,7 @@ sequenceDiagram
   participant You
   participant Claude as Claude Code
   participant Hook as on-artifact.js
-  participant Disk as ~/.claude/artifact-hub/
+  participant Disk as ~/.claude/artifact-hub
   participant Hub as Project Hub artifact
 
   You->>Claude: "publish the pricing page"
@@ -181,7 +181,7 @@ sequenceDiagram
   Hook->>Disk: pages.json, activity.log, .pending
   Hook-->>Claude: "file this page in the hub"
   Claude->>Hub: read, add one row, republish
-  Note over Claude,Hub: missed? on-stop.js reminds once; /artifact-hub:hub catches up
+  Note over Claude,Hub: If filing is missed, on-stop.js reminds once and a rebuild catches up
   You->>Hub: move, set status, note, Save to hub
   Hub->>Hub: rewrites its data block, publishes itself
 ```
