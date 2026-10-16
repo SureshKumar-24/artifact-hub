@@ -90,7 +90,7 @@ Then run this once:
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add `@v1.5.6` to the first command |
+| Install a fixed, reviewed version | Add `@v1.5.7` to the first command |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) |
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.7
+
+- After Claude writes your changes, the page forgets them on its own: an edit kept in the
+  browser that the hub's data already has (status, folder or note) is dropped at load, so
+  the Unsaved marks and the save bar disappear on reload without pressing Discard.
+
 ## 1.5.6
 
 - The "Save changes with Claude" message no longer names the viewer's frame address as
