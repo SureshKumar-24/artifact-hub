@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.0.0
+
+The launch release. Everything since 1.0.0, in one place; the entries below it are the
+history, kept for anyone upgrading step by step. Nothing in the data changed: a hub from
+any 1.x version moves to this page on its next rebuild with every row, pin and folder kept.
+
+- **Never lose a page.** Three hooks save every published link on your machine the moment
+  it exists, mark deleted and replaced pages, and remind Claude once if a page was not
+  filed. Claude Docs documents are filed like pages. The gallery cutoff cannot reach them.
+- **One index page, your Project Hub.** Folders and subfolders to any depth, a gallery of
+  drawn covers or a list, search that forgives typos, pins, "Continue working", a details
+  panel, status labels, project notes and colours, light and dark, a look that matches
+  claude.ai. Fast with hundreds of rows.
+- **Command palette on ⌘K.** Pages, folders and 38 actions in one box, with the key shown
+  beside each action; `>` for actions, `#` for folders.
+- **Save to hub.** Move pages, set statuses and notes on the page and save them into the
+  hub itself, right there in claude.ai; the paste message for Claude remains for read-only
+  views. JSON and Markdown export, as copy or as a file.
+- **For sessions that lost the link.** "Copy for Claude Code" for one page and "Copy this
+  project for Claude Code" for a whole project; "Duplicates" and "Untouched 60d+" chips
+  show the two ways pages go stale.
+- **Skills.** `setup` once; `hub` to rebuild or record; `find` to answer "where is my
+  pricing page?"; `week` for a local digest; `pin` for the sidebar; an opt-in link check.
+- **Kinds.** Docs, Slides, Design, Design system, Dashboard and Motion pages keep the kind
+  Claude knows; others get one from the title, and the panel says which.
+- **Shared with me.** Pages others shared are listed with the owner, filed and marked, and
+  never offered for republishing.
+- **Zero dependencies, zero network.** Three short Node scripts, five instruction files,
+  one HTML page; 31 tests on Linux, macOS and Windows.
+
 ## 1.7.4
 
 - Filter chips are always clickable again. A chip whose count is zero under the filters

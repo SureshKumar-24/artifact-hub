@@ -59,7 +59,7 @@ rewrite the data block and republish exactly what was served.
 To avoid picking up future changes without reviewing them, install a tagged release:
 
 ```
-/plugin marketplace add SureshKumar-24/artifact-hub@v1.7.4
+/plugin marketplace add SureshKumar-24/artifact-hub@v2.0.0
 ```
 
 ## Report a problem
