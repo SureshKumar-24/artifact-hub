@@ -1,0 +1,8 @@
+# The plugin has no package dependencies. The only things that can go stale are the
+# GitHub Actions used by the test workflow.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
