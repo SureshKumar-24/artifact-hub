@@ -44,6 +44,7 @@ Setup reads your gallery, proposes projects and folders, and publishes your hub 
 - [Compared with](#compared-with)
 - [Questions](#questions)
 - [Troubleshooting](#troubleshooting)
+- [Optional: the duplicate guard mod](#optional-the-duplicate-guard-mod)
 - [Uninstall](#uninstall)
 - [Contributing](#contributing)
 - [Licence](#licence)
@@ -159,7 +160,7 @@ That gives you the `hub`, `find` and `pin` skills against a hub you already have
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add the tag to the first command, for example `@v2.0.1` |
+| Install a fixed, reviewed version | Add the tag to the first command, for example `@v2.1.0` |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 
@@ -363,6 +364,16 @@ No. It is an independent open-source plugin.
 | A second hub appeared | Tell Claude which one to keep; delete the other from the gallery |
 
 Anything else: [open an issue](https://github.com/SureshKumar-24/artifact-hub/issues/new/choose).
+
+## Optional: the duplicate guard mod
+
+Claude Code 2.1.287 added mods: plugins whose hooks are TypeScript functions that run inside the engine and can rewrite a tool call before it happens. `artifact-hub-guard` uses that for the one thing the main plugin cannot do after the fact: when Claude is about to publish a **new** page whose title is already in your saved list, it asks whether to update the existing page instead, and on "Update" rewrites the call with the saved link. It never blocks, asks at most once per publish, reads only `pages.json`, and passes everything else through.
+
+```
+/plugin install artifact-hub-guard@artifact-hub
+```
+
+It is a separate plugin on purpose. Anthropic's mods README says hooks modules load only where function hooks are enabled and that the API may change between releases without notice; the main plugin keeps working on every Claude Code with classic hooks, and the guard adds itself where mods run. Details, what it reads and how to test it: [guard/README.md](guard/README.md).
 
 ## Uninstall
 

@@ -1,0 +1,4 @@
+{
+  "description": "One tool.call hook on Artifact: before a publish without a url, if the saved list already has a page with that title, ask whether to update it instead",
+  "modules": ["./register.ts"]
+}

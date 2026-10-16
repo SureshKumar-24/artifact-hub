@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "typeRoots": ["./types"],
+    "paths": { "claude-code": ["./types/claude-code.d.ts"], "claude-code/testing": ["./types/testing.d.ts"] }
+  },
+  "include": ["hooks/**/*.ts", "tests/**/*.ts", "types/**/*.d.ts"]
+}

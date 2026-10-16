@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.0
+
+- A second plugin in the marketplace, `artifact-hub-guard`: a mod for Claude Code 2.1.287
+  and later. Before Claude publishes a new page whose title your saved list already has,
+  it asks whether to update the existing page instead and, on yes, rewrites the call with
+  the saved link. One `tool.call` hook on the Artifact tool; reads `pages.json` only;
+  never blocks; passes everything else through. Separate from the main plugin because
+  mods are early access and their API may change between releases.
+
 ## 2.0.1
 
 - Project colours save. A swatch picked on the page counts as a change: Save to hub writes

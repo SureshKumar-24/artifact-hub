@@ -9,6 +9,11 @@
       "name": "artifact-hub",
       "source": "./",
       "description": "Every Claude artifact you publish, filed, searchable, and one keystroke away: links saved on your machine at publish time, filed into project folders on one private index page with a command palette, gallery, search, details, status and a weekly digest."
+    },
+    {
+      "name": "artifact-hub-guard",
+      "source": "./guard",
+      "description": "Optional mod for Claude Code 2.1.287+: before a new artifact is published with a title your saved list already has, asks whether to update the existing page instead. Reads the main plugin's pages.json only; never blocks."
     }
   ]
 }
