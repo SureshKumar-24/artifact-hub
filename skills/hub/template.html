@@ -124,6 +124,14 @@ kbd { font: 500 11px/1 var(--mono); padding: 3px 5px; border: 1px solid var(--li
 .caret svg { width: 12px; height: 12px; transition: transform var(--ease); }
 .caret[aria-expanded="true"] svg { transform: rotate(90deg); }
 .caret-sp { flex: none; width: 20px; }
+/* small per-row sidebar actions (unpin, hide): there on hover, focus or touch, never in the way */
+.mini { flex: none; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; visibility: hidden; }
+.mini svg { width: 14px; height: 14px; }
+.node:hover .mini, .node:focus-within .mini, .mini:focus-visible { visibility: visible; }
+.mini:hover { background: var(--hover); color: var(--ink); }
+@media (hover: none) { .mini { visibility: visible; width: 36px; height: 36px; } }
+.item.faint { opacity: 0.55; }
+.side-foot { margin: 12px 8px 0; font-size: 13px; }
 @media (max-width: 1023px) { .item { min-height: 40px; } }
 
 /* ---- Intro and the sticky header. Phones: a search row (menu, search, view) over one strip that
@@ -409,9 +417,9 @@ button.lnk:hover { text-decoration: underline; }
   <aside class="side" id="side" aria-label="Folders">
     <button class="ib fold" type="button" id="fold" aria-label="Hide the sidebar" title="Hide the sidebar ([)"><span data-icon="fold"></span></button>
     <div id="side-pins"></div>
-    <div id="side-recent"></div>
     <h2 class="side-h">Projects</h2>
     <ul class="nav tree" id="tree"></ul>
+    <div class="side-foot" id="side-hidden"></div>
   </aside>
   <div class="scrim" id="scrim" hidden></div>
 
@@ -526,7 +534,7 @@ button.lnk:hover { text-decoration: underline; }
 
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
   var K = { folder: 'project-hub.folder.v2', pins: 'project-hub.pins.v1', opened: 'project-hub.opened.v1',
-    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1', look: 'project-hub.look.v1',
+    sort: 'project-hub.sort.v1', density: 'project-hub.density.v1', theme: 'project-hub.theme.v1', view: 'project-hub.view.v1', look: 'project-hub.look.v1', hidden: 'project-hub.hidden.v1',
     colors: 'project-hub.colors.v1', side: 'project-hub.side.v1', edits: 'project-hub.edits.v1', visit: 'project-hub.visit.v1' };
   function getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function setRaw(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not saved */ } }
@@ -550,6 +558,8 @@ button.lnk:hover { text-decoration: underline; }
     info: '<circle cx="8" cy="8" r="5.5"/><path d="M8 7.25v3.5M8 5.2v.1"/>',
     more: '<circle cx="3.5" cy="8" r=".75"/><circle cx="8" cy="8" r=".75"/><circle cx="12.5" cy="8" r=".75"/>',
     x: '<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>',
+    eye: '<path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>',
+    eyeoff: '<path d="M1.5 8s2.5-4.5 6.5-4.5c1.2 0 2.3.4 3.2 1M14.5 8S12 12.5 8 12.5c-1.2 0-2.3-.4-3.2-1M2.5 2.5l11 11"/><path d="M6.6 6.6a2 2 0 0 0 2.8 2.8"/>',
     chev: '<path d="M6 3.5 10.5 8 6 12.5"/>',
     all: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
     folder: '<path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/>',
@@ -732,7 +742,19 @@ button.lnk:hover { text-decoration: underline; }
   var lastVisit = +getRaw(K.visit) || 0, sinceFilter = false, sinceGone = false; setRaw(K.visit, String(Date.now()));
   function isNew(p) { return lastVisit > 0 && p.t > lastVisit; }
   var sinceN = PAGES.filter(isNew).length;
-  function visible(p) { return (kindFilter ? p.kind === kindFilter : true) && (statusFilter ? p.status === statusFilter : p.status !== 'archived') && (!sinceFilter || isNew(p)); }
+  // folders hidden on this page (this browser only): their pages leave All pages, the counts and the
+  // sidebar until shown again; opening a hidden folder by its link still shows its pages
+  var hidden = getJSON(K.hidden, []); hidden = Array.isArray(hidden) ? hidden.filter(function (k) { return typeof k === 'string' && byKey[k] && byKey[k] !== root; }) : [];
+  var showHidden = false;
+  function isHidden(node) { for (var n = node; n && n !== root; n = n.up) if (hidden.indexOf(n.key) >= 0) return true; return false; }
+  function hiddenPage(p) { return isHidden(p.node) && !isHidden(current); }
+  function shownCount(node) { return under(node).filter(function (p) { return !hiddenPage(p); }).length; }
+  function toggleHidden(node) {
+    var i = hidden.indexOf(node.key); if (i >= 0) hidden.splice(i, 1); else hidden.push(node.key);
+    setJSON(K.hidden, hidden); if (i < 0 && current !== root && isHidden(current)) current = root;
+    renderSide(); render(); toast(i >= 0 ? node.name + ' is shown again' : node.name + ' hidden on this page. The sidebar can show it again.');
+  }
+  function visible(p) { return !hiddenPage(p) && (kindFilter ? p.kind === kindFilter : true) && (statusFilter ? p.status === statusFilter : p.status !== 'archived') && (!sinceFilter || isNew(p)); }
   // selection, for acting on several pages at once (shift-click, or x on the selected page)
   var selected = {};
   function toggleSel(p) { if (selected[p.id]) delete selected[p.id]; else selected[p.id] = true; markSel(); renderSel(); announceSel(); }
@@ -1001,9 +1023,13 @@ button.lnk:hover { text-decoration: underline; }
       ctx.appendChild(db);
       if (up) ctx.appendChild(el('span', 'up', up + ' /'));
       ctx.appendChild(el('h2', '', current.name));
+      var hid = isHidden(current), eye = el('button'); eye.type = 'button'; eye.title = hid ? 'Show this folder again' : 'Hide this folder on this page'; eye.setAttribute('aria-label', eye.title); eye.appendChild(icon(hid ? 'eye' : 'eyeoff'));
+      eye.addEventListener('click', function () { toggleHidden(current); });
+      ctx.appendChild(eye);
       var x = el('button'); x.type = 'button'; x.setAttribute('aria-label', 'Leave this folder, show all projects'); x.title = 'Show all projects'; x.appendChild(icon('x'));
       x.addEventListener('click', function () { go(root); });
       ctx.appendChild(x); bar.appendChild(ctx);
+      if (hid) { var hn = el('p', 'about'); hn.textContent = 'This folder is hidden on this page: its pages stay out of All pages until you show it again.'; bar.appendChild(hn); }
       if (swatchOpen) {
         var sw = el('div', 'sw'); sw.setAttribute('role', 'radiogroup'); sw.setAttribute('aria-label', 'Colour of ' + pn.name);
         COLORS.forEach(function (c) {
@@ -1014,7 +1040,7 @@ button.lnk:hover { text-decoration: underline; }
         bar.appendChild(sw);
       }
     }
-    var all = under(current), total = all.filter(visible).length, counts = countStatus(all), kinds = countKinds(all);
+    var all = under(current).filter(function (p) { return !hiddenPage(p); }), total = all.filter(visible).length, counts = countStatus(all), kinds = countKinds(all);
     bar.appendChild(el('span', 'count', query ? shown.length + ' of ' + total + ' pages' : total + (total === 1 ? ' page' : ' pages')));
     if (current.about && !query) bar.appendChild(el('p', 'about', current.about)); // what the project is, right under its name
     if (current !== root && current === current.proj && !query) { // the project's working note, editable here
@@ -1108,15 +1134,19 @@ button.lnk:hover { text-decoration: underline; }
 
   // ---- Sidebar (pinned, recent, folder tree) and the tablet rail
   var expanded = {};
+  function miniBtn(name, label, fn) { var b = el('button', 'mini'); b.type = 'button'; b.title = label; b.setAttribute('aria-label', label); b.appendChild(icon(name)); b.addEventListener('click', function (e) { e.stopPropagation(); fn(); }); return b; }
   function folderItem(node, withDot) {
-    var b = el('button', 'item'); b.type = 'button';
+    var b = el('button', 'item'); b.type = 'button'; if (isHidden(node)) b.classList.add('faint');
     if (node === root) b.appendChild(icon('all')); else if (withDot) b.appendChild(el('span', 'dot c-' + node.color));
-    b.appendChild(el('span', 'l', node.name)); b.appendChild(el('small', '', String(under(node).length)));
+    b.appendChild(el('span', 'l', node.name)); b.appendChild(el('small', '', String(node === root ? shownCount(node) : under(node).length)));
     if (node === current) b.setAttribute('aria-current', 'true');
     b.addEventListener('click', function () { go(node); });
     return b;
   }
+  function inCurrent(node) { return trail(current).indexOf(node) >= 0; }
   function branch(node, ul) {
+    var hid = hidden.indexOf(node.key) >= 0;
+    if (isHidden(node) && !showHidden && !inCurrent(node)) return; // hidden folders leave the tree until "Show hidden"
     var li = el('li'), line = el('div', 'node');
     if (node.kids.length) {
       var c = el('button', 'caret'); c.type = 'button'; c.appendChild(icon('chev'));
@@ -1124,22 +1154,21 @@ button.lnk:hover { text-decoration: underline; }
       c.addEventListener('click', function () { expanded[node.key] = !expanded[node.key]; renderSide(); });
       line.appendChild(c);
     } else line.appendChild(el('span', 'caret-sp'));
-    line.appendChild(folderItem(node, node.up === root)); li.appendChild(line);
+    line.appendChild(folderItem(node, node.up === root));
+    line.appendChild(miniBtn(hid ? 'eye' : 'eyeoff', (hid ? 'Show ' : 'Hide ') + node.name, function () { toggleHidden(node); }));
+    li.appendChild(line);
     if (node.kids.length && expanded[node.key]) { var sub = el('ul'); node.kids.forEach(function (k) { branch(k, sub); }); li.appendChild(sub); }
     ul.appendChild(li);
   }
-  function pageLinks(box, label, items, total) {
-    box.textContent = ''; if (!items.length) return;
-    var h = el('h2', 'side-h', label + (total > items.length ? ' · ' + items.length + ' of ' + total : ''));
-    if (total > items.length) { // the full list: every page, sorted by when you opened it
-      var all = el('button', 'lnk', 'all'); all.type = 'button'; all.title = 'Every page, most recently opened first';
-      all.addEventListener('click', function () { setSort('recent'); go(root); }); h.appendChild(document.createTextNode(' ')); h.appendChild(all);
-    }
-    box.appendChild(h);
+  function pinnedLinks(box) { // the pinned pages, each with its own unpin button
+    box.textContent = '';
+    var items = pins.map(function (id) { return byId[id]; }).filter(Boolean); if (!items.length) return;
+    box.appendChild(el('h2', 'side-h', 'Pinned'));
     var ul = el('ul', 'nav');
     items.forEach(function (p) {
-      var li = el('li'), a = link('item', p); a.title = p.where;
-      a.appendChild(el('span', 'dot c-' + p.proj.color)); a.appendChild(el('span', 'l', p.title)); li.appendChild(a); ul.appendChild(li);
+      var li = el('li', 'node'), a = link('item', p); a.title = p.where;
+      a.appendChild(el('span', 'dot c-' + p.proj.color)); a.appendChild(el('span', 'l', p.title)); li.appendChild(a);
+      li.appendChild(miniBtn('x', 'Unpin ' + p.title, function () { togglePin(p); })); ul.appendChild(li);
     });
     box.appendChild(ul);
   }
@@ -1147,12 +1176,16 @@ button.lnk:hover { text-decoration: underline; }
     tree.textContent = '';
     var li = el('li'), line = el('div', 'node'); line.appendChild(folderItem(root)); li.appendChild(line); tree.appendChild(li);
     root.kids.forEach(function (k) { branch(k, tree); });
-    pageLinks($('side-pins'), 'Pinned', pins.map(function (id) { return byId[id]; }).filter(Boolean), 0);
-    pageLinks($('side-recent'), 'Recent', recentIds(6).map(function (id) { return byId[id]; }), recentIds(1000).length);
+    pinnedLinks($('side-pins'));
+    var foot = $('side-hidden'); foot.textContent = '';
+    if (hidden.length) { // one quiet line: how many folders are hidden, and a way to see them
+      var t = el('button', 'lnk'); t.type = 'button'; t.textContent = showHidden ? 'Hide them again' : hidden.length + (hidden.length === 1 ? ' hidden folder · Show' : ' hidden folders · Show');
+      t.addEventListener('click', function () { showHidden = !showHidden; renderSide(); }); foot.appendChild(t);
+    }
     var dots = $('rail-dots'); dots.textContent = '';
-    [root].concat(root.kids).forEach(function (n) {
+    [root].concat(root.kids.filter(function (n) { return !isHidden(n) || inCurrent(n); })).forEach(function (n) {
       var b = el('button', 'rbtn'); b.type = 'button';
-      b.title = n.name + ' · ' + under(n).length; b.setAttribute('aria-label', n.name + ', ' + under(n).length + ' pages');
+      b.title = n.name + ' · ' + (n === root ? shownCount(n) : under(n).length); b.setAttribute('aria-label', n.name + ', ' + (n === root ? shownCount(n) : under(n).length) + ' pages');
       if (n === current || (n !== root && current.proj === n)) b.setAttribute('aria-current', 'true');
       b.appendChild(n === root ? icon('all') : el('span', 'dot c-' + n.color));
       b.addEventListener('click', function () { go(n); }); dots.appendChild(b);

@@ -71,7 +71,7 @@ test('every storage access is guarded, and the view has its own key', () => {
   assert.ok(uses.length > 0);
   for (const line of uses) assert.match(line, /try \{/, line.trim());
   const keys = script(TEMPLATE).match(/var K = \{[\s\S]*?\};/)[0];
-  for (const k of ['folder.v2', 'pins.v1', 'opened.v1', 'sort.v1', 'density.v1', 'theme.v1', 'view.v1', 'colors.v1', 'side.v1', 'edits.v1', 'visit.v1']) assert.match(keys, new RegExp(`project-hub\\.${k.replace('.', '\\.')}`), k);
+  for (const k of ['folder.v2', 'pins.v1', 'opened.v1', 'sort.v1', 'density.v1', 'theme.v1', 'view.v1', 'colors.v1', 'side.v1', 'hidden.v1', 'edits.v1', 'visit.v1']) assert.match(keys, new RegExp(`project-hub\\.${k.replace('.', '\\.')}`), k);
 });
 
 test('the empty template script parses', () => {
