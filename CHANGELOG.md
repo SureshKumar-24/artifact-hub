@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.4
+
+- Filter chips are always clickable again. A chip whose count is zero under the filters
+  that are on is dimmed, not disabled; pressing it turns the other filters off so the one
+  you pressed wins, and a toast says which were turned off. The Duplicates and Untouched
+  chips no longer vanish while another filter is on.
+
 ## 1.7.3
 
 - A code audit before the launch: a search keystroke over 154 pages renders in 2 ms
