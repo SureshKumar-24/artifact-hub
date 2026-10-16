@@ -43,3 +43,7 @@ One change per pull request, with the "what" and the "why" in the description an
 ## Reporting a problem
 
 Use the issue forms: they ask for the Claude Code version, the plugin version from `claude plugin list`, and what happened. For anything security-related, use GitHub's "Report a vulnerability" on the Security tab instead of a public issue.
+
+## Ground rules
+
+The [code of conduct](CODE_OF_CONDUCT.md) applies everywhere the project happens. `main` takes pull requests only, with the test workflow green on Linux, macOS and Windows; release tags are permanent. Branches are deleted on merge.
