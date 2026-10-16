@@ -219,6 +219,8 @@ the hub; remember the answer in `hub.json` as `"shared": true` or `false`.
 ## Changes the user made on the page
 
 The hub page lets the user move a page to another folder or set its status right there.
+The message may name the hub by a frame address (`…claudeusercontent.com/…`) or not at
+all: always use `hubUrl` from `hub.json`, never that address.
 Those changes live in their browser until you write them: the page gives them a message
 to paste that starts "Update my Project Hub at … with these changes I made on the page"
 and lists each move, status and project note. When you get it: read the hub, apply

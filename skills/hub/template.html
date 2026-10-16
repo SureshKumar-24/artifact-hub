@@ -782,7 +782,10 @@ button.lnk:hover { text-decoration: underline; }
   }
   function discardEdits() { edits = {}; setJSON(K.edits, edits); location.reload(); }
   function editsText() { // one message for Claude, naming each change
-    var lines = ['Update my Project Hub at ' + location.href.split('#')[0] + ' with these changes I made on the page, then republish it to the same URL:'];
+    // inside the viewer the page sees a frame address, not its claude.ai link, so the link is named
+    // only when it is the real one; the hub skill finds the hub in hub.json either way
+    var here = location.href.split('#')[0], at = /^https:\/\/claude\.ai\/(code\/)?artifact\//.test(here) ? ' at ' + here : ' (the one in ~/.claude/artifact-hub/hub.json)';
+    var lines = ['Update my Project Hub' + at + ' with these changes I made on the page, then republish it to the same URL:'];
     Object.keys(edits).forEach(function (id) {
       var p = byId[id], e = edits[id];
       if (!p) { if (e && typeof e.note === 'string' && byKey[id]) lines.push('- set the note of project ' + byKey[id].name + ' to: ' + (e.note || '(nothing)')); return; }
