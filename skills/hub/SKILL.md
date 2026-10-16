@@ -86,9 +86,9 @@ to make it permanent: when the user does, set `color` here.
 The artifact id is the last part of the page's link. Only that array changes; leave the
 styles and the rest of the script alone.
 
-The page draws a cover for each row from the words in its title (Document, Report, Code,
-Design, Slides, or plain Page) and says so on the page; it never fetches or shows the
-page's content. A clear title and a plain description are what make a page easy to
+The page draws a cover for each row from its `kind` when set, otherwise from the words in
+its title (Document, Report, Code, Design, Slides, or plain Page), and says which on the
+page; it never fetches or shows the page's content. A clear title and a plain description are what make a page easy to
 recognise, so write both with care.
 
 ## Rebuild (the main job)
@@ -110,8 +110,12 @@ the hub correct on its own, without relying on any earlier step having happened.
    page, and keep the description; the old link still opens, so mention it to the user
    only if they ask.
 4. For every page in the listing or in that file that is not in `PROJECTS`, add a row.
-   For pages already there, update the title and date if they changed. An entry's
-   `folder` is the folder it was published from: use it to pick the project.
+   For pages already there (same id), update the title and date if they changed; the
+   id is what identifies a page, never its title. If the same id appears in two folders,
+   keep the one row whose folder the rules below would choose and drop the other. An
+   entry's `folder` is the folder it was published from: use it to pick the project. If
+   `PROJECTS` is empty (a hub with no rows yet), build it as in the `setup` skill's step
+   3 and 4, from the listing and `pages.json`, and confirm the projects with the user.
 5. **Never remove a row because it is missing from the listing.** The listing shows the
    most recently updated pages, up to 200, and the gallery itself has been seen to drop
    older pages that still exist, so an absent row is old, not deleted. Remove a row only
@@ -131,10 +135,10 @@ rebuild instead.
 
 ## Finding a page
 
-When the user cannot find a page ("where is my pricing page?"), look in the hub's
-`PROJECTS` and in `pages.json` for the words they gave, and answer with the title, its
-folder and the full link. If several match, list them. If none match, run a rebuild and
-look again before saying it is not there.
+When the user cannot find a page ("where is my pricing page?"), follow the `find` skill:
+it looks in `pages.json` and in the hub's `PROJECTS` and answers with the title, folder
+and link. If it finds nothing, run a rebuild here and look again before saying the page
+is not there.
 
 ## When a page is deleted
 
@@ -217,11 +221,13 @@ the hub; remember the answer in `hub.json` as `"shared": true` or `false`.
 The hub page lets the user move a page to another folder or set its status right there.
 Those changes live in their browser until you write them: the page gives them a message
 to paste that starts "Update my Project Hub at … with these changes I made on the page"
-and lists each move and status. When you get it: read the hub, apply every line (move
-the row to the named folder path, creating the path if needed; set or clear the fifth
-item), republish to the same URL, and tell the user in one line how many changes were
-written. They then press "Discard" on the page, or reload it: a saved change matches
-the data and the marker goes away.
+and lists each move, status and project note. When you get it: read the hub, apply
+every line (move the row to the named folder path, creating the path if needed; set or
+clear the fifth item; set the project's `note`), republish to the same URL, and tell the
+user in one line how many changes were written. A line that names a project the hub
+does not have, or a page id that is not in `PROJECTS`: ask before inventing anything,
+and apply the rest. They then press "Discard" on the page, or reload it: a saved change
+matches the data and the marker goes away.
 
 ## Changing the rules
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.1
+
+- Titles are saved as plain text: entities decoded (`&amp;` is `&`), whitespace
+  collapsed, a title that is only whitespace falls back to the file name.
+- The skills cover the edge cases: a hub with no rows, a page whose title changed (the
+  id is what identifies it), the same page in two folders (one row kept), a saved
+  message that names an unknown project or page (ask, apply the rest), `find` with too
+  many matches, `week` before the activity log exists, `pin` without a hub.
+- On the page: bulk actions redraw once, not once per page; the pencil for a project
+  note sits inline on phones; the toast wraps on phones instead of overflowing; focus
+  rings and touch targets audited; the screen reader hears search counts and the
+  selection; long titles and empty descriptions are handled.
+- README: a keyboard reference.
+
 ## 1.5.0
 
 - `/artifact-hub:week`: a short digest from the files on your machine: published this

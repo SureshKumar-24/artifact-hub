@@ -10,8 +10,9 @@ Everything comes from two local files and the hub; nothing is sent anywhere.
 1. Read `~/.claude/artifact-hub/pages.json` (one entry per page: `url`, `title`,
    `folder`, `first`, `last`, and `deleted`, `replacedBy`, `type`, `typeId` when set) and
    `~/.claude/artifact-hub/activity.log` (one line per publish and per filing, newest
-   last, ISO time first). If `hub.json` has a `hubUrl`, `Artifact` `action: "read"` it
-   and use its `PROJECTS` to name each page's project; otherwise group by `folder`.
+   last, ISO time first). The log may not exist yet (it starts with 1.5.0): then use
+   `first` and `last` alone. If `hub.json` has a `hubUrl`, `Artifact` `action: "read"`
+   it and use its `PROJECTS` to name each page's project; otherwise group by `folder`.
 2. Work out, from `first` and `last` (and the log's `published` lines):
    - **Published this week**: pages whose `first` is in the last 7 days, by project:
      the count and the titles. Pages whose `last` moved this week but `first` is older

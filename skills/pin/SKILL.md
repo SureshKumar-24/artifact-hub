@@ -5,8 +5,9 @@ description: Pins the user's Project Hub to their claude.ai sidebar, or unpins i
 
 # Pin the hub
 
-1. Read `~/.claude/artifact-hub/hub.json`. Without a `hubUrl` there is no hub yet: say so
-   and point to the `setup` skill.
+1. Read `~/.claude/artifact-hub/hub.json`. If the file is missing or has no `hubUrl`,
+   there is no hub yet: say so in one line and point to the `setup` skill; do not guess a
+   link from the gallery.
 2. To pin: `Artifact` `action: "pin"` with `url` set to `hubUrl`. To unpin:
    `action: "unpin"`.
 3. Say in one line what happened: "Project Hub is pinned to your sidebar" or "unpinned".
