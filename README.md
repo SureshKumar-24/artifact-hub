@@ -110,7 +110,7 @@ That gives you the `hub`, `find` and `pin` skills against a hub you already have
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add the tag to the first command, for example `@v1.6.0` |
+| Install a fixed, reviewed version | Add the tag to the first command, for example `@v1.7.0` |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) |
 
@@ -187,7 +187,7 @@ There are two layers, on purpose:
 | You delete a page | Nothing | Its row is taken off the hub. |
 | You cannot find a page | Ask: "where is my pricing page?" or `/artifact-hub:find pricing` | Claude answers with the title, folder and link, and offers to open the page so your next publish updates it instead of making a new one. |
 | You publish a page again from a new session | Nothing | The hub keeps one row, pointing at the new page; the old link still opens. |
-| You want to reorganise | Ask: "move the SEO pages into Shop / Marketing", or do it on the page and press "Save changes with Claude" | Claude moves them and remembers the rule. |
+| You want to reorganise | Ask: "move the SEO pages into Shop / Marketing", or do it on the page (Move to, Status, notes) and press **Save to hub** | The page saves itself; asked in words, Claude moves them and remembers the rule. |
 | Any time | `/artifact-hub:hub` | Rebuilds the hub from the gallery and the saved list. Adds what is new, never removes what is there. |
 | Once a week | `/artifact-hub:week` | A short digest: published this week, untouched for 60 days, likely duplicates, shared with you. |
 | You want it one click away | `/artifact-hub:pin` | Pins the hub to your sidebar; unpins on request. |
@@ -256,7 +256,7 @@ A plugin can run code on your machine, so here is all of it.
 | **Runs** | Three hooks. `PostToolUse` for the `Artifact` tool and for the Claude Docs connector's `batch` call (only when it creates a document) starts `hooks/on-artifact.js` (163 lines). `Stop` starts `hooks/on-stop.js` (36 lines), which only speaks when a page published that turn was not filed. `SessionStart` starts `hooks/on-session.js` (56 lines), which adds one line naming the last two pages published from the current repository in the past 30 days, and nothing when there are none. Plain Node.js, no dependencies, no shell in between. |
 | **Reads** | The result of that tool call, the `<title>` of the file just published (or the new document's name), Claude's last message of the turn, and your hub settings. During setup or a rebuild, Claude reads the list of your own artifacts through its own Artifact tool. |
 | **Writes** | Three files in `~/.claude/artifact-hub/`: `pages.json` (your published links), `hub.json` (your hub's address and folder rules) and `activity.log` (one line per publish and per filing, the 500 latest, for the weekly digest), plus two small markers: `.pending` between a publish and its filing, and `.offered` so setup is suggested at most once a day. And your hub artifact. |
-| **Sends** | Nothing. No network request, no server, no analytics, no account. |
+| **Sends** | Nothing. No network request, no server, no analytics, no account. The hub page itself talks only to the claude.ai viewer it runs in: it reads its own source and publishes a new version of itself when you press Save to hub, and offers a file when you press Download. Both run with your own account's authority, inside claude.ai, and nothing leaves it. |
 
 Check it yourself in a minute: [SECURITY.md](SECURITY.md). The scripts' behaviour is covered by tests that run on Linux, macOS and Windows for every change.
 
@@ -317,7 +317,7 @@ The kinds Claude records itself: Slides, Design, Design system, Dashboard and Do
 <details>
 <summary><b>What happens when I move a page on the hub page?</b></summary>
 
-It moves at once in your browser and is marked "Unsaved". The hub's data is written only by Claude, so a bar at the top offers "Save changes with Claude": one message, listing each change, to paste into Claude Code. After Claude republishes the hub, the marker goes away. "Discard" forgets the changes.
+It moves at once in your browser and is marked "Unsaved". A bar at the top offers **Save to hub**: the page rewrites its own data block and publishes a new version of itself, right there in claude.ai, with your own authority; the page reloads and the marker goes away. Claude reads the same data next time, so nothing diverges. If the view cannot write (a read-only share, an old viewer, a local copy), the bar offers the older path instead: "copy for Claude", one message listing each change, to paste into Claude Code. "Discard" forgets the changes.
 </details>
 
 <details>

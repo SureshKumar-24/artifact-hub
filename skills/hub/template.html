@@ -179,6 +179,8 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
   .seg button { height: 34px; }
 }
 @media (hover: none) { .search kbd { display: none; } }
+#pal-btn { display: none; } /* on a pointer device ⌘K is the way in; on touch this button is */
+@media (hover: none) { #pal-btn { display: inline-grid; } }
 
 /* ---- Context: the open folder (name, note, count, subfolders) or the page count at the top level */
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 0 0; min-height: 40px; }
@@ -288,7 +290,7 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 #list:focus-visible .card.active { box-shadow: 0 0 0 2px var(--focus); } /* the keyboard ring on a card is outside its border */
 /* touch: every small control grows to a finger-sized target */
 @media (hover: none) {
-  .ctx button, .dotbtn, .swatch, .pnote .ib.small, .caret, .mini, .ib { width: 40px; height: 40px; }
+  .ctx button, .dotbtn, .swatch, .pnote .ib.small, .caret, .mini, .ib, .bar .ib { width: 40px; height: 40px; }
   .caret { width: 32px; }
   .stf, .subs button, .since .stf, .pnote .addnote, button.lnk, .sts button, #save .btn { min-height: 40px; }
   .seg button { height: 40px; } .seg { border-radius: 10px; }
@@ -315,9 +317,9 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
   .bar { padding-top: 8px; min-height: 0; }
   .subs, .filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
   .subs::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
-  .subs button { flex: none; min-height: 34px; }
+  .subs button { flex: none; min-height: 40px; }
   .filters .sts { flex: none; flex-wrap: nowrap; }
-  .filters .stf { flex: none; min-height: 34px; }
+  .filters .stf { flex: none; min-height: 40px; }
 }
 
 /* ---- Groups: sticky headers under the search header, whatever its measured height */
@@ -443,7 +445,7 @@ dialog::backdrop { background: var(--scrim); }
 #pal-q { flex: 1 1 auto; min-width: 0; border: 0; background: transparent; color: var(--ink); font: 16px/1.4 var(--sans); outline: none; }
 #pal-q::placeholder { color: var(--muted); }
 #pal-list { overflow-y: auto; padding: 6px; outline: none; min-height: 56px; }
-.pal-h { padding: 10px 10px 4px; font: 500 11px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.pal-h { padding: 10px 10px 4px; font: 500 11px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); color: color-mix(in srgb, var(--muted) 70%, var(--ink)); }
 .pal-it { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-size: 14px; }
 .pal-it.hi { background: var(--hover); }
 .pal-it .pl { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -451,7 +453,7 @@ dialog::backdrop { background: var(--scrim); }
 .pal-it kbd, .pal-it .dot, .pal-it .i, .pal-it .sd { flex: none; }
 .pal-it .i { color: var(--muted); }
 .pal-none { padding: 20px 10px; text-align: center; color: var(--muted); font-size: 14px; }
-.pal-foot { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.pal-foot { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); color: color-mix(in srgb, var(--muted) 70%, var(--ink)); }
 .pal-foot span { display: inline-flex; align-items: center; gap: 5px; }
 @media (hover: none) { .pal-foot, .pal-it kbd, .pal-esc { display: none; } .pal-it { min-height: 44px; } }
 .sheet { padding: 20px 24px; }
@@ -537,6 +539,7 @@ button.lnk:hover { text-decoration: underline; }
         <div class="tools">
           <button class="ib" type="button" id="density" aria-pressed="false" aria-label="Compact rows" title="Compact rows"><span data-icon="dense"></span></button>
           <button class="ib" type="button" id="theme" aria-label="Theme"></button>
+          <button class="ib" type="button" id="pal-btn" aria-label="Pages, folders and actions" title="Pages, folders and actions"><span data-icon="chev"></span></button>
           <button class="ib" type="button" id="help" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
         </div>
       </div>
@@ -551,6 +554,7 @@ button.lnk:hover { text-decoration: underline; }
     </div>
     <div class="save" id="save" hidden role="region" aria-label="Changes not yet saved">
       <span id="save-n"></span>
+      <button class="btn primary" type="button" id="save-hub" hidden title="Writes these changes into this page's data, which Claude reads too">Save to hub</button>
       <button class="btn primary" type="button" id="save-copy" title="Copies a message for Claude Code that writes these changes into the hub">Save changes with Claude</button>
       <button class="btn" type="button" id="save-drop">Discard</button>
     </div>
@@ -558,7 +562,7 @@ button.lnk:hover { text-decoration: underline; }
     <p class="sr" id="live" aria-live="polite"></p>
     <div id="list" role="listbox" tabindex="0" aria-label="Pages"></div>
     <div class="empty" id="empty" hidden></div>
-    <p class="note">This page is kept up to date by the artifact-hub plugin. It lists links: each page keeps its own sharing setting in Claude, and stays private to you until you share it. Pins and recently opened pages are remembered in this browser only. <button class="lnk" type="button" id="export" title="Every folder, title, description and link on this page, as Markdown, to paste anywhere">Copy this list as Markdown</button> · <button class="lnk" type="button" id="export-json" title="The same list as JSON: projects, pages, links, dates, folders and status, to keep or move anywhere">Copy this list as JSON</button></p>
+    <p class="note">This page is kept up to date by the artifact-hub plugin. It lists links: each page keeps its own sharing setting in Claude, and stays private to you until you share it. Pins and recently opened pages are remembered in this browser only. <button class="lnk" type="button" id="export" title="Every folder, title, description and link on this page, as Markdown, to paste anywhere">Copy this list as Markdown</button> · <button class="lnk" type="button" id="export-json" title="The same list as JSON: projects, pages, links, dates, folders and status, to keep or move anywhere">Copy this list as JSON</button><span id="dl-wrap" hidden> · <button class="lnk" type="button" id="dl-md" title="Saves the Markdown list as a file, after you confirm">Download Markdown</button> · <button class="lnk" type="button" id="dl-json" title="Saves the JSON list as a file, after you confirm">Download JSON</button></span></p>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -622,7 +626,7 @@ button.lnk:hover { text-decoration: underline; }
       <button class="btn" type="button" id="insp-go"><span data-icon="folder"></span>Show folder</button>
       <button class="btn" type="button" id="insp-prompt" title="Copies a line to paste into a new Claude Code session, so Claude updates this page instead of making a new one"><span data-icon="copy"></span>Copy for Claude Code</button>
     </div>
-    <p class="fine" id="insp-unsaved" hidden>This page has changes made here (folder or status) that are not in the hub's data yet. Use "Save changes with Claude" at the top of the page.</p>
+    <p class="fine" id="insp-unsaved" hidden>This page has changes made here (folder or status) that are not in the hub's data yet. Save them from the bar at the top of the page: they are saved into this page, which Claude reads too.</p>
     <p class="fine" id="insp-fine">"Copy for Claude Code" gives a new session this page's link, so Claude updates it instead of making another. Copying a link does not change who can open the page.</p>
     <p class="fine" id="insp-shared" hidden>This page was shared with you. It is listed here and can be filed and marked like any other, but it is not yours to republish: only its owner can change it.</p>
   </div>
@@ -781,6 +785,7 @@ button.lnk:hover { text-decoration: underline; }
   PROJECTS.forEach(function (p, pi) {
     var pn = child(root, String(p.name || 'Untitled'), slug(p.id || p.name));
     if (!pn.color) {
+      pn.id0 = String(p.id || slug(p.name)); pn.color0 = COLORS.indexOf(p.color) >= 0 ? p.color : ''; // as the data has them, for writing the data back
       pn.about = p.about || ''; pn.note = String(p.note || '').slice(0, 200); pn.note0 = pn.note; // a short working note, editable on the page
       pn.base = COLORS.indexOf(p.color) >= 0 ? p.color : COLORS[pi % COLORS.length];
       pn.color = COLORS.indexOf(myColors[pn.key]) >= 0 ? myColors[pn.key] : pn.base;
@@ -795,7 +800,7 @@ button.lnk:hover { text-decoration: underline; }
         var x = pg[4] && typeof pg[4] === 'object' ? pg[4] : { status: pg[4] };
         var st = String(x.status || '').toLowerCase(), kd = String(x.kind || '').toLowerCase().replace(/[^a-z]/g, '');
         var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''),
-          status: STATUSES.indexOf(st) >= 0 ? st : '', known: KIND_LABEL[kd] ? kd : '', by: x.by ? String(x.by) : '', node: node, proj: pn };
+          status: STATUSES.indexOf(st) >= 0 ? st : '', known: KIND_LABEL[kd] ? kd : '', by: x.by ? String(x.by) : '', gone: !!x.gone, node: node, proj: pn };
         rec.home = node; rec.status0 = rec.status; // what the hub's data says, before any edit made on this page
         node.pages.push(rec); PAGES.push(rec); if (!byId[rec.id]) byId[rec.id] = rec;
       });
@@ -856,7 +861,7 @@ button.lnk:hover { text-decoration: underline; }
   function setNote(pn, text) { // a project's working note, kept here until Claude writes it
     text = String(text || '').trim().slice(0, 200); pn.note = text;
     if (text === pn.note0) { delete edits[pn.key]; pn.unsaved = false; } else { edits[pn.key] = { note: text }; pn.unsaved = true; }
-    setJSON(K.edits, edits); render(); toast(text ? 'Note kept here. Save it with Claude when ready.' : 'Note cleared');
+    setJSON(K.edits, edits); render(); toast(text ? 'Note kept here. Save it from the bar above when ready.' : 'Note cleared');
   }
   function discardEdits() { edits = {}; setJSON(K.edits, edits); location.reload(); }
   function editsText() { // one message for Claude, naming each change
@@ -1009,7 +1014,8 @@ button.lnk:hover { text-decoration: underline; }
       ['Today', 'This week', 'This month', 'Earlier'].forEach(function (g) { if (groups[g]) secs.push({ key: 'd:' + g, label: g, items: groups[g], path: 'rel' }); });
     } else if (current === root) { // one group per project, in PROJECTS order
       root.kids.forEach(function (pn) { var it = under(pn).filter(visible).sort(cmp); if (!it.length) return;
-        var cap = it.length > CAP + 2 ? CAP : it.length; // a crowded project shows its first pages here; the rest are one step away
+        var filtered = sinceFilter || dupFilter || staleFilter || kindFilter || statusFilter;
+        var cap = !filtered && it.length > CAP + 2 ? CAP : it.length; // a crowded project shows its first pages here; the rest are one step away
         secs.push({ key: 'p:' + pn.key, label: pn.name, color: pn.color, items: it.slice(0, cap), total: it.length, more: cap < it.length ? pn : null, path: 'folder', about: pn.about }); });
     } else { // inside a folder: its own pages, then each folder below it under its path
       var base = trail(current).length;
@@ -1490,7 +1496,7 @@ button.lnk:hover { text-decoration: underline; }
       ['Open a new Claude Code session, in any folder.', 'Paste the line, then say what to change.', 'Claude reads this page and publishes to the same link, so the hub keeps one row.']);
   });
   // the whole list as Markdown, made in the browser; nothing is sent anywhere
-  $('export').addEventListener('click', function () {
+  function mdText() {
     var lines = ['# ' + document.title, ''];
     root.kids.forEach(function (pn) {
       lines.push('## ' + pn.name + (pn.about ? ' — ' + pn.about : ''), '');
@@ -1501,9 +1507,10 @@ button.lnk:hover { text-decoration: underline; }
       })(pn, 0);
       lines.push('');
     });
-    // the viewer does not let a page save files, so the text goes to the clipboard (or a box to copy from)
-    copyText(lines.join('\n') + '\n', 'Copied ' + PAGES.length + ' links as Markdown');
-  });
+    return lines.join('\n') + '\n';
+  }
+  // the clipboard always works (or a box to copy from); a real file save needs the viewer's downloads capability, lit up below when present
+  $('export').addEventListener('click', function () { copyText(mdText(), 'Copied ' + PAGES.length + ' links as Markdown'); });
   // the same list as JSON: projects, pages, links, dates, folders, status; made here, sent nowhere
   function hubJSON() {
     return { hub: document.title, exported: new Date().toISOString(), projects: root.kids.map(function (pn) {
@@ -1611,6 +1618,84 @@ button.lnk:hover { text-decoration: underline; }
   $('save-copy').addEventListener('click', function () {
     showPaste(editsText(), ['Open Claude Code in any folder.', 'Paste the message and send it.', 'Claude reads this hub, writes the changes and republishes. Reload this page afterwards: the Unsaved marks go away.']);
   });
+
+  // ---- The page can write itself. Inside claude.ai's viewer the runtime offers `claude.use("artifact")`:
+  // a writer's view publishes a new version of this page, with the data block rewritten from what the
+  // page holds now (every move, status and note). Claude reads the same block, so nothing diverges.
+  // A local copy, an old viewer or a read-only view has none of this and keeps the paste message.
+  var MK = 'HUB-DATA-', DATA_RE = new RegExp('(\\/\\/ ' + MK + 'START[^\\n]*\\n)([\\s\\S]*?)(\\n[ \\t]*\\/\\/ ' + MK + 'END)');
+  function claudeUse(name) { try { if (typeof claude !== 'undefined' && claude && typeof claude.use === 'function') return Promise.resolve(claude.use(name)).catch(function () { return null; }); } catch (e) { /* no runtime here */ } return Promise.resolve(null); }
+  function q1(v) { return "'" + String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n') + "'"; }
+  function rowText(p) { // one row as the hub skill writes it: [title, id, description, date] and the fifth item only when it says something
+    var o = {}; if (p.status) o.status = p.status; if (p.known) o.kind = p.known; if (p.by) o.by = p.by; if (p.gone) o.gone = true;
+    var keys = Object.keys(o), extra = '';
+    if (keys.length === 1 && o.status) extra = q1(o.status);
+    else if (keys.length) extra = '{ ' + keys.map(function (k) { return k + ': ' + (k === 'gone' ? 'true' : q1(o[k])); }).join(', ') + ' }';
+    return '[' + [q1(p.title), q1(p.id), q1(p.desc), q1(p.date)].join(', ') + (extra ? ', ' + extra : '') + ']';
+  }
+  function dataText() { // the PROJECTS block from what this page holds now, in the shape Claude writes
+    var out = ['  var PROJECTS = ['];
+    root.kids.forEach(function (pn, i) {
+      var head = '    { id: ' + q1(pn.id0 || pn.key) + ', name: ' + q1(pn.name) + ', about: ' + q1(pn.about);
+      if (pn.note) head += ', note: ' + q1(pn.note);
+      if (pn.color0) head += ', color: ' + q1(pn.color0); // a swatch picked on the page stays in the browser; only the data's colour is written
+      var shelves = []; (function walk(x) { if (x.pages.length) shelves.push(x); x.kids.forEach(walk); })(pn);
+      if (!shelves.length) { out.push(head + ', shelves: [] }' + (i < root.kids.length - 1 ? ',' : '')); return; }
+      out.push(head + ', shelves: [');
+      shelves.forEach(function (x, j) {
+        out.push('      [' + q1(x === pn ? 'All pages' : trail(x).slice(2).map(function (y) { return y.name; }).join(' / ')) + ', [');
+        x.pages.forEach(function (pg, k) { out.push('        ' + rowText(pg) + (k < x.pages.length - 1 ? ',' : '')); });
+        out.push('      ]]' + (j < shelves.length - 1 ? ',' : ''));
+      });
+      out.push('    ]}' + (i < root.kids.length - 1 ? ',' : ''));
+    });
+    out.push('  ];');
+    return out.join('\n');
+  }
+  window.hubData = dataText; // the data block as text, for anyone who wants to read or copy it from the console
+  var hubWrite = null, hubWriteDenied = false, hubSaving = false, downloader = null;
+  function renderSaveBar() {
+    var can = !!hubWrite && !hubWriteDenied, hb = $('save-hub'), cb = $('save-copy');
+    hb.hidden = !can; cb.className = can ? 'btn' : 'btn primary'; cb.textContent = can ? 'or copy for Claude' : 'Save changes with Claude';
+    cb.title = can ? 'The message for Claude Code instead, if you would rather Claude write the changes' : 'Copies a message for Claude Code that writes these changes into the hub';
+  }
+  function saveToHub() {
+    if (!hubWrite || hubWriteDenied || hubSaving) { $('save-copy').click(); return; }
+    var hb = $('save-hub'), label = hb.textContent; hubSaving = true; hb.disabled = true; hb.setAttribute('aria-busy', 'true'); hb.textContent = 'Saving…';
+    function done() { hubSaving = false; hb.disabled = false; hb.removeAttribute('aria-busy'); hb.textContent = label; }
+    function fallback(msg) { done(); toast(msg); $('save-copy').click(); }
+    fetch(location.href, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }).then(function (src) {
+      if (src.split(MK + 'START').length !== 2 || !DATA_RE.test(src) || !new RegExp('^\\s*<!' + 'doctype html>', 'i').test(src)) { fallback("Could not read this page's own source here; copy the message for Claude instead."); return; }
+      var html = src.replace(DATA_RE, function (m, a, b, c) { return a + dataText() + c; });
+      try { sessionStorage.setItem('project-hub.saving.v1', JSON.stringify(edits)); } catch (e) { /* not kept */ }
+      return hubWrite.publish(html).then(function () {
+        try { sessionStorage.removeItem('project-hub.saving.v1'); } catch (e) { /* none */ }
+        toast('Saved to the hub'); // the viewer reloads every open view to the new version; at load the saved edits match the data and are forgotten
+      }, function (err) {
+        var code = err && err.code ? String(err.code) : 'upstream_error';
+        if (code === 'conflict') { done(); toast('Someone saved the hub first. Reloading…'); return; } // the edits stay in this browser and are kept on reload
+        if (code === 'not_writer' || code === 'not_granted' || code === 'not_declared' || code === 'capability_disabled' || code === 'capability_removed' || code === 'consent_required') {
+          hubWriteDenied = true; done(); renderSaveBar(); toast('This view cannot write the hub; copy the message for Claude instead.'); return;
+        }
+        if (code === 'rate_limited') { done(); toast('Saving too often, try again in a moment'); return; }
+        fallback('Could not save (' + code + '); copy the message for Claude instead.');
+      });
+    }).catch(function () { fallback("Could not read this page's own source here; copy the message for Claude instead."); });
+  }
+  $('save-hub').addEventListener('click', saveToHub);
+  claudeUse('artifact').then(function (a) { if (a && typeof a.publish === 'function') { hubWrite = a; renderSaveBar(); } });
+  // a real file save, after the viewer confirms; the copy buttons stay for everyone
+  function download(name, text) {
+    if (!downloader) return;
+    downloader.save({ filename: name, data: text }).then(function () { toast('Saved ' + name); }, function (err) {
+      var code = err && err.code ? String(err.code) : 'unavailable';
+      if (code === 'declined') return;
+      toast('Could not save the file (' + code + '); the copy button still works');
+    });
+  }
+  $('dl-md').addEventListener('click', function () { download('project-hub.md', mdText()); });
+  $('dl-json').addEventListener('click', function () { download('project-hub.json', JSON.stringify(hubJSON(), null, 2) + '\n'); });
+  claudeUse('downloads').then(function (d) { if (d && typeof d.save === 'function') { downloader = d; $('dl-wrap').hidden = false; } });
   $('save-drop').addEventListener('click', function () { var n = Object.keys(edits).length; if (!n) return; this.textContent = 'Discard ' + n + ' change' + (n > 1 ? 's' : '') + '? Click again'; var self = this; if (self._armed) discardEdits(); else { self._armed = true; setTimeout(function () { self._armed = false; self.textContent = 'Discard'; }, 4000); } });
 
   [[MOD + 'K', 'Command palette: pages, folders and actions'], ['/', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
@@ -1752,21 +1837,25 @@ button.lnk:hover { text-decoration: underline; }
     { id: 'folder.hide', label: 'Hide this folder on this page', kw: 'eye', when: function () { return current !== root && !isHidden(current); }, run: function () { toggleHidden(current); } },
     { id: 'folder.show', label: 'Show this folder again', kw: 'eye unhide', when: function () { return current !== root && isHidden(current); }, run: function () { toggleHidden(current); } },
     { id: 'folder.copy', label: 'Copy this project for Claude Code', kw: 'session continue paste links folder', when: function () { return current !== root; }, run: function () { copyProject(current); } },
+    { id: 'folder.unhide', label: 'Show hidden folders in the sidebar', kw: 'eye unhide hidden', when: function () { return hidden.length > 0 && !showHidden; }, run: function () { showHidden = true; renderSide(); render(); } },
     { id: 'folder.all', label: 'Show all projects', kw: 'home root back', when: function () { return current !== root; }, run: function () { go(root); } },
     { id: 'side.fold', label: 'Hide the sidebar', kw: 'fold collapse rail', key: '[', when: function () { return wide.matches && !folded; }, run: function () { setFolded(true, true); } },
     { id: 'side.unfold', label: 'Show the sidebar', kw: 'unfold expand', key: '[', when: function () { return wide.matches && folded; }, run: function () { setFolded(false, true); } },
     { id: 'since.show', label: 'Show what changed since your last visit', kw: 'new updated recent', when: function () { return sinceN > 0 && !sinceGone && !sinceFilter; }, run: function () { sinceFilter = true; if (current !== root) go(root); else render(); } },
     { id: 'care.dups', label: 'Show pages with the same title', kw: 'duplicates republish lost', when: function () { return !dupFilter && PAGES.some(function (p) { return p.dup; }); }, run: function () { dupFilter = true; render(); } },
     { id: 'care.stale', label: 'Show pages untouched for ' + STALE + ' days', kw: 'old stale forgotten', when: function () { return !staleFilter && PAGES.some(isStale); }, run: function () { staleFilter = true; render(); } },
-    { id: 'edits.save', label: 'Save changes with Claude', kw: 'unsaved write hub paste', when: function () { return Object.keys(edits).length > 0; }, run: function () { $('save-copy').click(); } },
+    { id: 'edits.save', label: 'Save the changes made here', kw: 'unsaved write hub save', when: function () { return Object.keys(edits).length > 0; }, run: function () { saveToHub(); } },
+    { id: 'edits.copy', label: 'Copy the changes as a message for Claude', kw: 'unsaved paste claude code', when: function () { return Object.keys(edits).length > 0; }, run: function () { $('save-copy').click(); } },
     { id: 'edits.discard', label: 'Discard the changes made here', kw: 'unsaved reset', when: function () { return Object.keys(edits).length > 0; }, run: function () { discardEdits(); } },
     { id: 'export.md', label: 'Copy this list as Markdown', kw: 'export links', when: function () { return PAGES.length > 0; }, run: function () { $('export').click(); } },
     { id: 'export.json', label: 'Copy this list as JSON', kw: 'export data backup', when: function () { return PAGES.length > 0; }, run: function () { $('export-json').click(); } },
+    { id: 'export.md.download', label: 'Download this list as Markdown', kw: 'export file save', when: function () { return PAGES.length > 0 && !!downloader; }, run: function () { $('dl-md').click(); } },
+    { id: 'export.json.download', label: 'Download this list as JSON', kw: 'export file save backup', when: function () { return PAGES.length > 0 && !!downloader; }, run: function () { $('dl-json').click(); } },
     { id: 'help', label: 'Keyboard shortcuts and look', kw: 'help keys appearance', key: '?', when: function () { return true; }, run: function () { showDialog(keys); } }
   ];
   var ACTION_BY_ID = {}; ACTIONS.forEach(function (a) { ACTION_BY_ID[a.id] = a; });
   function palRecentActions() { var ids = getJSON(K.palette, []); return (Array.isArray(ids) ? ids : []).map(function (id) { return ACTION_BY_ID[id]; }).filter(function (a) { return a && a.when(); }); }
-  function palRemember(id) { var ids = getJSON(K.palette, []); ids = (Array.isArray(ids) ? ids : []).filter(function (x) { return x !== id; }); ids.unshift(id); setJSON(K.palette, ids.slice(0, 8)); }
+  function palRemember(id) { if (/^(view|sort|density|theme|look|side)\./.test(id)) return; var ids = getJSON(K.palette, []); ids = (Array.isArray(ids) ? ids : []).filter(function (x) { return x !== id; }); ids.unshift(id); setJSON(K.palette, ids.slice(0, 8)); }
   function palItem(parts, onRun) { // one result row: an icon or dot, a label, an optional sub text and key
     var b = el('button', 'pal-it'); b.type = 'button'; b.setAttribute('role', 'option'); b.setAttribute('aria-selected', 'false'); b.tabIndex = -1;
     if (parts.icon) b.appendChild(parts.icon);
@@ -1796,7 +1885,7 @@ button.lnk:hover { text-decoration: underline; }
       else { palGroup('Actions'); ACTIONS.filter(function (a) { return a.when(); }).slice(0, 8).forEach(function (a) { add(actRow(a)); }); }
     } else {
       if (mode !== 'act' && mode !== 'dir' && words.length) { // pages, ranked like the main search, across the whole hub
-        var res = []; PAGES.forEach(function (p) { p.hit = match(p, words, whole); if (p.hit) res.push(p); });
+        var res = []; PAGES.forEach(function (p) { p.hit = match(p, words, whole); if (p.hit && whole.length < 4 && (p.ft + ' ' + p.fd + ' ' + p.fw).indexOf(whole) < 0) p.hit = null; if (p.hit) res.push(p); });
         res.sort(function (a, b) { return b.hit.score - a.hit.score || lastOpen(b) - lastOpen(a) || b.t - a.t; });
         if (res.length) { palGroup('Pages'); res.slice(0, 8).forEach(function (p) { add(pageRow(p)); }); }
       }
@@ -1814,14 +1903,16 @@ button.lnk:hover { text-decoration: underline; }
     palMark(false);
   }
   function palRun(b, shift) { if (b && b._run) b._run(shift); }
+  $('pal-btn').addEventListener('click', function () { palOpen(this); });
   function palOpen(from) { palFrom = from || document.activeElement; palQ.value = ''; showDialog(pal); palDraw(); palQ.focus(); }
   function palClose() { hideDialog(pal); }
-  pal.addEventListener('close', function () { var f = palFrom; palFrom = null; if (keys.open || insp.open || paste.open) return; if (f && f.focus && document.contains(f)) f.focus(); else list.focus({ preventScroll: true }); });
+  pal.addEventListener('close', function () { var f = palFrom; palFrom = null; if (keys.open || insp.open || paste.open) return; if (f && f.focus && document.contains(f) && f !== document.body) f.focus(); else q.focus({ preventScroll: true }); });
   pal.addEventListener('click', function (e) { if (e.target === pal) palClose(); });
   palQ.addEventListener('input', palDraw);
   palQ.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (palItems.length) { palHi = (palHi + (e.key === 'ArrowDown' ? 1 : -1) + palItems.length) % palItems.length; palMark(true); } }
     else if (e.key === 'Home' || e.key === 'End') { if (palQ.value) return; e.preventDefault(); palHi = e.key === 'Home' ? 0 : palItems.length - 1; palMark(true); }
+    else if (e.key === 'PageDown' || e.key === 'PageUp') { e.preventDefault(); palHi = Math.max(0, Math.min(palItems.length - 1, palHi + (e.key === 'PageDown' ? 8 : -8))); palMark(true); }
     else if (e.key === 'Enter') { e.preventDefault(); palRun(palItems[palHi], e.shiftKey || e.metaKey || e.ctrlKey); }
     else if (e.key === 'Tab') { e.preventDefault(); if (palItems.length) { palHi = (palHi + (e.shiftKey ? -1 : 1) + palItems.length) % palItems.length; palMark(true); } }
   });

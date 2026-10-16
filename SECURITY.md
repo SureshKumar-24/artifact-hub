@@ -23,6 +23,13 @@ every change.
 It does not open a network connection, start another program, read environment
 variables or credentials, or change any Claude Code setting or permission.
 
+The hub page (the artifact) declares two claude.ai runtime capabilities: `artifact`, so
+that "Save to hub" can publish a new version of the page itself from inside the viewer,
+and `downloads`, so that the JSON and Markdown exports can be saved as files after you
+confirm. Both act as you, inside claude.ai; the page makes no request to any other host
+(the viewer's content-security policy would block one), and a read-only viewer cannot
+save.
+
 ## Check it yourself
 
 The scripts are 163, 36 and 56 lines: [on-artifact.js](hooks/on-artifact.js), [on-stop.js](hooks/on-stop.js), [on-session.js](hooks/on-session.js). These should
@@ -40,7 +47,7 @@ its own Artifact tool and to read and write the files above, nothing else.
 To avoid picking up future changes without reviewing them, install a tagged release:
 
 ```
-/plugin marketplace add SureshKumar-24/artifact-hub@v1.6.0
+/plugin marketplace add SureshKumar-24/artifact-hub@v1.7.0
 ```
 
 ## Report a problem

@@ -124,8 +124,11 @@ the hub correct on its own, without relying on any earlier step having happened.
    older pages that still exist, so an absent row is old, not deleted. Remove a row only
    when the user says that page is gone or `pages.json` marks it `deleted`.
 6. Never add the hub itself as a row.
-7. Republish with `url` set to `hubUrl`. Never publish the hub without `url`: that
-   creates a second hub.
+7. Republish with `url` set to `hubUrl`, and pass
+   `capabilities: {"artifact": {}, "downloads": true}` (the page saves its own changes
+   and offers file downloads with them; a redeploy that omits `capabilities` keeps the
+   declaration, so pass it on the first publish of a template and whenever unsure).
+   Never publish the hub without `url`: that creates a second hub.
 8. Report in two or three lines: how many added, how many updated, how many kept from
    before, and any page placed under "Other" so the user can correct it.
 
@@ -186,7 +189,7 @@ design (`data-hub-template="2"` is the 1.4 list page; a hub with no `id="tree"` 
 does not have folders yet either). Take `${CLAUDE_PLUGIN_ROOT}/skills/hub/template.html`
 (or `skills/hub/template.html` next to this skill when that variable is not set),
 put the hub's existing `PROJECTS` array into it unchanged, keep the hub's `<title>` and
-`<h1>`, and republish to the same URL. Tell the user in one line what changed: folders,
+`<h1>`, and republish to the same URL with `capabilities: {"artifact": {}, "downloads": true}`. Tell the user in one line what changed: folders,
 if it had none; otherwise the new page (a gallery of cards or a list, a details panel for
 each page, search, pins, "Continue working", keyboard shortcuts, dark mode). Folder links
 (`#folder`), pins, recently opened pages and the folder the viewer last opened carry over,
@@ -231,11 +234,16 @@ page) when `pages.json` confirms it, and otherwise leave both.
 
 ## Changes the user made on the page
 
-The hub page lets the user move a page to another folder or set its status right there.
-The message may name the hub by a frame address (`…claudeusercontent.com/…`) or not at
-all: always use `hubUrl` from `hub.json`, never that address.
-Those changes live in their browser until you write them: the page gives them a message
-to paste that starts "Update my Project Hub at … with these changes I made on the page"
+The hub page lets the user move a page to another folder, set its status or edit a
+project note right there. Inside claude.ai the page saves those itself: "Save to hub"
+rewrites the `PROJECTS` block in a new version of the same artifact (the hub must have
+been published with `capabilities: {"artifact": {}, "downloads": true}`, step 7). So the
+hub's data can change without you: every rebuild or edit starts by reading the hub
+(step 1) and never republishes an older copy over it.
+A viewer that cannot write (an old viewer, a read-only share) still gets the message to
+paste. It may name the hub by a frame address (`…claudeusercontent.com/…`) or not at
+all: always use `hubUrl` from `hub.json`, never that address. The message starts
+"Update my Project Hub at … with these changes I made on the page"
 and lists each move, status and project note. When you get it: read the hub, apply
 every line (move the row to the named folder path, creating the path if needed; set or
 clear the fifth item; set the project's `note`), republish to the same URL, and tell the

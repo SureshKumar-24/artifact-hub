@@ -37,7 +37,9 @@ Do this once per user.
    id: a page listed twice (gallery and `pages.json`) is one row.
    Leave out the optional project `color` unless the user asks for one; each project then
    gets a fixed colour by its place in the list (see the `hub` skill).
-5. Publish it with `Artifact` (no `url`, icon `folder`). The page's `<title>` is
+5. Publish it with `Artifact` (no `url`, icon `folder`,
+   `capabilities: {"artifact": {}, "downloads": true}` so the page can save its own
+   folder, status and note changes and offer file downloads). The page's `<title>` is
    "Project Hub" unless the user wants another name.
 6. Write `~/.claude/artifact-hub/hub.json` (create the folder if needed) with the
    published link as `hubUrl`, the title
