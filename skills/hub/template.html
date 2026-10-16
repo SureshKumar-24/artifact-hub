@@ -406,6 +406,15 @@ dialog::backdrop { background: var(--scrim); }
 .sheet h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
 .sheet dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0 0 16px; font-size: 14px; }
 .sheet dt { white-space: nowrap; } .sheet dd { margin: 0; color: var(--muted); }
+/* the paste sheet: the message in a box you can select, a status line that says whether it was copied */
+#paste { width: min(560px, calc(100vw - 32px)); }
+.pstat { margin: 0 0 10px; font-size: 14px; color: var(--accent); font-weight: 500; }
+.pstat.warn { color: var(--c-amber); }
+#paste-text { display: block; width: 100%; margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font: 13px/1.5 var(--mono); color: var(--ink); background: var(--bg); resize: vertical; }
+#paste-text:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.steps { margin: 0 0 16px; padding-left: 20px; font-size: 14px; color: var(--muted); }
+.steps li { margin: 4px 0; }
+.btns.left { justify-content: flex-start; }
 .looks { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 .looks-l { font: 500 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 /* Details: a side panel from 640px, a bottom sheet on phones */
@@ -513,6 +522,22 @@ button.lnk:hover { text-decoration: underline; }
     </div>
     <dl id="keys-list"></dl>
     <button class="btn" type="button" id="keys-close">Close</button>
+  </div>
+</dialog>
+<dialog id="paste" aria-labelledby="paste-h">
+  <div class="sheet">
+    <h2 id="paste-h">Paste this into Claude Code</h2>
+    <p class="pstat" id="paste-stat" role="status"></p>
+    <textarea id="paste-text" readonly rows="6" aria-label="Message for Claude Code" spellcheck="false"></textarea>
+    <ol class="steps" id="paste-steps">
+      <li>Open Claude Code in any folder.</li>
+      <li>Paste the message and send it.</li>
+      <li>Claude reads this hub, writes the changes, republishes. Reload this page: the Unsaved marks go away.</li>
+    </ol>
+    <div class="btns left">
+      <button class="btn primary" type="button" id="paste-copy"><span data-icon="copy"></span>Copy again</button>
+      <button class="btn" type="button" id="paste-close">Close</button>
+    </div>
   </div>
 </dialog>
 <dialog id="inspector" aria-labelledby="insp-title">
@@ -1326,7 +1351,30 @@ button.lnk:hover { text-decoration: underline; }
   $('insp-pin').addEventListener('click', function () { if (inspected) togglePin(inspected); });
   $('insp-go').addEventListener('click', function () { if (inspected) { var n = inspected.node; hideDialog(insp); go(n); } });
   // one line to paste into a new Claude Code session: with the link, Claude updates this page instead of making another
-  $('insp-prompt').addEventListener('click', function () { if (inspected) copyText('Update my artifact "' + inspected.title + '" at ' + A + inspected.id + ' (read it first with the Artifact tool, then publish to the same URL).', 'Copied: paste it into Claude Code'); });
+  // ---- The paste sheet: shows the message, copies it, and says so on the sheet itself (a toast is
+  // easy to miss, and the viewer may refuse the clipboard; the text is always there to select)
+  var paste = $('paste'), pasteText = $('paste-text'), pasteStat = $('paste-stat');
+  function showPaste(text, steps) {
+    pasteText.value = text;
+    var ol = $('paste-steps'); ol.textContent = ''; steps.forEach(function (s) { ol.appendChild(el('li', '', s)); });
+    showDialog(paste); tryCopy(text);
+  }
+  function tryCopy(text) {
+    function fail() { pasteStat.textContent = 'Could not reach the clipboard here. The text is selected: press ' + MOD + 'C.'; pasteStat.className = 'pstat warn'; pasteText.focus(); pasteText.select(); }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { pasteStat.textContent = 'Copied to your clipboard.'; pasteStat.className = 'pstat'; pasteText.focus(); pasteText.select(); }, fail);
+      else fail();
+    } catch (e) { fail(); }
+  }
+  $('paste-copy').addEventListener('click', function () { tryCopy(pasteText.value); });
+  $('paste-close').addEventListener('click', function () { hideDialog(paste); });
+  paste.addEventListener('click', function (e) { if (e.target === paste) hideDialog(paste); });
+  pasteText.addEventListener('focus', function () { this.select(); });
+  $('insp-prompt').addEventListener('click', function () {
+    if (!inspected) return;
+    showPaste('Update my artifact "' + inspected.title + '" at ' + A + inspected.id + ' (read it first with the Artifact tool, then publish to the same URL).',
+      ['Open a new Claude Code session, in any folder.', 'Paste the line, then say what to change.', 'Claude reads this page and publishes to the same link, so the hub keeps one row.']);
+  });
   // the whole list as Markdown, made in the browser; nothing is sent anywhere
   $('export').addEventListener('click', function () {
     var lines = ['# ' + document.title, ''];
@@ -1423,7 +1471,9 @@ button.lnk:hover { text-decoration: underline; }
   $('sel-status').addEventListener('click', function () { menu(this, statusOptions(true, 'No status'), null, function (v) { var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (setStatus(p, v, true)) n++; }); redraw(); toast(v ? 'Marked ' + n + ' as ' + v : 'Status removed from ' + n); }); });
   $('sel-copy').addEventListener('click', function () { var ps = selPages(); copyText(ps.map(function (p) { return A + p.id; }).join('\n'), 'Copied ' + ps.length + (ps.length === 1 ? ' link' : ' links')); });
   $('sel-clear').addEventListener('click', clearSel);
-  $('save-copy').addEventListener('click', function () { copyText(editsText(), 'Copied: paste it into Claude Code'); });
+  $('save-copy').addEventListener('click', function () {
+    showPaste(editsText(), ['Open Claude Code in any folder.', 'Paste the message and send it.', 'Claude reads this hub, writes the changes and republishes. Reload this page afterwards: the Unsaved marks go away.']);
+  });
   $('save-drop').addEventListener('click', function () { var n = Object.keys(edits).length; if (!n) return; this.textContent = 'Discard ' + n + ' change' + (n > 1 ? 's' : '') + '? Click again'; var self = this; if (self._armed) discardEdits(); else { self._armed = true; setTimeout(function () { self._armed = false; self.textContent = 'Discard'; }, 4000); } });
 
   [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
@@ -1474,7 +1524,7 @@ button.lnk:hover { text-decoration: underline; }
 
   var quick = 0; // when "o" was pressed, waiting for a digit
   document.addEventListener('keydown', function (e) {
-    if (keys.open || insp.open || e.isComposing) return; // an open dialog handles its own Esc
+    if (keys.open || insp.open || paste.open || e.isComposing) return; // an open dialog handles its own Esc
     var t = e.target, inSearch = t === q, inList = t === list, mod = e.metaKey || e.ctrlKey;
     var typing = !inSearch && t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
     if (mod && !e.altKey && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); q.focus(); q.select(); return; }
