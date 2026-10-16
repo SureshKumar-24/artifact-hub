@@ -31,7 +31,7 @@ test('follows the artifact page contract', () => {
   assert.match(TEMPLATE, /data-hub-template="3"/, 'the hub skill detects this page design by this attribute');
   const hosts = [...TEMPLATE.matchAll(/(?:src|href)="(https?:\/\/[^/"]+)/g)].map((m) => m[1]);
   assert.deepStrictEqual([...new Set(hosts)].sort(), ['https://fonts.googleapis.com', 'https://fonts.gstatic.com']);
-  assert.doesNotMatch(TEMPLATE, /<iframe|<img\s|fetch\(|XMLHttpRequest/, 'the page embeds and fetches nothing');
+  assert.doesNotMatch(TEMPLATE, /<iframe|<img\s|fetch\((?!location\.href)|XMLHttpRequest/, 'the page embeds nothing and fetches only its own source');
 });
 
 test('the selection bar sits above the save bar, and small controls grow for touch', () => {
@@ -114,7 +114,7 @@ test('the command palette: a dialog, stable action ids, a guarded recents key, a
   assert.match(TEMPLATE, /<dialog id="palette" aria-labelledby="pal-label">/, 'the palette is a dialog like the others');
   assert.match(TEMPLATE, /<input id="pal-q"[^>]*role="combobox"/, 'one input, a combobox');
   assert.match(js, /palette: 'project-hub\.palette\.v1'/, 'recent actions have their own key in K');
-  assert.match(js, /function palRemember\(id\) \{ var ids = getJSON\(K\.palette/, 'recents go through the guarded helpers');
+  assert.match(js, /function palRemember\(id\) \{[^\n]*var ids = getJSON\(K\.palette/, 'recents go through the guarded helpers');
   const ids = [...js.matchAll(/\{ id: '([a-z.]+)', label:/g)].map((m) => m[1]);
   assert.ok(ids.length >= 30, 'at least thirty actions');
   assert.strictEqual(new Set(ids).size, ids.length, 'action ids are unique');
@@ -145,6 +145,26 @@ test('exports and the project message: JSON built from data, the project text ca
   assert.match(js, /read it with the Artifact tool and publish to the same URL instead of making a new page:/);
   assert.strictEqual((js.match(/\bA \+ /g) || []).length, 0, 'every link goes through urlOf');
   assert.match(js, /function hint\(label, key\) \{ return POINTER && key \? label \+ ' · ' \+ key : label; \}/, 'key hints only on pointer devices');
+});
+
+test('the page can save itself: a serializer, a guarded runtime, one marker pair, and every error code handled', () => {
+  const js = script(TEMPLATE);
+  assert.match(js, /function dataText\(\)/, 'the data block is rebuilt from what the page holds');
+  assert.match(js, /function rowText\(p\)/);
+  assert.match(js, /window\.hubData = dataText/, 'readable from the console');
+  assert.match(js, /function saveToHub\(\)/);
+  assert.match(js, /fetch\(location\.href, \{ cache: 'no-store' \}\)/, 'reads its own served source, nothing else');
+  assert.match(js, /src\.split\(MK \+ 'START'\)\.length !== 2/, 'exactly one marker pair or no save');
+  for (const code of ['conflict', 'not_writer', 'not_granted', 'not_declared', 'capability_disabled', 'rate_limited']) assert.match(js, new RegExp(`code === '${code}'`), code);
+  assert.match(js, /hubWriteDenied = true; done\(\); renderSaveBar\(\)/, 'a read-only view hides the button for good');
+  assert.match(js, /function claudeUse\(name\) \{ try \{ if \(typeof claude !== 'undefined'/, 'the runtime is never assumed');
+  assert.strictEqual((js.replace(/\/\/[^\n]*/g, '').match(/\bclaude\.use\(/g) || []).length, 1, 'claude.use is called in one guarded place only');
+  assert.match(js, /pn\.color0 = COLORS\.indexOf\(p\.color\) >= 0 \? p\.color : ''/, 'only the data\'s colour is written back, never a swatch picked in the browser');
+  assert.match(js, /if \(pn\.color0\) head \+= ', color: '/);
+  assert.match(TEMPLATE, /id="save-hub" hidden/, 'Save to hub starts hidden and lights up with the runtime');
+  assert.match(TEMPLATE, /id="dl-wrap" hidden/, 'downloads start hidden too');
+  assert.match(js, /downloader\.save\(\{ filename: name, data: text \}\)/);
+  for (const id of ['edits.save', 'edits.copy', 'export.md.download', 'export.json.download']) assert.match(js, new RegExp(`id: '${id}'`), id);
 });
 
 test('the empty template script parses', () => {

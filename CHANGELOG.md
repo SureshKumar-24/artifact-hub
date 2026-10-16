@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.7.0
+
+- The hub saves its own changes. Inside claude.ai the save bar's first button is "Save to
+  hub": the page reads its own source, rewrites the data block from what it holds (every
+  move, status and project note) and publishes a new version of itself, so the Unsaved
+  marks clear on the reload that follows and Claude reads the same data next time. The
+  message for Claude stays one click away ("or copy for Claude"), and is the only path
+  for a view that cannot write (an old viewer, a read-only share) or a local copy.
+  Needs the hub published with `capabilities: {"artifact": {}, "downloads": true}`; the
+  skills now pass it.
+- "Download Markdown" and "Download JSON" beside the copy buttons, when the viewer offers
+  file saves (a confirmation is shown each time). The copy buttons stay for everyone.
+- Pages marked `gone` keep the mark when the page writes its data back.
+- From the third audit: a palette button on touch screens; "Show what changed" and the
+  chips show every page, never the eight-per-project cut; chips and header buttons are
+  40px on phones; palette headers read darker in the light looks; "Show hidden folders"
+  in the palette; short queries no longer match letters spread across a title; PageUp and
+  PageDown move the palette by eight; Esc with nothing to return to lands in the search box.
+
 ## 1.6.0
 
 - A command palette on ⌘K (Ctrl K): one box that finds pages, folders and actions. Nothing
