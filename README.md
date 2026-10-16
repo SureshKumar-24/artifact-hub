@@ -30,6 +30,8 @@ A Claude Code plugin. Three small hooks save every published link on your machin
 
 Setup reads your gallery, proposes projects and folders, and publishes your hub when you agree. From then on, publish as usual: every link is saved and every page is filed.
 
+Optional, on Claude Code 2.1.287 or later: `/plugin install artifact-hub-guard@artifact-hub` adds the [duplicate guard](#optional-the-duplicate-guard-mod), which asks before Claude publishes a page whose title you already have.
+
 ## Contents
 
 - [Why](#why)
@@ -88,6 +90,7 @@ Artifact Hub answers each one. The link is saved on your machine at publish time
 | **Filed where you work** | A page published from a repository you linked to a project lands in that project; otherwise words in the title decide; otherwise "Other", and Claude tells you so you can correct it once. |
 | **Keep working on a page** | "Copy for Claude Code" (one page) and "Copy this project for Claude Code" (every page of a project, newest first) give a new session the links, so it updates pages instead of publishing duplicates. At session start, Claude is also told the last two pages published from the repository you are in. |
 | **Replaced pages** | Publish a page again from a session that lost the link and the hub keeps one row, pointing at the new page. The old link still opens. |
+| **Duplicate guard** (optional mod) | Before Claude publishes a new page whose title your saved list already has, one question: update the existing page, or publish a new one. "Update" republishes at the same link, so nothing breaks for anyone who has it. |
 | **Find by asking** | "Where is my pricing page?" or `/artifact-hub:find pricing` answers with the folder and link, and offers to open the page so your next publish updates it. |
 | **Weekly digest** | `/artifact-hub:week`: what you published this week by project, what has sat untouched for 60 days, likely duplicates, pages shared with you. From the files on your machine. |
 | **Link check** | Ask "check my links": each page is read once; a page that no longer opens is marked gone, never removed. |
@@ -177,6 +180,10 @@ sequenceDiagram
   participant Hub as Project Hub artifact
 
   You->>Claude: "publish the pricing page"
+  opt with artifact-hub-guard, when the title is already saved
+    Claude->>You: Update the existing page, or publish a new one?
+    You-->>Claude: Update
+  end
   Claude->>Hub: Artifact publish
   Claude-->>Hook: PostToolUse event
   Hook->>Disk: pages.json, activity.log, .pending
@@ -367,7 +374,15 @@ Anything else: [open an issue](https://github.com/SureshKumar-24/artifact-hub/is
 
 ## Optional: the duplicate guard mod
 
-Claude Code 2.1.287 added mods: plugins whose hooks are TypeScript functions that run inside the engine and can rewrite a tool call before it happens. `artifact-hub-guard` uses that for the one thing the main plugin cannot do after the fact: when Claude is about to publish a **new** page whose title is already in your saved list, it asks whether to update the existing page instead, and on "Update" rewrites the call with the saved link. It never blocks, asks at most once per publish, reads only `pages.json`, and passes everything else through.
+**The problem it removes.** A session without a page's link publishes a new page. Before the guard, the plugin could only react: mark the old entry as replaced and point the hub row at the new page. You still ended with two live pages, and the link you had sent people went stale.
+
+**What it does instead.** Claude Code 2.1.287 added mods: plugins whose hooks are TypeScript functions that run inside the engine and can rewrite a tool call before it happens. `artifact-hub-guard` uses that for the one thing a classic hook cannot do: when Claude is about to publish a **new** page (an `Artifact` call with no `url`) whose title is already in your saved list, you get one question, right in Claude Code:
+
+> A page titled "Pricing Page" already exists in shop, last published 2026-10-10. Update it instead of publishing a new one?
+>
+> Update the existing page · Publish a new page anyway
+
+"Update" rewrites the call with the saved link, so the page gets a new version at the same address and everyone who has the link sees the update. "Publish anyway" lets the call through. The guard never blocks: a failure, a non-interactive run or a dismissed prompt all let Claude's call through as it was. It reads `pages.json` only, writes nothing, sends nothing, and ignores republishes that already carry a link, reads, lists, deletes and uploads.
 
 ```
 /plugin install artifact-hub-guard@artifact-hub
@@ -377,7 +392,7 @@ It is a separate plugin on purpose. Anthropic's mods README says hooks modules l
 
 ## Uninstall
 
-`/plugin uninstall artifact-hub`, then delete `~/.claude/artifact-hub/` if you no longer want the saved list. Your hub artifact stays until you delete it yourself.
+`/plugin uninstall artifact-hub` (and `/plugin uninstall artifact-hub-guard` if you installed the guard), then delete `~/.claude/artifact-hub/` if you no longer want the saved list. Your hub artifact stays until you delete it yourself.
 
 ## Contributing
 
