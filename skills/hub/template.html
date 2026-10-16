@@ -222,7 +222,8 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 .pnote .addnote { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; font-size: 13px; color: var(--muted); }
 .pnote .addnote:hover { color: var(--accent); text-decoration: none; }
 .pnote .addnote svg { width: 14px; height: 14px; }
-#sel select { flex: 0 1 260px; min-width: 0; }
+#sel .field { flex: 0 1 240px; min-width: 0; width: auto; }
+@media (max-width: 639px) { #sel .field { flex: 1 1 100%; } }
 .pnote .ib.small { width: 28px; height: 28px; }
 .pnote textarea { flex: 1 1 100%; max-width: 68ch; min-height: 56px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: 14px/1.45 var(--sans); color: var(--ink); background: var(--surface); resize: vertical; }
 .pnote textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -236,7 +237,33 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 .empty code { font: 13px var(--mono); padding: 2px 6px; border-radius: 4px; background: var(--hover); color: var(--ink); }
 [hidden] { display: none !important; } /* the page's own display rules never override hidden */
 .side-h .lnk { font: 500 11px/1 var(--mono); letter-spacing: 0; text-transform: none; }
-.insp select { max-width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
+/* Menus: a field-shaped button that opens a popover list (a check on the current item, arrow keys,
+   a filter box when the list is long). Used for status and folder in the details panel and the
+   selection bar, instead of native selects, so they follow the theme and the look. */
+.field { display: inline-flex; align-items: center; gap: 8px; width: 100%; min-height: 34px; padding: 0 8px 0 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--ink); font: 13px/1.3 var(--sans); cursor: pointer; text-align: left; }
+.field:hover { border-color: var(--accent); }
+.field[aria-expanded="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field .fl { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field .chev { color: var(--muted); }
+.field.ph .fl { color: var(--muted); }
+.field .sd { margin-left: 0; }
+.insp .field { max-width: 100%; }
+.pop { position: fixed; z-index: 60; display: flex; flex-direction: column; max-height: min(320px, 60vh); padding: 6px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--raised); box-shadow: var(--lift); }
+.pop-q { flex: none; margin: 0 0 6px; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; font: 13px var(--sans); color: var(--ink); background: var(--bg); }
+.pop-q:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pop-list { overflow-y: auto; display: flex; flex-direction: column; gap: 1px; outline: none; }
+.opt { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); font-size: 13px; text-align: left; cursor: pointer; }
+.opt.hi, .opt:hover { background: var(--hover); }
+.opt[aria-selected="true"] { font-weight: 500; }
+.opt .opt-l { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opt .i.check { color: var(--accent); }
+.opt .i.folder { color: var(--muted); }
+.opt-none { padding: 8px 10px; color: var(--muted); font-size: 13px; }
+.sd { width: 8px; height: 8px; flex: none; border-radius: 50%; background: currentColor; }
+.sd.none { background: transparent; border: 1px dashed var(--muted); }
+@media (hover: none) { .opt { min-height: 40px; } .field { min-height: 38px; } }
 .card .tl { flex-wrap: wrap; align-items: flex-start; row-gap: 4px; } /* labels drop under the title instead of squeezing it */
 .card .tl .title { flex: 1 1 100%; }
 .card .st { margin-top: 0; }
@@ -456,8 +483,8 @@ button.lnk:hover { text-decoration: underline; }
 
     <div class="save selbar" id="sel" hidden role="region" aria-label="Selected pages">
       <span id="sel-n"></span>
-      <select id="sel-move" aria-label="Move the selected pages to a folder"></select>
-      <select id="sel-status" aria-label="Set the status of the selected pages"><option value="">Status…</option><option value="draft">Draft</option><option value="review">Review</option><option value="final">Final</option><option value="archived">Archived</option><option value="-">No status</option></select>
+      <button class="field ph" type="button" id="sel-move" aria-haspopup="listbox" aria-expanded="false" aria-label="Move the selected pages to a folder"><span data-icon="folder"></span><span class="fl">Move to…</span><span data-icon="chevd" class="chev"></span></button>
+      <button class="field ph" type="button" id="sel-status" aria-haspopup="listbox" aria-expanded="false" aria-label="Set the status of the selected pages"><span class="fl">Status…</span><span data-icon="chevd" class="chev"></span></button>
       <button class="btn" type="button" id="sel-copy"><span data-icon="copy"></span>Copy links</button>
       <button class="btn" type="button" id="sel-clear" title="Clear the selection (Esc)">Clear</button>
     </div>
@@ -500,8 +527,8 @@ button.lnk:hover { text-decoration: underline; }
       <dt>Folder</dt><dd id="insp-where"></dd>
       <dt>Updated</dt><dd id="insp-date"></dd>
       <dt>Kind</dt><dd id="insp-kind-text"></dd>
-      <dt>Status</dt><dd><select id="insp-status" aria-label="Status"><option value="">None</option><option value="draft">Draft</option><option value="review">Review</option><option value="final">Final</option><option value="archived">Archived</option></select></dd>
-      <dt>Move to</dt><dd><select id="insp-move" aria-label="Move to folder"></select></dd>
+      <dt>Status</dt><dd><button class="field" type="button" id="insp-status" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span class="fl">None</span><span data-icon="chevd" class="chev"></span></button></dd>
+      <dt>Move to</dt><dd><button class="field" type="button" id="insp-move" aria-haspopup="listbox" aria-expanded="false" aria-label="Move to another folder"><span data-icon="folder"></span><span class="fl"></span><span data-icon="chevd" class="chev"></span></button></dd>
       <dt>Link</dt><dd class="url"><input readonly id="insp-url" aria-label="Page link"><button class="ib" type="button" id="insp-copy" aria-label="Copy link" title="Copy link"><span data-icon="copy"></span></button></dd>
     </dl>
     <div class="row-btns">
@@ -511,7 +538,7 @@ button.lnk:hover { text-decoration: underline; }
       <button class="btn" type="button" id="insp-prompt" title="Copies a line to paste into a new Claude Code session, so Claude updates this page instead of making a new one"><span data-icon="copy"></span>Copy for Claude Code</button>
     </div>
     <p class="fine" id="insp-unsaved" hidden>This page has changes made here (folder or status) that are not in the hub's data yet. Use "Save changes with Claude" at the top of the page.</p>
-    <p class="fine">To keep working on this page in a new Claude Code session, paste the line "Copy for Claude Code" gives you: without the link, Claude makes a new page instead of updating this one. Copying a link does not change who can open the page: Claude keeps each page's own sharing setting. The kind is read from the title, and the cover is drawn, not a picture of the page.</p>
+    <p class="fine">"Copy for Claude Code" gives a new session this page's link, so Claude updates it instead of making another. Copying a link does not change who can open the page.</p>
   </div>
 </dialog>
 
@@ -561,6 +588,8 @@ button.lnk:hover { text-decoration: underline; }
     eye: '<path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>',
     eyeoff: '<path d="M1.5 8s2.5-4.5 6.5-4.5c1.2 0 2.3.4 3.2 1M14.5 8S12 12.5 8 12.5c-1.2 0-2.3-.4-3.2-1M2.5 2.5l11 11"/><path d="M6.6 6.6a2 2 0 0 0 2.8 2.8"/>',
     chev: '<path d="M6 3.5 10.5 8 6 12.5"/>',
+    chevd: '<path d="M3.5 6 8 10.5 12.5 6"/>',
+    check: '<path d="M3 8.5 6.5 12 13 4.5"/>',
     all: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
     folder: '<path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 1.5h4.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/>',
     fold: '<rect x="2.5" y="3" width="11" height="10" rx="1.5"/><path d="M6 3v10M10.5 6.5 9 8l1.5 1.5"/>',
@@ -1279,10 +1308,8 @@ button.lnk:hover { text-decoration: underline; }
       var b = el('button', 'lnk', n.name); b.type = 'button'; b.addEventListener('click', function () { hideDialog(insp); go(n); }); where.appendChild(b);
     });
     $('insp-date').textContent = p.date ? exact(p) + (age(p) === Infinity ? '' : ' · ' + rel(p)) : 'not recorded';
-    var ss = $('insp-status'); ss.value = p.status || '';
-    var ms = $('insp-move'); ms.textContent = '';
-    var none = el('option', '', 'Keep in ' + pathOf(p.node)); none.value = p.node.key; ms.appendChild(none);
-    (function walk(n) { n.kids.forEach(function (k) { if (k !== p.node) { var o = el('option', '', pathOf(k)); o.value = k.key; ms.appendChild(o); } walk(k); }); })(root);
+    setField($('insp-status'), p.status ? cap(p.status) : 'None', p.status ? statusDot(p.status) : null);
+    setField($('insp-move'), pathOf(p.node), null);
     $('insp-unsaved').hidden = !p.unsaved;
     $('insp-kind-text').textContent = kindLabel(p.kind) + (p.known ? ' (recorded by Claude)' : ' (from the title)') + (p.by ? ' · shared by ' + p.by : '');
     $('insp-url').value = A + p.id; $('insp-open').href = A + p.id; $('insp-open').setAttribute('data-id', p.id);
@@ -1316,8 +1343,73 @@ button.lnk:hover { text-decoration: underline; }
     copyText(lines.join('\n') + '\n', 'Copied ' + PAGES.length + ' links as Markdown');
   });
   $('insp-url').addEventListener('focus', function () { this.select(); });
-  $('insp-status').addEventListener('change', function () { if (inspected) { setStatus(inspected, this.value); fillInspector(inspected); } });
-  $('insp-move').addEventListener('change', function () { if (inspected && byKey[this.value]) { movePage(inspected, byKey[this.value]); fillInspector(inspected); } });
+  // ---- Menus (status, folder): a popover list under a field-shaped button
+  var openMenu = null;
+  function statusDot(s) { var d = el('span', 'sd' + (s ? ' s-' + s : ' none')); return d; }
+  function setField(btn, label, iconNode) { // the button shows the current value
+    var fl = btn.querySelector('.fl'); fl.textContent = label; btn.classList.remove('ph');
+    var old = btn.querySelector('.sd'); if (old) old.remove();
+    if (iconNode) btn.insertBefore(iconNode, fl);
+  }
+  function statusOptions(withNone, noneLabel) {
+    var o = STATUSES.map(function (s) { return { value: s, label: cap(s), icon: function () { return statusDot(s); } }; });
+    if (withNone) o.unshift({ value: '', label: noneLabel || 'None', icon: function () { return statusDot(''); } });
+    return o;
+  }
+  function folderOptions(exclude) { // every folder, projects first, subfolders indented under them
+    var o = [];
+    (function walk(n, d) { n.kids.forEach(function (k) {
+      if (k !== exclude) o.push({ value: k.key, label: k.name, hint: d ? pathOf(k) : '', depth: d, icon: function () { return k.up === root ? el('span', 'dot c-' + k.color) : icon('folder'); } });
+      walk(k, d + 1);
+    }); })(root, 0);
+    return o;
+  }
+  function closeMenu(focusBack) {
+    if (!openMenu) return; var m = openMenu; openMenu = null;
+    m.pop.remove(); m.btn.setAttribute('aria-expanded', 'false'); if (focusBack) m.btn.focus();
+  }
+  function menu(btn, opts, current, onPick) {
+    if (openMenu && openMenu.btn === btn) { closeMenu(true); return; }
+    closeMenu(false);
+    var pop = el('div', 'pop'), list = el('div', 'pop-list'), filter = opts.length > 8 ? el('input', 'pop-q') : null, items = [], hi = 0;
+    list.setAttribute('role', 'listbox'); list.tabIndex = -1; list.setAttribute('aria-label', btn.getAttribute('aria-label') || 'Options');
+    if (filter) { filter.type = 'search'; filter.placeholder = 'Type to filter'; filter.setAttribute('aria-label', 'Filter'); filter.autocomplete = 'off'; pop.appendChild(filter); }
+    pop.appendChild(list);
+    function draw(qv) {
+      list.textContent = ''; items = [];
+      opts.forEach(function (o) {
+        if (qv && fold(o.label + ' ' + (o.hint || '')).indexOf(qv) < 0) return;
+        var b = el('button', 'opt'); b.type = 'button'; b.setAttribute('role', 'option'); b.setAttribute('aria-selected', String(o.value === current)); b.tabIndex = -1;
+        b.style.paddingLeft = (10 + (qv ? 0 : (o.depth || 0)) * 14) + 'px'; if (o.hint) b.title = o.hint;
+        if (o.icon) b.appendChild(o.icon());
+        b.appendChild(el('span', 'opt-l', qv && o.hint ? o.hint : o.label));
+        if (o.value === current) { var ck = icon('check'); ck.classList.add('check'); b.appendChild(ck); }
+        b.addEventListener('click', function () { closeMenu(true); onPick(o.value); });
+        list.appendChild(b); items.push(b);
+      });
+      if (!items.length) list.appendChild(el('div', 'opt-none', 'No folder matches'));
+      hi = Math.max(0, items.map(function (b) { return b.getAttribute('aria-selected'); }).indexOf('true')); mark();
+    }
+    function mark() { items.forEach(function (b, i) { b.classList.toggle('hi', i === hi); }); if (items[hi]) items[hi].scrollIntoView({ block: 'nearest' }); }
+    pop.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (items.length) { hi = (hi + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; mark(); } }
+      else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); hi = e.key === 'Home' ? 0 : items.length - 1; mark(); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (items[hi]) items[hi].click(); }
+      else if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); e.stopPropagation(); closeMenu(true); }
+    });
+    if (filter) filter.addEventListener('input', function () { draw(fold(filter.value.trim())); });
+    draw('');
+    // under the button, or above it when the screen runs out; inside the open dialog so it is not inert
+    var r = btn.getBoundingClientRect(), below = innerHeight - r.bottom, w = Math.min(Math.max(r.width, 240), innerWidth - 16);
+    pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px'; pop.style.width = w + 'px';
+    if (below < 240 && r.top > below) pop.style.bottom = (innerHeight - r.top + 4) + 'px'; else pop.style.top = (r.bottom + 4) + 'px';
+    (btn.closest('dialog') || document.body).appendChild(pop);
+    btn.setAttribute('aria-expanded', 'true'); openMenu = { btn: btn, pop: pop };
+    (filter || list).focus();
+  }
+  window.addEventListener('resize', function () { closeMenu(false); });
+  $('insp-status').addEventListener('click', function () { if (inspected) menu(this, statusOptions(true), inspected.status || '', function (v) { setStatus(inspected, v); fillInspector(inspected); }); });
+  $('insp-move').addEventListener('click', function () { if (inspected) menu(this, folderOptions(null), inspected.node.key, function (v) { if (byKey[v] && byKey[v] !== inspected.node) { movePage(inspected, byKey[v]); fillInspector(inspected); } }); });
   // the selection bar: what to do with the selected pages
   function renderSel() {
     var ps = selPages(), n = ps.length; $('sel').hidden = !n; if (!n) return;
@@ -1327,8 +1419,8 @@ button.lnk:hover { text-decoration: underline; }
     $('sel-status').value = '';
   }
   // bulk actions change every selected page first and draw once at the end
-  $('sel-move').addEventListener('change', function () { var to = byKey[this.value]; if (!to) return; var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (movePage(p, to, true)) n++; }); redraw(); toast(n ? 'Moved ' + n + ' to ' + pathOf(to) : 'Already there'); });
-  $('sel-status').addEventListener('change', function () { var v = this.value; if (!v) return; var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (setStatus(p, v === '-' ? '' : v, true)) n++; }); redraw(); toast(v === '-' ? 'Status removed from ' + n : 'Marked ' + n + ' as ' + v); });
+  $('sel-move').addEventListener('click', function () { menu(this, folderOptions(null), null, function (v) { var to = byKey[v]; if (!to) return; var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (movePage(p, to, true)) n++; }); redraw(); toast(n ? 'Moved ' + n + ' to ' + pathOf(to) : 'Already there'); }); });
+  $('sel-status').addEventListener('click', function () { menu(this, statusOptions(true, 'No status'), null, function (v) { var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (setStatus(p, v, true)) n++; }); redraw(); toast(v ? 'Marked ' + n + ' as ' + v : 'Status removed from ' + n); }); });
   $('sel-copy').addEventListener('click', function () { var ps = selPages(); copyText(ps.map(function (p) { return A + p.id; }).join('\n'), 'Copied ' + ps.length + (ps.length === 1 ? ' link' : ' links')); });
   $('sel-clear').addEventListener('click', clearSel);
   $('save-copy').addEventListener('click', function () { copyText(editsText(), 'Copied: paste it into Claude Code'); });
@@ -1363,6 +1455,7 @@ button.lnk:hover { text-decoration: underline; }
     var m = e.target.closest && e.target.closest('[data-menu]');
     if (m) { if (wide.matches) setFolded(!folded, true); else if (app.classList.contains('nav-open')) closeNav(true); else openNav(m); }
     if (swatchOpen && !(e.target.closest && e.target.closest('.sw, .dotbtn'))) { swatchOpen = false; renderBar(q.value.trim()); }
+    if (openMenu && !(openMenu.pop.contains(e.target) || openMenu.btn.contains(e.target))) closeMenu(false);
   });
   $('fold').addEventListener('click', function () { setFolded(true, true); $('side-open').focus(); });
   document.addEventListener('auxclick', function (e) { var a = e.button === 1 && e.target.closest && e.target.closest('a[data-id]'); if (a) record(a.getAttribute('data-id')); });

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.4
+
+- Menus instead of native selects, in the details panel and the selection bar: a
+  field-shaped button opens a list under it, with a dot per status, a dot or folder
+  symbol per folder, subfolders indented, a check on the current item, arrow keys, Enter,
+  Esc back to the button, and a filter box when the list is long. Opens upward when the
+  screen runs out, and inside the details dialog so it works there too.
+- Shorter note at the foot of the details panel.
+
 ## 1.5.3
 
 - Unpin from the sidebar: each pinned page has its own × (on hover, or always on touch).
