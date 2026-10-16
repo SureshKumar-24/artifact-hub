@@ -56,6 +56,10 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 
 ## A tour
 
+![The command palette over the gallery: a query 'lead plan' lists matching pages with their folder, and the footer shows the keys: arrows move, Enter opens or runs, Shift+Enter details, > actions only, # folders only](docs/palette.png)
+
+<sub><b>⌘K</b> — one box for pages, folders and about thirty actions, each with its key. Nothing typed shows what you opened and ran last. <code>&gt;</code> narrows to actions, <code>#</code> to folders.</sub>
+
 <table>
 <tr>
 <td width="50%"><img src="docs/details.png" alt="The details panel with the Status menu open: title, description, folder as links, exact date and time, kind, Status and Move to menus, the full link, Open page, Pinned, Show folder and Copy for Claude Code; the sidebar shows one hidden folder"></td>
@@ -69,7 +73,7 @@ Artifact Hub answers each one: every link is saved on your machine at publish ti
 <td><img src="docs/phone.png" alt="Phone layout: a search row, a sideways strip for sort and options, the project heading with its note, kind and folder chips, and two columns of cards" width="60%"></td>
 <td>
 <b>Phone</b> — one search row, one strip that scrolls sideways for sort and options, chips that scroll instead of stacking, cards in two columns, every action at touch size.<br><br>
-<b>Keyboard</b> — <code>/</code> search, <code>j</code> <code>k</code> move, <code>Enter</code> open, <code>i</code> details, <code>c</code> copy, <code>p</code> pin, <code>x</code> select, <code>v</code> gallery or list, <code>[</code> fold the sidebar, <code>o</code> then a digit to open that result, <code>?</code> for the full list.
+<b>Keyboard</b> — <code>⌘K</code> palette, <code>/</code> search, <code>j</code> <code>k</code> move, <code>Enter</code> open, <code>i</code> details, <code>c</code> copy, <code>p</code> pin, <code>x</code> select, <code>v</code> gallery or list, <code>[</code> fold the sidebar, <code>o</code> then a digit to open that result, <code>?</code> for the full list.
 </td>
 </tr>
 </table>
@@ -106,7 +110,7 @@ That gives you the `hub`, `find` and `pin` skills against a hub you already have
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add the tag to the first command, for example `@v1.5.10` |
+| Install a fixed, reviewed version | Add the tag to the first command, for example `@v1.6.0` |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) |
 
@@ -187,13 +191,16 @@ There are two layers, on purpose:
 | Any time | `/artifact-hub:hub` | Rebuilds the hub from the gallery and the saved list. Adds what is new, never removes what is there. |
 | Once a week | `/artifact-hub:week` | A short digest: published this week, untouched for 60 days, likely duplicates, shared with you. |
 | You want it one click away | `/artifact-hub:pin` | Pins the hub to your sidebar; unpins on request. |
+| You start a new session on a project | On the hub, open the project and press its copy button (or ⌘K, "Copy this project for Claude Code"), paste into Claude Code | Claude has every page of the project with its link, so it updates pages instead of publishing duplicates. |
+| You want your data out | On the hub: "Copy this list as JSON" or "as Markdown" | Every project, page, link, date and status, made in the browser, sent nowhere. |
 | You suspect dead links | Ask: "check my links" | Each page is read once; a page that no longer opens is marked gone, never removed. Slow, so Claude asks first past 40 pages. |
 
 ## Keyboard
 
 | Key | Does |
 |---|---|
-| `/` or `⌘K` | Search |
+| `⌘K` or `Ctrl K` | Command palette: pages, folders and actions (`>` actions only, `#` folders only) |
+| `/` | Search |
 | `j` `k` or `↑` `↓` | Move between pages (the gallery in reading order) |
 | `Enter` | Open the page in a new tab |
 | `i` | Details of the page |

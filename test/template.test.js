@@ -109,6 +109,44 @@ test('a bare day reads as a local day, and Claude Code page ids link under /code
   assert.strictEqual((TEMPLATE.match(/\bA \+ /g) || []).length, 0, 'every link goes through urlOf');
 });
 
+test('the command palette: a dialog, stable action ids, a guarded recents key, and no innerHTML', () => {
+  const js = script(TEMPLATE);
+  assert.match(TEMPLATE, /<dialog id="palette" aria-labelledby="pal-label">/, 'the palette is a dialog like the others');
+  assert.match(TEMPLATE, /<input id="pal-q"[^>]*role="combobox"/, 'one input, a combobox');
+  assert.match(js, /palette: 'project-hub\.palette\.v1'/, 'recent actions have their own key in K');
+  assert.match(js, /function palRemember\(id\) \{ var ids = getJSON\(K\.palette/, 'recents go through the guarded helpers');
+  const ids = [...js.matchAll(/\{ id: '([a-z.]+)', label:/g)].map((m) => m[1]);
+  assert.ok(ids.length >= 30, 'at least thirty actions');
+  assert.strictEqual(new Set(ids).size, ids.length, 'action ids are unique');
+  for (const id of ['view.gallery', 'view.list', 'page.pin', 'page.details', 'page.copy', 'page.prompt', 'page.move', 'folder.copy', 'edits.save', 'export.md', 'export.json', 'help']) assert.ok(ids.includes(id), id);
+  assert.match(js, /if \(mod && !e\.altKey && \(e\.key === 'k' \|\| e\.key === 'K'\)\) \{ e\.preventDefault\(\); palOpen\(\); return; \}/, '⌘K opens it');
+  assert.match(js, /raw\.charAt\(0\) === '>' \? 'act' : raw\.charAt\(0\) === '#' \? 'dir'/, '> and # narrow the search');
+  assert.match(js, /\[MOD \+ 'K', 'Command palette: pages, folders and actions'\]/, 'listed first in the ? sheet');
+  const palBlock = js.slice(js.indexOf('// ---- Command palette'), js.indexOf('// sticky group headers'));
+  assert.doesNotMatch(palBlock, /innerHTML/, 'results are built as DOM');
+});
+
+test('duplicates and untouched pages: one map, two chips, a label, and Esc clears the filter', () => {
+  const js = script(TEMPLATE);
+  assert.match(js, /function computeDups\(\) \{[\s\S]*?seen\[p\.ft\] = \(seen\[p\.ft\] \|\| 0\) \+ 1/, 'one pass over the folded titles');
+  assert.match(js, /function isStale\(p\) \{ return p\.status !== 'archived' && age\(p\) >= STALE/, 'archived pages are not stale');
+  assert.match(js, /\(!dupFilter \|\| p\.dup\) && \(!staleFilter \|\| isStale\(p\)\)/, 'both are filters in visible()');
+  assert.match(js, /el\('span', 'st s-dup', 'Duplicate\?'\)/, 'the row label');
+  assert.match(js, /else if \(\(dupFilter \|\| staleFilter\) && !inSearch\) \{ e\.preventDefault\(\); dupFilter = false; staleFilter = false; render\(\); \}/, 'Esc clears them');
+  assert.match(js, /computeDups\(\); applyLook\(false\)/, 'computed before the first draw');
+});
+
+test('exports and the project message: JSON built from data, the project text capped at 60, every link through urlOf', () => {
+  const js = script(TEMPLATE);
+  assert.match(js, /function hubJSON\(\) \{[\s\S]*?hub: document\.title, exported: new Date\(\)\.toISOString\(\), projects:/);
+  assert.match(js, /JSON\.stringify\(hubJSON\(\), null, 2\)/, 'pretty, two spaces');
+  assert.match(TEMPLATE, /<button class="lnk" type="button" id="export-json"/);
+  assert.match(js, /function projectText\(node\)[\s\S]*?ps\.slice\(0, 60\)[\s\S]*?'…and ' \+ \(ps\.length - 60\) \+ ' more in the hub\.'/);
+  assert.match(js, /read it with the Artifact tool and publish to the same URL instead of making a new page:/);
+  assert.strictEqual((js.match(/\bA \+ /g) || []).length, 0, 'every link goes through urlOf');
+  assert.match(js, /function hint\(label, key\) \{ return POINTER && key \? label \+ ' · ' \+ key : label; \}/, 'key hints only on pointer devices');
+});
+
 test('the empty template script parses', () => {
   assert.doesNotThrow(() => new vm.Script(script(TEMPLATE)));
 });

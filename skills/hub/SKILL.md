@@ -220,6 +220,15 @@ listed, never changed: the user cannot republish them, and the hub must never su
 they can. Ask once, the first time shared pages appear, whether the user wants them on
 the hub; remember the answer in `hub.json` as `"shared": true` or `false`.
 
+## What the page itself offers
+
+The page can copy its whole list as Markdown or as JSON (projects, pages, links, dates,
+folders, status), and one project as a message for a new Claude Code session; none of that
+changes the hub's data. Rows whose title another row shares wear a "Duplicate?" mark: it is
+only a hint, the sign of a page published again from a session without its link. On a
+rebuild, treat such pairs as the `replacedBy` case above (one row, pointing at the newer
+page) when `pages.json` confirms it, and otherwise leave both.
+
 ## Changes the user made on the page
 
 The hub page lets the user move a page to another folder or set its status right there.

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.6.0
+
+- A command palette on ⌘K (Ctrl K): one box that finds pages, folders and actions. Nothing
+  typed shows the pages opened last and the actions run last; typing searches pages (ranked
+  like the main search, across the whole hub), folders and about thirty actions, each with
+  its shortcut shown. `>` narrows to actions, `#` to folders. Enter opens a page or runs an
+  action, Shift+Enter shows a page's details. The search box's `/` hint reads `⌘K` on a
+  pointer device; `/` still focuses plain search.
+- Key hints in tooltips: "Pin · p", "Details · i", "Copy link · c", "Open in new tab ·
+  Enter", "Gallery · v", "Keyboard shortcuts · ?", and so on. Never on touch screens.
+- "Copy this project for Claude Code": a button in the folder header (and a palette action)
+  copies one message with every page of the project and its link, newest first, so a new
+  session can continue the project without publishing duplicates. Capped at 60 pages.
+- Two quiet chips for the ways pages get lost, shown only when there is something to show:
+  "Duplicates" (pages that share a title with another page; their rows carry a dashed
+  "Duplicate?" label) and "Untouched 60d+" (not updated for 60 days, archived left out).
+  Both filter the list; Esc clears them.
+- "Copy this list as JSON" next to the Markdown export: projects, pages, links, dates,
+  folders, kinds and status, pretty-printed. Made in the browser, sent nowhere.
+
 ## 1.5.10
 
 - Dates written as a bare day (`2026-09-17`) are that day for every viewer; they used to
