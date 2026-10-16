@@ -1,0 +1,22 @@
+{
+  "name": "artifact-hub-guard",
+  "version": "0.1.0",
+  "description": "Asks before a duplicate: when Claude is about to publish a new artifact whose title is already in your saved list, you choose to update the existing page instead. A mod for Claude Code 2.1.287 and later; reads ~/.claude/artifact-hub/pages.json only.",
+  "author": {
+    "name": "Suresh Kumar"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/SureshKumar-24/artifact-hub/tree/main/guard",
+  "repository": "https://github.com/SureshKumar-24/artifact-hub",
+  "documentationUrl": "https://github.com/SureshKumar-24/artifact-hub/blob/main/guard/README.md",
+  "supportUrl": "https://github.com/SureshKumar-24/artifact-hub/issues",
+  "keywords": [
+    "artifacts",
+    "claude-artifacts",
+    "duplicates",
+    "mod",
+    "function-hooks",
+    "hooks",
+    "publish"
+  ]
+}
