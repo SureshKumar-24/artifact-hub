@@ -753,13 +753,26 @@ button.lnk:hover { text-decoration: underline; }
   // ---- Edits made on this page (a page moved to another folder, a status set) live in this browser
   // until Claude writes them into the hub's data. Each page keeps a note of what changed.
   var edits = getJSON(K.edits, {}); if (!edits || typeof edits !== 'object') edits = {};
+  // An edit the hub's data already has (Claude wrote it) is forgotten here, so the Unsaved mark
+  // goes away on the next load without the user doing anything.
+  var editsChanged = false;
   Object.keys(edits).forEach(function (id) {
     var p = byId[id], e = edits[id];
-    if (!p && e && typeof e.note === 'string' && byKey[id] && byKey[id] !== root && byKey[id].up === root) { byKey[id].note = e.note.slice(0, 200); byKey[id].unsaved = true; return; } // a project note
-    if (!p || !e) { delete edits[id]; return; }
-    if (e.status !== undefined && (e.status === '' || STATUSES.indexOf(e.status) >= 0)) { p.status = e.status; p.unsaved = true; }
-    if (e.folder && byKey[e.folder] && byKey[e.folder] !== root && byKey[e.folder] !== p.node) { var to = byKey[e.folder]; p.node.pages.splice(p.node.pages.indexOf(p), 1); to.pages.push(p); p.node = to; p.proj = to.proj; p.unsaved = true; }
+    if (!p && e && typeof e.note === 'string' && byKey[id] && byKey[id] !== root && byKey[id].up === root) { // a project note
+      if ((byKey[id].note || '') === e.note.slice(0, 200)) { delete edits[id]; editsChanged = true; return; }
+      byKey[id].note = e.note.slice(0, 200); byKey[id].unsaved = true; return;
+    }
+    if (!p || !e) { delete edits[id]; editsChanged = true; return; }
+    if (e.status !== undefined && (e.status === '' || STATUSES.indexOf(e.status) >= 0)) {
+      if (e.status === p.status) { delete e.status; editsChanged = true; } else { p.status = e.status; p.unsaved = true; }
+    } else if (e.status !== undefined) { delete e.status; editsChanged = true; }
+    if (e.folder && byKey[e.folder] && byKey[e.folder] !== root) {
+      if (byKey[e.folder] === p.node) { delete e.folder; editsChanged = true; }
+      else { var to = byKey[e.folder]; p.node.pages.splice(p.node.pages.indexOf(p), 1); to.pages.push(p); p.node = to; p.proj = to.proj; p.unsaved = true; }
+    } else if (e.folder) { delete e.folder; editsChanged = true; }
+    if (!Object.keys(e).length) { delete edits[id]; editsChanged = true; }
   });
+  if (editsChanged) setJSON(K.edits, edits);
   PAGES.forEach(index);
   function pathOf(node) { return trail(node).slice(1).map(function (x) { return x.name; }).join(' / '); }
   function noteEdit(p, change, quiet) { // remember one change for this page, forget the item cache for it, redraw (unless batched)
