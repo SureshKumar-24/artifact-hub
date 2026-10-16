@@ -200,9 +200,9 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 .tl { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .tl .title { min-width: 0; }
 .st { flex: none; font: 500 11px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--hover); color: var(--muted); }
-.s-draft { background: var(--hover); color: var(--c-amber); }
-.s-review { background: var(--accent-soft); color: var(--c-sky); }
-.s-final { background: var(--accent-soft); color: var(--c-green); }
+.s-draft { background: var(--hover); color: var(--c-amber); color: color-mix(in srgb, var(--c-amber) 85%, var(--ink)); }
+.s-review { background: var(--accent-soft); color: var(--c-sky); color: color-mix(in srgb, var(--c-sky) 85%, var(--ink)); }
+.s-final { background: var(--accent-soft); color: var(--c-green); color: color-mix(in srgb, var(--c-green) 85%, var(--ink)); }
 .s-archived { background: var(--hover); color: var(--muted); }
 .s-unsaved { background: transparent; color: var(--c-amber); border: 1px dashed var(--c-amber); }
 .s-by { background: var(--accent-soft); color: var(--accent); text-transform: none; letter-spacing: 0; }
@@ -286,7 +286,10 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 @media (hover: none) {
   .ctx button, .dotbtn, .swatch, .pnote .ib.small, .caret, .mini, .ib { width: 40px; height: 40px; }
   .caret { width: 32px; }
-  .stf, .subs button, .since .stf, .pnote .addnote, button.lnk { min-height: 40px; }
+  .stf, .subs button, .since .stf, .pnote .addnote, button.lnk, .sts button, #save .btn { min-height: 40px; }
+  .seg button { height: 40px; } .seg { border-radius: 10px; }
+  .card .acts button, .card .acts a { width: 40px; height: 40px; }
+  .rail button { min-width: 40px; min-height: 40px; }
   .side-h .lnk { min-height: 0; }
 }
 .hint { color: var(--muted); font-size: 12px; }
@@ -297,7 +300,14 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 .sw { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); max-width: 100%; }
 .swatch { width: 28px; height: 28px; padding: 0; border: 2px solid transparent; border-radius: 999px; background: var(--dot); cursor: pointer; }
 .swatch[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 2px var(--surface); }
+@media (min-width: 640px) and (max-width: 1023px) { /* tablet: the project chips at the top level take one sideways row, not two */
+  .app.at-root .subs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -24px; padding: 2px 24px; -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 32px), transparent); }
+  .app.at-root .subs::-webkit-scrollbar { display: none; }
+  .app.at-root .subs button { flex: none; }
+}
 @media (max-width: 639px) { /* subfolder chips scroll sideways under the gutter instead of stacking */
+  .subs, .filters, .strip { mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 28px), transparent); } /* a fade says the row goes on */
   .bar { padding-top: 8px; min-height: 0; }
   .subs, .filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; -webkit-overflow-scrolling: touch; }
   .subs::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
@@ -372,6 +382,14 @@ mark { background: var(--accent-soft); color: var(--ink); border-radius: 2px; }
 .cover { position: relative; display: grid; place-items: center; height: 84px; border-radius: 9px 9px 0 0; border-bottom: 1px solid var(--line);
   background: var(--accent-soft); background: color-mix(in srgb, var(--dot, var(--accent)) 10%, var(--surface)); color: var(--dot, var(--accent)); }
 @media (min-width: 640px) { .cover { height: 104px; } }
+/* a faint pattern per kind behind the glyph, so the cards of one project differ at a glance */
+.cover::before { content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0.5; pointer-events: none; --pat: color-mix(in srgb, var(--dot, var(--accent)) 16%, transparent); }
+.cover.k-doc::before { background: repeating-linear-gradient(0deg, transparent 0 11px, var(--pat) 11px 12px); mask-image: linear-gradient(to right, transparent 20%, #000 50%, transparent 80%); }
+.cover.k-report::before { background: repeating-linear-gradient(90deg, transparent 0 17px, var(--pat) 17px 18px); mask-image: linear-gradient(to top, #000, transparent 70%); }
+.cover.k-code::before { background: repeating-linear-gradient(135deg, transparent 0 13px, var(--pat) 13px 14px); mask-image: linear-gradient(to right, #000, transparent 45%); }
+.cover.k-design::before, .cover.k-designsystem::before, .cover.k-dashboard::before { background: linear-gradient(0deg, transparent 0 15px, var(--pat) 15px 16px), linear-gradient(90deg, transparent 0 15px, var(--pat) 15px 16px); background-size: 16px 16px; mask-image: radial-gradient(ellipse at center, transparent 30%, #000 85%); }
+.cover.k-slides::before { background: linear-gradient(var(--pat), var(--pat)) no-repeat center / 62% 70%, linear-gradient(var(--pat), var(--pat)) no-repeat center / 56% 64%; mask-image: linear-gradient(#000, #000); opacity: 0.35; }
+.cover > * { position: relative; }
 .cover svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .kind { position: absolute; left: 10px; bottom: 8px; font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .card .txt { flex: 1 1 auto; gap: 4px; padding: 10px 12px 8px; }
@@ -443,7 +461,7 @@ dialog::backdrop { background: var(--scrim); }
 .insp .d { margin: 0; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
 .insp dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin: 0; font-size: 13px; }
 .insp dt { color: var(--muted); white-space: nowrap; } .insp dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-button.lnk { padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; text-align: left; font-size: inherit; }
+button.lnk { padding: 0; border: 0; background: none; color: var(--accent); color: color-mix(in srgb, var(--accent) 82%, var(--ink)); cursor: pointer; text-align: left; font-size: inherit; }
 button.lnk:hover { text-decoration: underline; }
 .insp .url { display: flex; gap: 6px; }
 .insp .url input { flex: 1 1 auto; min-width: 0; height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: 12px var(--mono); color: var(--ink); background: var(--bg); }
@@ -573,7 +591,8 @@ button.lnk:hover { text-decoration: underline; }
       <button class="btn" type="button" id="insp-prompt" title="Copies a line to paste into a new Claude Code session, so Claude updates this page instead of making a new one"><span data-icon="copy"></span>Copy for Claude Code</button>
     </div>
     <p class="fine" id="insp-unsaved" hidden>This page has changes made here (folder or status) that are not in the hub's data yet. Use "Save changes with Claude" at the top of the page.</p>
-    <p class="fine">"Copy for Claude Code" gives a new session this page's link, so Claude updates it instead of making another. Copying a link does not change who can open the page.</p>
+    <p class="fine" id="insp-fine">"Copy for Claude Code" gives a new session this page's link, so Claude updates it instead of making another. Copying a link does not change who can open the page.</p>
+    <p class="fine" id="insp-shared" hidden>This page was shared with you. It is listed here and can be filed and marked like any other, but it is not yours to republish: only its owner can change it.</p>
   </div>
 </dialog>
 
@@ -689,6 +708,8 @@ button.lnk:hover { text-decoration: underline; }
   var MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
   var DAY = 864e5, today = new Date(); today.setHours(0, 0, 0, 0);
   function parseDate(s) {
+    var iso = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/.exec(s);
+    if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]).getTime(); // a bare day is that day everywhere, not UTC midnight
     var m = /^\s*(\d{1,2})\s+([a-z]{3})[a-z]*\.?,?(?:\s+(\d{4}))?\s*$/i.exec(s);
     if (!m || !(m[2].toLowerCase() in MONTHS)) { var t = s ? Date.parse(s) : NaN; return isNaN(t) ? 0 : t; }
     var d = new Date(m[3] ? +m[3] : today.getFullYear(), MONTHS[m[2].toLowerCase()], +m[1]);
@@ -812,8 +833,8 @@ button.lnk:hover { text-decoration: underline; }
     Object.keys(edits).forEach(function (id) {
       var p = byId[id], e = edits[id];
       if (!p) { if (e && typeof e.note === 'string' && byKey[id]) lines.push('- set the note of project ' + byKey[id].name + ' to: ' + (e.note || '(nothing)')); return; }
-      if (e.folder && byKey[e.folder]) lines.push('- move "' + p.title + '" (' + A + id + ') to the folder ' + pathOf(byKey[e.folder]));
-      if (e.status !== undefined) lines.push('- ' + (e.status ? 'mark "' + p.title + '" (' + A + id + ') as ' + e.status : 'remove the status from "' + p.title + '" (' + A + id + ')'));
+      if (e.folder && byKey[e.folder]) lines.push('- move "' + p.title + '" (' + urlOf(id) + ') to the folder ' + pathOf(byKey[e.folder]));
+      if (e.status !== undefined) lines.push('- ' + (e.status ? 'mark "' + p.title + '" (' + urlOf(id) + ') as ' + e.status : 'remove the status from "' + p.title + '" (' + urlOf(id) + ')'));
     });
     return lines.join('\n');
   }
@@ -828,7 +849,7 @@ button.lnk:hover { text-decoration: underline; }
   var showHidden = false;
   function isHidden(node) { for (var n = node; n && n !== root; n = n.up) if (hidden.indexOf(n.key) >= 0) return true; return false; }
   function hiddenPage(p) { return isHidden(p.node) && !isHidden(current); }
-  function shownCount(node) { return under(node).filter(function (p) { return !hiddenPage(p); }).length; }
+  function shownCount(node) { return under(node).filter(function (p) { return !hiddenPage(p) && p.status !== 'archived'; }).length; } // what the lists show: hidden folders and archived pages left out
   function toggleHidden(node) {
     var i = hidden.indexOf(node.key); if (i >= 0) hidden.splice(i, 1); else hidden.push(node.key);
     setJSON(K.hidden, hidden); if (i < 0 && current !== root && isHidden(current)) current = root;
@@ -964,18 +985,21 @@ button.lnk:hover { text-decoration: underline; }
   // Both carry the same fields (_p, _t, _d, _path, _star), so filling, selection and actions are shared.
   var itemCache = {}, itemsById = {}, secCache = {}, shown = [], active = null, lastQuery = null, openRow = null;
   function actBtn(name, label, act) { var b = el('button'); b.type = 'button'; b.tabIndex = -1; b.title = label; b.setAttribute('aria-label', label); b.setAttribute('data-act', act); b.appendChild(icon(name)); return b; }
-  function link(cls, p) { var a = el('a', cls); a.href = A + p.id; a.target = '_blank'; a.rel = 'noopener'; a.setAttribute('data-id', p.id); return a; }
+  function urlOf(id) { return (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? A.replace('/artifact/', '/code/artifact/') : A) + id; } // a Claude Code page's id is a uuid under /code/artifact/
+  function link(cls, p) { var a = el('a', cls); a.href = urlOf(p.id); a.target = '_blank'; a.rel = 'noopener'; a.setAttribute('data-id', p.id); return a; }
   function actions(p) {
     var acts = el('span', 'acts'), go = link('', p);
     go.tabIndex = -1; go.title = 'Open in new tab'; go.setAttribute('aria-label', 'Open in new tab'); go.appendChild(icon('open'));
     acts.appendChild(actBtn('star', 'Pin', 'pin')); acts.appendChild(actBtn('info', 'Details', 'info')); acts.appendChild(actBtn('copy', 'Copy link', 'copy')); acts.appendChild(go);
     return acts;
   }
+  function hasOwner(p) { return p.by && !/^(shared|yes|true|unknown)$/i.test(p.by); } // `by` may be a name, or just a mark that the page was shared
+  function byText(p) { return hasOwner(p) ? 'shared with you by ' + p.by : 'shared with you'; }
   function textOf(p) { // title and description, shared by rows and cards
     var a = link('txt', p); a.tabIndex = -1; a.title = p.title + (p.date ? '\nUpdated ' + exact(p) : '') + (p.status ? '\n' + cap(p.status) : '');
     var tl = el('span', 'tl'), t = el('span', 'title', p.title), d = el('span', 'desc'), path = el('span', 'path'), dt = el('span', 'dtext');
     tl.appendChild(t); if (p.status) tl.appendChild(el('span', 'st s-' + p.status, cap(p.status)));
-    if (p.by) { var by = el('span', 'st s-by', p.by); by.title = 'Shared with you by ' + p.by; tl.appendChild(by); }
+    if (p.by) { var by = el('span', 'st s-by', hasOwner(p) ? p.by : 'Shared'); by.title = cap(byText(p)); tl.appendChild(by); }
     if (p.unsaved) { var u = el('span', 'st s-unsaved', 'Unsaved'); u.title = 'Changed on this page, not yet written to the hub'; tl.appendChild(u); }
     d.appendChild(path); d.appendChild(dt); a.appendChild(tl); a.appendChild(d);
     return { a: a, t: t, path: path, dt: dt };
@@ -1001,7 +1025,7 @@ button.lnk:hover { text-decoration: underline; }
   function getCard(p, kind) {
     var ck = 'c:' + kind + ':' + p.i; if (itemCache[ck]) return itemCache[ck];
     var r = el('div', 'card c-' + p.proj.color), parts = textOf(p);
-    var cover = el('div', 'cover'); cover.setAttribute('aria-hidden', 'true'); cover.appendChild(kindIcon(p.kind)); cover.appendChild(el('span', 'kind', kindLabel(p.kind)));
+    var cover = el('div', 'cover k-' + p.kind); cover.setAttribute('aria-hidden', 'true'); cover.appendChild(kindIcon(p.kind)); cover.appendChild(el('span', 'kind', kindLabel(p.kind)));
     var foot = el('div', 'foot'), where = el('span', 'where'), when = el('span', 'when', rel(p));
     where.appendChild(el('span', 'dot')); where.appendChild(document.createTextNode(' ')); where.appendChild(el('span', 'wtext'));
     if (p.date) when.title = 'Updated ' + exact(p);
@@ -1090,13 +1114,13 @@ button.lnk:hover { text-decoration: underline; }
   }
   function renderBar(query) {
     bar.textContent = ''; app.classList.toggle('at-root', current === root);
-    var n = Object.keys(edits).length; $('save').hidden = !n;
+    var n = Object.keys(edits).reduce(function (c, id) { var e = edits[id]; return c + (e.folder ? 1 : 0) + (e.status !== undefined ? 1 : 0) + (typeof e.note === 'string' ? 1 : 0); }, 0); $('save').hidden = !n;
     if (n) $('save-n').textContent = n + (n === 1 ? ' change made here, not yet in the hub' : ' changes made here, not yet in the hub');
     if (sinceN && !sinceGone) { // a quiet line: what changed since this browser last opened the hub
       var since = el('div', 'since'); since.setAttribute('role', 'status');
       since.appendChild(el('span', '', sinceN + (sinceN === 1 ? ' page updated' : ' pages updated') + ' since your last visit'));
       var show = el('button', 'stf'); show.type = 'button'; show.setAttribute('aria-pressed', String(sinceFilter)); show.textContent = sinceFilter ? 'Showing only these' : 'Show';
-      show.addEventListener('click', function () { sinceFilter = !sinceFilter; render(); });
+      show.addEventListener('click', function () { sinceFilter = !sinceFilter; if (sinceFilter && current !== root) go(root); else render(); });
       var dis = el('button', 'lnk', 'Dismiss'); dis.type = 'button'; dis.addEventListener('click', function () { sinceGone = true; sinceFilter = false; render(); });
       since.appendChild(show); since.appendChild(dis); bar.appendChild(since);
     }
@@ -1135,7 +1159,7 @@ button.lnk:hover { text-decoration: underline; }
         var ok = el('button', 'btn primary', 'Keep'), no = el('button', 'btn', 'Cancel'); ok.type = 'button'; no.type = 'button';
         ok.addEventListener('click', function () { noteOpen = null; setNote(pn2, ta.value); });
         no.addEventListener('click', function () { noteOpen = null; render(); });
-        ta.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); noteOpen = null; render(); } if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); noteOpen = null; setNote(pn2, ta.value); } });
+        ta.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); noteOpen = null; render(); } if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); noteOpen = null; setNote(pn2, ta.value); } });
         var row = el('div', 'btns'); row.appendChild(ok); row.appendChild(no); nt.appendChild(ta); nt.appendChild(row);
         setTimeout(function () { ta.focus(); }, 0);
       } else if (pn2.note) { // the note, with a pencil to change it
@@ -1182,7 +1206,7 @@ button.lnk:hover { text-decoration: underline; }
         if (isHidden(k) && !showHidden && !inCurrent(k)) return; // hidden folders leave the chips too (the tablet rail shows them at the top level)
         var b = el('button'); b.type = 'button';
         if (k.up === root) b.appendChild(el('span', 'dot c-' + k.color)); else b.appendChild(icon('folder'));
-        b.appendChild(el('span', '', k.name)); b.appendChild(el('small', '', String(under(k).length)));
+        b.appendChild(el('span', '', k.name)); b.appendChild(el('small', '', String(shownCount(k))));
         b.addEventListener('click', function () { go(k); }); subs.appendChild(b);
       });
       if (subs.childNodes.length) bar.appendChild(subs);
@@ -1224,7 +1248,7 @@ button.lnk:hover { text-decoration: underline; }
   function folderItem(node, withDot) {
     var b = el('button', 'item'); b.type = 'button'; if (isHidden(node)) b.classList.add('faint');
     if (node === root) b.appendChild(icon('all')); else if (withDot) b.appendChild(el('span', 'dot c-' + node.color));
-    b.appendChild(el('span', 'l', node.name)); b.appendChild(el('small', '', String(node === root ? shownCount(node) : under(node).length)));
+    b.appendChild(el('span', 'l', node.name)); b.appendChild(el('small', '', String(shownCount(node))));
     if (node === current) b.setAttribute('aria-current', 'true');
     b.addEventListener('click', function () { go(node); });
     return b;
@@ -1271,7 +1295,7 @@ button.lnk:hover { text-decoration: underline; }
     var dots = $('rail-dots'); dots.textContent = '';
     [root].concat(root.kids.filter(function (n) { return !isHidden(n) || inCurrent(n); })).forEach(function (n) {
       var b = el('button', 'rbtn'); b.type = 'button';
-      b.title = n.name + ' · ' + (n === root ? shownCount(n) : under(n).length); b.setAttribute('aria-label', n.name + ', ' + (n === root ? shownCount(n) : under(n).length) + ' pages');
+      b.title = n.name + ' · ' + shownCount(n); b.setAttribute('aria-label', n.name + ', ' + shownCount(n) + ' pages');
       if (n === current || (n !== root && current.proj === n)) b.setAttribute('aria-current', 'true');
       b.appendChild(n === root ? icon('all') : el('span', 'dot c-' + n.color));
       b.addEventListener('click', function () { go(n); }); dots.appendChild(b);
@@ -1301,7 +1325,7 @@ button.lnk:hover { text-decoration: underline; }
       else byHand();
     } catch (e) { byHand(); }
   }
-  function copy(p) { copyText(A + p.id); }
+  function copy(p) { copyText(urlOf(p.id)); }
   function togglePin(p) {
     var k = pins.indexOf(p.id);
     if (k >= 0) pins.splice(k, 1); else pins.unshift(p.id);
@@ -1368,8 +1392,9 @@ button.lnk:hover { text-decoration: underline; }
     setField($('insp-status'), p.status ? cap(p.status) : 'None', p.status ? statusDot(p.status) : null);
     setField($('insp-move'), pathOf(p.node), null);
     $('insp-unsaved').hidden = !p.unsaved;
-    $('insp-kind-text').textContent = kindLabel(p.kind) + (p.known ? ' (recorded by Claude)' : ' (from the title)') + (p.by ? ' · shared by ' + p.by : '');
-    $('insp-url').value = A + p.id; $('insp-open').href = A + p.id; $('insp-open').setAttribute('data-id', p.id);
+    $('insp-kind-text').textContent = kindLabel(p.kind) + (p.known ? ' (recorded by Claude)' : ' (from the title)') + (p.by ? ' · ' + byText(p) : '');
+    $('insp-prompt').hidden = !!p.by; $('insp-fine').hidden = !!p.by; $('insp-shared').hidden = !p.by; // a shared page is not the user's to republish
+    $('insp-url').value = urlOf(p.id); $('insp-open').href = urlOf(p.id); $('insp-open').setAttribute('data-id', p.id);
     var on = pins.indexOf(p.id) >= 0, pb = $('insp-pin'); pb.setAttribute('aria-pressed', String(on)); pb.lastChild.textContent = on ? 'Pinned' : 'Pin';
   }
   function inspect(p, from) {
@@ -1404,7 +1429,7 @@ button.lnk:hover { text-decoration: underline; }
   pasteText.addEventListener('focus', function () { this.select(); });
   $('insp-prompt').addEventListener('click', function () {
     if (!inspected) return;
-    showPaste('Update my artifact "' + inspected.title + '" at ' + A + inspected.id + ' (read it first with the Artifact tool, then publish to the same URL).',
+    showPaste('Update my artifact "' + inspected.title + '" at ' + urlOf(inspected.id) + ' (read it first with the Artifact tool, then publish to the same URL).',
       ['Open a new Claude Code session, in any folder.', 'Paste the line, then say what to change.', 'Claude reads this page and publishes to the same link, so the hub keeps one row.']);
   });
   // the whole list as Markdown, made in the browser; nothing is sent anywhere
@@ -1414,7 +1439,7 @@ button.lnk:hover { text-decoration: underline; }
       lines.push('## ' + pn.name + (pn.about ? ' — ' + pn.about : ''), '');
       (function walk(n, depth) {
         if (n !== pn && n.pages.length) { if (lines[lines.length - 1] !== '') lines.push(''); lines.push('#'.repeat(Math.min(6, depth + 2)) + ' ' + trail(n).slice(2).map(function (x) { return x.name; }).join(' / '), ''); }
-        n.pages.forEach(function (p) { lines.push('- [' + p.title.replace(/[\[\]]/g, '') + '](' + A + p.id + ')' + (p.desc ? ' — ' + p.desc : '') + (p.date ? ' (' + p.date + ')' : '')); });
+        n.pages.forEach(function (p) { lines.push('- [' + p.title.replace(/[\[\]]/g, '') + '](' + urlOf(p.id) + ')' + (p.desc ? ' — ' + p.desc : '') + (p.date ? ' (' + p.date + ')' : '')); });
         n.kids.forEach(function (k) { walk(k, depth + 1); });
       })(pn, 0);
       lines.push('');
@@ -1498,7 +1523,7 @@ button.lnk:hover { text-decoration: underline; }
   // bulk actions change every selected page first and draw once at the end
   $('sel-move').addEventListener('click', function () { menu(this, folderOptions(null), null, function (v) { var to = byKey[v]; if (!to) return; var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (movePage(p, to, true)) n++; }); redraw(); toast(n ? 'Moved ' + n + ' to ' + pathOf(to) : 'Already there'); }); });
   $('sel-status').addEventListener('click', function () { menu(this, statusOptions(true, 'No status'), null, function (v) { var ps = selPages(), n = 0; clearSel(); ps.forEach(function (p) { if (setStatus(p, v, true)) n++; }); redraw(); toast(v ? 'Marked ' + n + ' as ' + v : 'Status removed from ' + n); }); });
-  $('sel-copy').addEventListener('click', function () { var ps = selPages(); copyText(ps.map(function (p) { return A + p.id; }).join('\n'), 'Copied ' + ps.length + (ps.length === 1 ? ' link' : ' links')); });
+  $('sel-copy').addEventListener('click', function () { var ps = selPages(); copyText(ps.map(function (p) { return urlOf(p.id); }).join('\n'), 'Copied ' + ps.length + (ps.length === 1 ? ' link' : ' links')); });
   $('sel-clear').addEventListener('click', clearSel);
   $('save-copy').addEventListener('click', function () {
     showPaste(editsText(), ['Open Claude Code in any folder.', 'Paste the message and send it.', 'Claude reads this hub, writes the changes and republishes. Reload this page afterwards: the Unsaved marks go away.']);
@@ -1508,7 +1533,7 @@ button.lnk:hover { text-decoration: underline; }
   [['/  or  ' + MOD + 'K', 'Search'], ['↑ ↓  or  j k', 'Move between pages (the gallery in reading order)'], ['Enter', 'Open the page (new tab)'],
     ['i', 'Details of the page'], [MOD + '↑  ' + MOD + '↓', 'Previous / next group'], ['Home  End', 'First / last page (in the list)'],
     ['c', 'Copy the page link'], ['p', 'Pin or unpin the page'], ['x', 'Select or unselect the page (shift-click too)'], ['o  then  1–9', 'Open the 1st to 9th page shown'],
-    ['v', 'Gallery or list'], ['[', 'Hide or show the sidebar'], ['Esc', 'Clear the selection, close, clear the search, then leave it'], ['?', 'This list']]
+    ['v', 'Gallery or list'], ['[', 'Hide or show the sidebar'], ['Esc', 'Close what is open, clear the selection; in the search box, clear it, then leave it'], ['?', 'This list']]
     .forEach(function (k) { $('keys-list').appendChild(el('dt')).appendChild(el('kbd', '', k[0])); $('keys-list').appendChild(el('dd', '', k[1])); });
 
   // ---- Events

@@ -78,6 +78,7 @@ test('reads, lists, asset uploads, failed publishes, other tools and junk are ig
     { tool_input: { action: 'read', url: `${A}AAA111` }, tool_response: `${A}AAA111` },
     { tool_input: { asset: true, url: `${A}AAA111` }, tool_response: published('AAA111') },
     { tool_input: {}, tool_response: 'Publish refused.' },
+    { tool_input: { file_path: '/x/a.html' }, tool_response: `Publish refused — nothing was merged or published: a newer version is live at ${A}AAA111` },
     { tool_name: 'ArtifactComments', tool_input: {}, tool_response: published('AAA111') },
     'not json',
   ]) assert.strictEqual(h.run(e), '');

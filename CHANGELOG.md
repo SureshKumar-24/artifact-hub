@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.5.10
+
+- Dates written as a bare day (`2026-09-17`) are that day for every viewer; they used to
+  slip to the day before west of UTC.
+- A refused publish that quotes the live page's link is no longer recorded as a publish.
+- The session hook also runs after `/clear` and `/fork`.
+- A page whose id is a Claude Code uuid links under `claude.ai/code/artifact/`.
+- Sidebar, chip and rail counts match what the lists show (hidden folders and archived
+  pages left out).
+- Covers carry a faint pattern per kind (lines for a document, bars for a report, a grid
+  for a design, diagonals for code), so the cards of one project differ at a glance.
+- On tablets the project chips at the top level take one sideways row; on phones every
+  sideways row fades at its edges to say it goes on.
+- A shared page's details no longer offer "Copy for Claude Code": it is listed, can be
+  filed and marked, and says plainly that only its owner can change it. A row whose
+  owner is unknown reads "Shared", not "shared by Shared".
+- "Show" after "N pages updated since your last visit" starts from All pages, so every
+  changed page is in the list, not only the open folder's.
+- The save bar counts changes (a move and a status on one page are two), and updates at
+  once when a note is cleared.
+- Enter keeps a project note; Shift+Enter makes a line break.
+- Touch: chips, the sort and view switches, the save bar buttons, card actions and the
+  rail dots are all 40px on a touch screen.
+- Text links and status labels read darker in the light looks (contrast above 4.5:1).
+- `plugin.json` names the documentation and support pages for the plugin directory.
+
 ## 1.5.9
 
 - Fixed: with pages selected, the selection bar's "Move to…" button was filled with every
