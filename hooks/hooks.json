@@ -2,9 +2,9 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|resume|clear|fork",
+        "matcher": "startup|resume|clear|compact|fork",
         "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/on-session.js"] }
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/on-session.js"], "timeout": 10 }
         ]
       }
     ],
@@ -12,14 +12,14 @@
       {
         "matcher": "Artifact|mcp__claude_ai_Claude_Docs__batch",
         "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/on-artifact.js"] }
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/on-artifact.js"], "timeout": 10 }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/on-stop.js"] }
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/on-stop.js"], "timeout": 10 }
         ]
       }
     ]

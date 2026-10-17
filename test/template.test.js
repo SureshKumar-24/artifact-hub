@@ -213,3 +213,40 @@ test('a real PROJECTS array injected between the markers still parses and evalua
     }
   }
 });
+
+test('audit 4: dates in month-first order, projects told apart by id, gone pages marked, the fold button desktop-only', () => {
+  const js = script(TEMPLATE);
+  // the date parser, run on its own: 'Oct 15' is this year's 15 October, never the year 2001 Date.parse gives it
+  const ctx = {};
+  vm.runInNewContext(js.slice(js.indexOf('var MONTHS'), js.indexOf('function age(')) + '\nthis.parseDate = parseDate; this.today = today;', ctx);
+  const y = new Date(ctx.today).getFullYear();
+  const day = (t) => { const d = new Date(t); return [d.getFullYear() === y || d.getFullYear() === y - 1, d.getMonth(), d.getDate()]; };
+  assert.deepStrictEqual(day(ctx.parseDate('Oct 15')), [true, 9, 15]);
+  assert.deepStrictEqual(day(ctx.parseDate('15 Oct')), [true, 9, 15]);
+  assert.deepStrictEqual(day(ctx.parseDate('October 15th, 2026')), [true, 9, 15]);
+  assert.strictEqual(ctx.parseDate('Oct 15'), ctx.parseDate('15 Oct'), 'both orders mean the same day');
+  assert.strictEqual(new Date(ctx.parseDate('2026-10-01')).getDate(), 1, 'a bare day is a local day');
+  assert.strictEqual(ctx.parseDate(''), 0); assert.strictEqual(ctx.parseDate('today'), 0); assert.strictEqual(ctx.parseDate('not a date'), 0);
+  assert.ok(ctx.parseDate('2026-10-14T09:30:00.000Z') > 0, 'an ISO stamp still parses');
+  // two projects with the same name stay two projects (matched by id), so Save to hub loses neither
+  assert.match(js, /if \(key && byKey\[key\] && byKey\[key\]\.up === parent\) return byKey\[key\]/);
+  assert.match(js, /if \(!key\) for \(var i = 0; i < parent\.kids\.length; i\+\+\) if \(parent\.kids\[i\]\.name\.toLowerCase\(\)/, 'folders inside a project still merge by name');
+  // a row marked gone by the link check shows it, is searchable, and the details panel explains it
+  assert.match(js, /if \(p\.gone\) \{ var gn = el\('span', 'st s-gone', 'Gone\?'\)/);
+  assert.match(js, /\(p\.gone \? ' gone' : ''\)/);
+  assert.match(js, /\$\('insp-gone'\)\.hidden = !p\.gone/);
+  assert.match(TEMPLATE, /id="insp-gone" hidden/);
+  assert.match(TEMPLATE, /\.s-gone \{/);
+  // the sidebar fold button: hidden by a rule that outranks .ib, shown again only from 1024px
+  const css = TEMPLATE.slice(TEMPLATE.indexOf('<style>'), TEMPLATE.indexOf('</style>'));
+  const hide = css.indexOf('.ib.fold { display: none;'), show = css.indexOf('.ib.fold { display: inline-grid; }'), ib = css.indexOf('.ib { width: 36px');
+  assert.ok(hide > 0 && show > 0, 'both rules exist');
+  assert.ok(hide < show, 'the base rule comes first, the desktop media rule after it, so the later one wins there');
+  assert.ok(show < ib, 'and .ib alone, later in the sheet, cannot outrank .ib.fold');
+  assert.doesNotMatch(css, /\n\.fold \{/, 'no bare .fold rule that .ib would override');
+  // menus survive a phone keyboard (height-only resize); bulk actions hand focus to the list; palette actions are ranked
+  assert.match(js, /if \(window\.innerWidth !== lastW\) \{ lastW = window\.innerWidth; closeMenu\(false\); \}/);
+  assert.strictEqual((js.match(/list\.focus\(\{ preventScroll: true \}\); \}\); \}\);/g) || []).length, 2, 'both selection-bar menus');
+  assert.match(js, /if \(fl\.indexOf\(w\) === 0\) score \+= 4; else if \(wordAt\(fl, w\) >= 0\) score \+= 3; else if \(f\.indexOf\(w\) >= 0\) score \+= 2; else if \(fuzzy\(fl, w\)\) score \+= 1; else return null;/);
+  assert.strictEqual((js.match(/^\s+check: '/gm) || []).length, 1, 'one check icon, not two');
+});

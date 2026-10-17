@@ -13,8 +13,9 @@ earlier. When Claude is about to publish a **new** artifact (an `Artifact` call 
 
 "Update" rewrites the call with the saved link, so the page is republished in place and
 the old link keeps working. "Publish anyway" lets the call through as it was. Everything
-else passes untouched: republishes that already carry a `url`, reads, lists, deletes,
-asset uploads. If the guard itself fails for any reason, or there is nobody to ask (a
+else passes untouched: republishes that already carry a `url`, a file this session has
+already published (publishing it again is how the tool redeploys a page), pages made from
+an artifact type, reads, lists, deletes, asset uploads. If the guard itself fails for any reason, or there is nobody to ask (a
 `claude -p` run), the call goes through as Claude made it. The mod can only ask; it never
 blocks.
 

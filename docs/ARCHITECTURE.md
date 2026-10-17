@@ -1,12 +1,12 @@
 # Architecture
 
-One page for contributors: what runs, what it writes, the data contract, and where the page's logic lives. Everything here is checked against the code at v1.7.2; when the code and this page disagree, the code wins and this page needs a fix.
+One page for contributors: what runs, what it writes, the data contract, and where the page's logic lives. Everything here is checked against the code at v2.1.1; when the code and this page disagree, the code wins and this page needs a fix.
 
 ## Pieces
 
 ```
 .claude-plugin/plugin.json      name, version, keywords, documentation and support links
-.claude-plugin/marketplace.json this repository as a one-plugin marketplace
+.claude-plugin/marketplace.json this repository as a marketplace: artifact-hub and artifact-hub-guard
 hooks/hooks.json                three hook registrations, exec form (node + args), no shell
 hooks/on-artifact.js            PostToolUse: save the link, ask Claude to file the page
 hooks/on-stop.js                Stop: one reminder if a page was published and not filed
@@ -19,6 +19,7 @@ skills/week/SKILL.md            digest from pages.json and activity.log
 skills/pin/SKILL.md             pin or unpin the hub
 test/hook.test.js               the hooks, run in a temp HOME
 test/template.test.js           the page contract and the template's invariants
+guard/                          artifact-hub-guard, the optional duplicate-guard mod (its own plugin.json, hooks/register.ts, tests)
 ```
 
 ## Hooks
@@ -27,7 +28,7 @@ test/template.test.js           the page contract and the template's invariants
 |---|---|---|---|---|---|
 | `PostToolUse` | `Artifact\|mcp__claude_ai_Claude_Docs__batch` | `on-artifact.js` | stdin event, first 8 KB of the published file (its `<title>`), `hub.json` | `pages.json`, `activity.log`, `.pending`, `.offered` | once per publish: file this page; once per delete: remove its row; once a day before setup: offer setup |
 | `Stop` | none | `on-stop.js` | stdin event (`last_assistant_message`, `stop_hook_active`), `.pending`, `hub.json` | removes `.pending` | one reminder when a page published in the last 30 minutes was not filed and Claude did not mention the hub |
-| `SessionStart` | `startup\|resume\|clear\|fork` | `on-session.js` | `pages.json`, `hub.json`, `cwd` | nothing | the two most recent pages published from this repository in the last 30 days, or nothing |
+| `SessionStart` | `startup\|resume\|clear\|compact\|fork` | `on-session.js` | `pages.json`, `hub.json`, `cwd` | nothing | the two most recent pages published from this repository in the last 30 days, or nothing |
 
 `on-artifact.js` decides what the tool call was from `tool_input`: a `publish` (no `asset`, a link in the result, not a refusal), a `delete`, or something to ignore (`read`, `list`, assets, other tools whose name starts with `Artifact`). A publish of the hub itself (its id equals `hubUrl`'s) is logged as `filed` and clears `.pending`. A publish whose title matches a saved page under a different id marks the old entry `replacedBy`. A Docs `batch` call that creates a document is a page with `type: 'doc'`; a `type_url` on a publish becomes `typeId`. Every hook exits 0 and writes nothing to stderr, whatever stdin holds.
 
@@ -82,7 +83,7 @@ var PROJECTS = [
 | Render | `render`, `getSec`, `getRow`, `getCard`, `fillItem`, `renderBar`, `renderEmpty`, `renderSide`, `setActive`, `move`, `jump` | `itemCache` and `secCache` keep DOM nodes across renders; `render()` only re-parents |
 | Filters | `visible`, `visibleBut`, `chipOff`, `computeDups`, `isStale`, `isNew`, `isHidden`, `shownCount` | chip counts are computed under the other active filters; All pages caps each project at `CAP` (8) only when nothing is filtered |
 | Details and menus | `inspect`, `fillInspector`, `menu`, `statusOptions`, `folderOptions`, `setField`, `renderSel` | `<dialog>` elements; the popover mounts inside the open dialog |
-| Palette | `ACTIONS`, `palOpen`, `palDraw`, `palItem`, `palMark`, `palRun`, `palRemember`, `palRecentActions` | 38 actions with stable ids and `when()`; recents in `project-hub.palette.v1` |
+| Palette | `ACTIONS`, `palOpen`, `palDraw`, `palItem`, `palMark`, `palRun`, `palRemember`, `palRecentActions` | 42 actions with stable ids and `when()`; recents in `project-hub.palette.v1` |
 | Save and export | `claudeUse`, `dataText`, `rowText`, `q1`, `saveToHub`, `renderSaveBar`, `download`, `hubJSON`, `mdText`, `projectText`, `copyProject` | `saveToHub()` fetches the page's own source, requires one marker pair, swaps the block for `dataText()`, publishes through the `artifact` capability |
 | Keys | the `keydown` handler, `armQuick`, `clearQuick` | `/`, `⌘K`, `j k`, `Enter`, `i`, `c`, `p`, `x`, `v`, `o`+digit, `[`, `?`, `Esc` |
 
