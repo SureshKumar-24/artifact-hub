@@ -193,8 +193,32 @@ test('publishes and filings are logged, and the log keeps the 500 latest lines',
   assert.match(after[499], /published .*BBB222$/);
 });
 
-test('a damaged list is replaced, not crashed on', () => {
+test('a damaged list is kept aside as pages.json.bad and replaced, not crashed on', () => {
   const h = home(); fs.mkdirSync(h.store, { recursive: true }); fs.writeFileSync(path.join(h.store, 'pages.json'), '{broken');
   h.run({ tool_input: {}, tool_response: published('AAA111') });
   assert.strictEqual(h.pages().length, 1);
+  assert.strictEqual(fs.readFileSync(path.join(h.store, 'pages.json.bad'), 'utf8'), '{broken');
+});
+
+test("the call's title names a page whose file has no <title>; a Windows path gives its file name", () => {
+  const h = home();
+  const bare = path.join(h.dir, 'bare.html'); fs.writeFileSync(bare, '<p>hello</p>');
+  h.run({ tool_input: { file_path: bare, title: 'Given name' }, tool_response: published('AAA111') });
+  h.run({ tool_input: { file_path: bare }, tool_response: published('BBB222') });
+  h.run({ tool_input: { file_path: 'C:\\Users\\me\\Q4 plan.html' }, tool_response: published('CCC333') });
+  assert.deepStrictEqual(h.pages().map((p) => p.title), ['Given name', 'bare', 'Q4 plan']);
+});
+
+test('twelve sessions publishing in the same instant all keep their entry', () => {
+  const h = home();
+  const { spawn } = require('child_process');
+  const ids = Array.from({ length: 12 }, (_, i) => `ID${String(i).padStart(4, '0')}`);
+  return Promise.all(ids.map((id) => new Promise((resolve) => {
+    const c = spawn(process.execPath, [HOOK], { env: { ...process.env, HOME: h.dir, USERPROFILE: h.dir } });
+    c.on('close', resolve);
+    c.stdin.end(JSON.stringify({ tool_name: 'Artifact', tool_input: { title: id }, tool_response: published(id) }));
+  }))).then(() => {
+    assert.deepStrictEqual(h.pages().map((p) => p.title).sort(), ids);
+    assert.strictEqual(fs.existsSync(path.join(h.store, 'pages.json.lock')), false, 'the lock is released');
+  });
 });

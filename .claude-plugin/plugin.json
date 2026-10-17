@@ -1,7 +1,7 @@
 {
   "name": "artifact-hub",
   "description": "Every Claude artifact you publish, filed and searchable: links saved on your machine at publish time and filed into project folders on one private index page, with a command palette, gallery, search, details, status, pins and a weekly digest.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "author": {
     "name": "Suresh Kumar"
   },

@@ -1,5 +1,37 @@
 # Changelog
 
+## 2.1.1
+
+A full audit of the page, the hooks, the guard and the docs, in the browser at three widths
+and both themes. Fifteen fixes, none of them changing the hub's data format.
+
+Hub page
+- The "Hide the sidebar" button no longer shows inside the phone and tablet drawer.
+- Month-first dates such as `Oct 15` read as this year, not 2001.
+- Two projects with the same name stay two projects; Save to hub no longer drops the second.
+- Pages the link check marked as gone now show a muted "Gone?" label and explain themselves
+  in the details panel; `gone` is a search word.
+- Palette actions rank exact and word matches above fuzzy ones.
+- On phones the keyboard opening no longer closes the Move to menu.
+- Focus lands on the list, not the page body, after a bulk status or move.
+
+Hooks
+- Two sessions publishing in the same instant can no longer drop each other's entry:
+  `pages.json` writes take a short lock.
+- A damaged `pages.json` is kept as `pages.json.bad` instead of being discarded.
+- The page's name follows the tool's own rule: the file's `<title>`, then the call's title,
+  then the file name.
+- Every hook has a 10 second timeout; the SessionStart line also returns after a compaction.
+
+Guard (0.1.1)
+- No longer asks on an in-session redeploy of the same file, on a publish with `edits`, or on
+  a page made from an artifact type (those cannot take a `url`).
+- Names the page by the same rule as the hook, so the two always agree.
+
+Docs
+- Pinning a release is `owner/repo#v2.1.1`, not `@`; palette action count, version
+  placeholders and the architecture notes brought up to date.
+
 ## 2.1.0
 
 - A second plugin in the marketplace, `artifact-hub-guard`: a mod for Claude Code 2.1.287

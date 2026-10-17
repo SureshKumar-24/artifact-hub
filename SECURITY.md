@@ -7,9 +7,9 @@ server, no agent and no dependency to install:
 
 | Event | Matcher | Script |
 |---|---|---|
-| `PostToolUse` | `Artifact\|mcp__claude_ai_Claude_Docs__batch` (the Artifact tool, and the Claude Docs connector call that creates a document) | `hooks/on-artifact.js`, 164 lines |
-| `Stop` | none | `hooks/on-stop.js`, 36 lines |
-| `SessionStart` | `startup\|resume\|clear\|fork` | `hooks/on-session.js`, 56 lines |
+| `PostToolUse` | `Artifact\|mcp__claude_ai_Claude_Docs__batch` (the Artifact tool, and the Claude Docs connector call that creates a document) | `hooks/on-artifact.js`, under 200 lines |
+| `Stop` | none | `hooks/on-stop.js`, under 40 lines |
+| `SessionStart` | `startup\|resume\|clear\|compact\|fork` | `hooks/on-session.js`, under 60 lines |
 
 The scripts:
 
@@ -59,7 +59,7 @@ rewrite the data block and republish exactly what was served.
 To avoid picking up future changes without reviewing them, install a tagged release:
 
 ```
-/plugin marketplace add SureshKumar-24/artifact-hub@v2.1.0
+/plugin marketplace add SureshKumar-24/artifact-hub#v2.1.1
 ```
 
 ## Report a problem

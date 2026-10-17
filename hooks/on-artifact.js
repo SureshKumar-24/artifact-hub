@@ -42,10 +42,11 @@ function titleOf(filePath) {
     const n = fs.readSync(fd, buf, 0, buf.length, 0);
     fs.closeSync(fd);
     const m = buf.toString('utf8', 0, n).match(/<title[^>]*>([^<]{1,200})<\/title>/i);
-    const t = m ? plain(m[1]) : '';
-    return t || path.basename(filePath).replace(/\.[^.]+$/, '');
-  } catch { return null; }
+    return m ? plain(m[1]) : '';
+  } catch { return ''; }
 }
+/** The file's name without its folder and extension. */
+const basename = (filePath) => plain(path.basename(String(filePath).replace(/\\/g, '/')).replace(/\.[^.]+$/, ''));
 
 /** Name of the project folder: the nearest folder holding a .git entry, else the working folder. */
 function projectFolder(cwd) {
@@ -70,18 +71,43 @@ function log(text) {
   } catch { /* read-only home */ }
 }
 
+/**
+ * Holds the list for at most a second while this process edits it, so two sessions that
+ * publish in the same instant do not overwrite each other's entry. A lock left behind by a
+ * crashed process is taken over after five seconds; when the lock cannot be had, the edit
+ * goes ahead anyway: losing a link would be worse than a rare overwrite.
+ */
+function lock() {
+  const file = `${PAGES}.lock`;
+  const unlock = () => { try { fs.unlinkSync(file); } catch { /* already gone */ } };
+  for (let i = 0; i < 40; i++) {
+    try { fs.writeFileSync(file, String(process.pid), { flag: 'wx' }); return unlock; } catch { /* held by another process */ }
+    try { if (Date.now() - fs.statSync(file).mtimeMs > 5000) fs.unlinkSync(file); } catch { /* released meanwhile */ }
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
+  }
+  return () => {};
+}
+
 /** Reads the list, lets `change` edit it, and swaps the whole file in. Never drops an entry. */
 function update(change) {
+  let unlock = () => {};
   try {
     fs.mkdirSync(DIR, { recursive: true });
-    const pages = readJson(PAGES, []);
-    const list = Array.isArray(pages) ? pages : [];
+    unlock = lock();
+    let list = [];
+    let raw = null;
+    try { raw = fs.readFileSync(PAGES, 'utf8'); } catch { /* first page */ }
+    if (raw !== null) {
+      try { const parsed = JSON.parse(raw); if (Array.isArray(parsed)) list = parsed; else throw new Error('not a list'); } catch {
+        try { fs.writeFileSync(`${PAGES}.bad`, raw); } catch { /* read-only home */ } // a damaged list is kept aside, never silently lost
+      }
+    }
     change(list, new Date().toISOString());
     const tmp = `${PAGES}.${process.pid}.tmp`;
     fs.writeFileSync(tmp, `${JSON.stringify(list, null, 2)}\n`);
     fs.renameSync(tmp, PAGES); // whole-file swap, so a crash cannot leave half a list
     return true;
-  } catch { return false; }
+  } catch { return false; } finally { unlock(); }
 }
 
 function main(raw) {
@@ -123,8 +149,11 @@ function main(raw) {
   log(`published ${url}`);
 
   const folder = projectFolder(event.cwd);
+  // the page's name as the gallery shows it: the file's own <title>, else the call's `title`
+  // (the tool uses it only when the file has none), else the file's name
+  const given = typeof input.title === 'string' ? plain(input.title) : '';
   const title = newDoc ? (typeof newDoc.name === 'string' && plain(newDoc.name)) || null
-    : input.file_path ? titleOf(String(input.file_path)) : (typeof input.title === 'string' && plain(input.title)) || null;
+    : input.file_path ? titleOf(String(input.file_path)) || given || basename(input.file_path) || null : given || null;
   // a new page with the title of a known page is most likely that page published again from a
   // session that had lost the link; the old entry is marked, never removed, and Claude is told
   let replaced = null;

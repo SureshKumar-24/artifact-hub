@@ -1,7 +1,7 @@
 import type { On } from 'claude-code'
 import { describe, expect, mock, test } from 'claude-code/testing'
 
-import { findSaved, fold, plain, titleIn } from '../hooks/register'
+import { basename, findSaved, fold, plain, titleIn } from '../hooks/register'
 
 const HOME = '/home/suresh'
 const PAGES = `${HOME}/.claude/artifact-hub/pages.json`
@@ -108,6 +108,38 @@ describe('register', () => {
 
     expect(m.forwarded).toHaveLength(1)
     expect(m.forwarded[0]?.url).toBeUndefined()
+  })
+
+  test('a page made from an artifact type, and an in-session redeploy by path or by edits, are never asked about', async ($, on) => {
+    const m = machine(on, { [PAGES]: JSON.stringify(saved()) }, UPDATE)
+
+    await $.tool.call({ tool: 'Artifact', title: 'Pricing Page', type_url: 'https://claude.ai/artifact/TYPETYPETYPETYPETYPETY' })
+    await $.tool.call({ tool: 'Artifact', file_path: '/w/x.html', title: 'Pricing Page', edits: [{ old_str: 'a', new_str: 'b' }] })
+    expect(m.asked).toEqual([])
+    expect(m.forwarded).toHaveLength(2)
+    expect(m.forwarded[0]?.url).toBeUndefined()
+
+    // the first publish of a file asks once; publishing that file again is a redeploy
+    await $.tool.call({ tool: 'Artifact', file_path: '/w/y.html', title: 'Pricing Page' })
+    await $.tool.call({ tool: 'Artifact', file_path: '/w/y.html', title: 'Pricing Page' })
+    expect(m.asked).toHaveLength(1)
+    expect(m.forwarded).toHaveLength(4)
+    expect(m.forwarded[2]?.url).toBe(URL)
+    expect(m.forwarded[3]?.url).toBeUndefined()
+  })
+
+  test("the file's own <title> names the page before the call's title, and the file name comes last", async ($, on) => {
+    const list = [...saved(), ...saved({ url: 'https://claude.ai/artifact/NOTESNOTESNOTESNOTESNO', title: 'Release Notes' })]
+    const m = machine(on, { [PAGES]: JSON.stringify(list), '/w/a.html': '<title>Release Notes</title>', '/w/pricing page.html': '<p>no title</p>' }, UPDATE)
+
+    await $.tool.call({ tool: 'Artifact', file_path: '/w/a.html', title: 'Pricing Page' })
+    await $.tool.call({ tool: 'Artifact', file_path: '/w/pricing page.html' })
+
+    expect(m.asked[0]).toMatch(/"Release Notes" already exists/)
+    expect(m.asked[1]).toMatch(/"pricing page" already exists/)
+    expect(m.forwarded[0]?.url).toBe('https://claude.ai/artifact/NOTESNOTESNOTESNOTESNO')
+    expect(m.forwarded[1]?.url).toBe(URL)
+    expect(basename('C:\\Users\\me\\Q4 plan.html')).toBe('Q4 plan')
   })
 
   test('titles are compared as plain text, and read from the file when the call has none', async () => {

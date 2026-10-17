@@ -70,7 +70,7 @@ Artifact Hub answers each one. The link is saved on your machine at publish time
 
 | | |
 |---|---|
-| **Command palette** | `⌘K` or `Ctrl K`: one box for pages, folders and 38 actions, each action with its key. Nothing typed shows what you opened and ran last; `>` narrows to actions, `#` to folders; `Enter` opens or runs, `Shift+Enter` shows details. |
+| **Command palette** | `⌘K` or `Ctrl K`: one box for pages, folders and 42 actions, each action with its key. Nothing typed shows what you opened and ran last; `>` narrows to actions, `#` to folders; `Enter` opens or runs, `Shift+Enter` shows details. |
 | **Gallery or list** | Cards with a drawn cover per kind, or a dense list. One switch (`v`), remembered. Same search, folders and sorting in both. On a big hub, All pages shows eight per project with "All 64 in Fixkart →" beneath. |
 | **Search** | Titles, descriptions, folders, kinds and statuses at once. Forgives typos, puts a whole-word hit first, highlights what matched. Pick a folder to search inside it. |
 | **Filters that never dead-end** | One chip per kind and per status, plus "Duplicates" and "Untouched 60d+" when there is something to show. Each chip counts what it would show under the other filters that are on; a chip that would show nothing is dimmed. |
@@ -163,7 +163,7 @@ That gives you the `hub`, `find` and `pin` skills against a hub you already have
 
 | You want to | Do this |
 |---|---|
-| Install a fixed, reviewed version | Add the tag to the first command, for example `@v2.1.0` |
+| Install a fixed, reviewed version | Add the tag to the first command, for example `#v2.1.1` |
 | Try it without installing | `claude --plugin-dir path/to/artifact-hub` |
 | Read the code first | Three short scripts, five instruction files and one page template; see [SECURITY.md](SECURITY.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 
@@ -272,7 +272,7 @@ A plugin can run code on your machine, so here is all of it.
 
 | | |
 |---|---|
-| **Runs** | `hooks/on-artifact.js` (164 lines) on `PostToolUse` for the `Artifact` tool and the Claude Docs connector's `batch` call when it creates a document. `hooks/on-stop.js` (36 lines) on `Stop`. `hooks/on-session.js` (56 lines) on `SessionStart` (startup, resume, clear, fork). Node.js in exec form; no shell, no dependency, no MCP server, no agent. |
+| **Runs** | `hooks/on-artifact.js` (under 200 lines) on `PostToolUse` for the `Artifact` tool and the Claude Docs connector's `batch` call when it creates a document. `hooks/on-stop.js` (under 40 lines) on `Stop`. `hooks/on-session.js` (under 60 lines) on `SessionStart` (startup, resume, clear, compact, fork). Node.js in exec form; no shell, no dependency, no MCP server, no agent. |
 | **Reads** | The hook event on stdin, the first 8 KB of the file just published (for its `<title>`) or the new document's name, Claude's last message of the turn, and `hub.json`. During setup or a rebuild, Claude reads your own artifact list through its Artifact tool. |
 | **Writes** | In `~/.claude/artifact-hub/`: `pages.json` (your published links), `hub.json` (your hub's address and folder rules), `activity.log` (one line per publish and filing, the 500 latest), and two markers: `.pending` between a publish and its filing, `.offered` so setup is suggested at most once a day. And your hub artifact, through Claude's Artifact tool. |
 | **Sends** | Nothing. No network request, no server, no analytics, no account. |
@@ -408,6 +408,7 @@ skills/pin/       pin or unpin the hub
 skills/setup/     first-time setup
 docs/             screenshots and ARCHITECTURE.md
 test/             node --test test/
+guard/            the optional duplicate guard mod, a second plugin in the same marketplace
 ```
 
 Changes are listed in [CHANGELOG.md](CHANGELOG.md).
