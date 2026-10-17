@@ -14,9 +14,9 @@ A Claude Code plugin. Three small hooks save every published link on your machin
 ![network calls](https://img.shields.io/badge/network%20calls-0-brightgreen)
 ![tests](https://img.shields.io/badge/tests-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-brightgreen)
 
-![Project Hub in the gallery view at desktop width: a folder tree with counts on the left, a pinned page first, then the Bakery shop project's pages as cards with a drawn cover, a kind label, a status label and the folder; one card is selected and shows its pin, details, copy and open buttons](docs/hub.png)
+![Twenty seconds of the hub: the gallery filed by project, a project opened from the sidebar, then the command palette finding a page by its title and opening its details](docs/artifact-hub.gif)
 
-<sub>Example data in the default look, which matches claude.ai. A second look (warm paper, teal) is one click away under <code>?</code>. Covers are drawn from each page's kind, never screenshots.</sub>
+<sub>Example data in the default look, which matches claude.ai. <a href="https://github.com/SureshKumar-24/artifact-hub/releases/download/v2.1.1/artifact-hub-promo.mp4">Watch the one-minute video</a> (MP4, 4.8 MB). A second look (warm paper, teal) is one click away under <code>?</code>. Covers are drawn from each page's kind, never screenshots.</sub>
 
 </div>
 
@@ -107,6 +107,10 @@ Artifact Hub answers each one. The link is saved on your machine at publish time
 | **Tests** | `node --test test/`: the hooks in a fresh temporary home and the page's invariants, run on Linux, macOS and Windows for every change. |
 
 ## A tour
+
+![Project Hub in the gallery view at desktop width: a folder tree with counts on the left, a pinned page first, then the Bakery shop project's pages as cards with a drawn cover, a kind label, a status label and the folder; one card is selected and shows its pin, details, copy and open buttons](docs/hub.png)
+
+<sub>The gallery at desktop width. Every card is a link; hover or focus shows pin, details, copy and open.</sub>
 
 ![The command palette over the gallery with the query "design": five matching pages with their folders under Pages, the Design folder under Folders, and a footer with the keys: arrows move, Enter opens or runs, Shift+Enter details, > actions only, # folders only](docs/palette.png)
 
