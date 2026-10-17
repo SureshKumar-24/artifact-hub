@@ -16,7 +16,7 @@ A Claude Code plugin. Three small hooks save every published link on your machin
 
 ![Twenty seconds of the hub: the gallery filed by project, a project opened from the sidebar, then the command palette finding a page by its title and opening its details](docs/artifact-hub.gif)
 
-<sub>Example data in the default look, which matches claude.ai. <a href="https://github.com/SureshKumar-24/artifact-hub/releases/download/v2.1.1/artifact-hub-promo.mp4">Watch the one-minute video</a> (MP4 with narration, 6.2 MB). A second look (warm paper, teal) is one click away under <code>?</code>. Covers are drawn from each page's kind, never screenshots.</sub>
+<sub>Example data in the default look, which matches claude.ai. <a href="https://github.com/SureshKumar-24/artifact-hub/releases/download/v2.1.1/artifact-hub-promo.mp4">Watch the one-minute video</a> (MP4 with narration, 54 seconds, 6.4 MB). A second look (warm paper, teal) is one click away under <code>?</code>. Covers are drawn from each page's kind, never screenshots.</sub>
 
 </div>
 
