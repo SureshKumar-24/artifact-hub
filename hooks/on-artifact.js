@@ -157,10 +157,21 @@ function main(raw) {
   // a new page with the title of a known page is most likely that page published again from a
   // session that had lost the link; the old entry is marked, never removed, and Claude is told
   let replaced = null;
+  // a republish under a new name keeps the old one in `was` (newest first, ten at most), so a
+  // search for the name the user remembers still finds the page
+  let renamed = null;
   const saved = update((list, now) => {
     const hit = list.find((p) => idOf(p.url) === idOf(url));
-    if (hit) { hit.last = now; delete hit.deleted; if (title) hit.title = title; if (folder) hit.folder = folder; return; }
-    const twin = title && list.find((p) => p.title === title && !p.deleted && !p.replacedBy);
+    if (hit) {
+      hit.last = now; delete hit.deleted; if (folder) hit.folder = folder;
+      if (title && hit.title && hit.title !== title) {
+        renamed = hit.title;
+        hit.was = [hit.title].concat(Array.isArray(hit.was) ? hit.was : []).filter((t, i, a) => t && t !== title && a.indexOf(t) === i).slice(0, 10);
+      }
+      if (title) hit.title = title;
+      return;
+    }
+    const twin = title && list.find((p) => (p.title === title || (Array.isArray(p.was) && p.was.includes(title))) && !p.deleted && !p.replacedBy);
     if (twin) { twin.replacedBy = url; replaced = twin.url; }
     // what kind of page: a Claude Docs document, or a page made from one of Claude's artifact types
     // (slides, design, dashboard...), kept as the type's own id for the hub skill to name
@@ -184,6 +195,7 @@ function main(raw) {
     `by following the artifact-hub:hub skill ("Recording one page"): read the hub, add or update this page's row in the right folder` +
     `${projects ? ` (projects: ${projects})` : ''}, republish the hub to the same URL, and tell the user in one line that the hub was updated. ` +
     `${replaced ? `It has the same title as ${replaced}, which was most likely this page published again without its link: if so, change that row's id to the new page instead of adding a row, and tell the user the old link still works. ` : ''}` +
+    `${renamed ? `It was called ${JSON.stringify(renamed)} before: give the row its new title and keep the old name in the row's fifth item as was: [${JSON.stringify(renamed)}] (after any names already there), so a search for the old name still finds the page. ` : ''}` +
     `Skip this only if the user said not to record this page.`,
   );
 }

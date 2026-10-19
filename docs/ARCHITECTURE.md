@@ -30,13 +30,13 @@ guard/                          artifact-hub-guard, the optional duplicate-guard
 | `Stop` | none | `on-stop.js` | stdin event (`last_assistant_message`, `stop_hook_active`), `.pending`, `hub.json` | removes `.pending` | one reminder when a page published in the last 30 minutes was not filed and Claude did not mention the hub |
 | `SessionStart` | `startup\|resume\|clear\|compact\|fork` | `on-session.js` | `pages.json`, `hub.json`, `cwd` | nothing | the two most recent pages published from this repository in the last 30 days, or nothing |
 
-`on-artifact.js` decides what the tool call was from `tool_input`: a `publish` (no `asset`, a link in the result, not a refusal), a `delete`, or something to ignore (`read`, `list`, assets, other tools whose name starts with `Artifact`). A publish of the hub itself (its id equals `hubUrl`'s) is logged as `filed` and clears `.pending`. A publish whose title matches a saved page under a different id marks the old entry `replacedBy`. A Docs `batch` call that creates a document is a page with `type: 'doc'`; a `type_url` on a publish becomes `typeId`. Every hook exits 0 and writes nothing to stderr, whatever stdin holds.
+`on-artifact.js` decides what the tool call was from `tool_input`: a `publish` (no `asset`, a link in the result, not a refusal), a `delete`, or something to ignore (`read`, `list`, assets, other tools whose name starts with `Artifact`). A publish of the hub itself (its id equals `hubUrl`'s) is logged as `filed` and clears `.pending`. A publish whose title matches a saved page under a different id (by its current title or one in `was`) marks the old entry `replacedBy`. A republish of a known id under a new title moves the old title to the front of that entry's `was`. A Docs `batch` call that creates a document is a page with `type: 'doc'`; a `type_url` on a publish becomes `typeId`. Every hook exits 0 and writes nothing to stderr, whatever stdin holds.
 
 ### Files in `~/.claude/artifact-hub/`
 
 | File | Written by | Shape |
 |---|---|---|
-| `pages.json` | `on-artifact.js` | `[{ url, title, folder, first, last, type?, typeId?, replacedBy?, deleted? }]`; `first`/`last` are ISO times; `folder` is the git root or working directory name |
+| `pages.json` | `on-artifact.js` | `[{ url, title, folder, first, last, type?, typeId?, was?, replacedBy?, deleted? }]`; `first`/`last` are ISO times; `folder` is the git root or working directory name; `was` holds the earlier titles of a renamed page, newest first, ten at most |
 | `hub.json` | Claude (setup, hub skill) | `{ hubUrl, hubTitle, shared?, projects: [{ id, name, folders: [], match: [], subfolders: [{ path, match }] }] }` |
 | `activity.log` | `on-artifact.js` | one line per event, `ISO\tpublished <url>` or `ISO\tfiled`, the 500 latest |
 | `.pending` | `on-artifact.js` | `{ url, at }` for a page asked to be filed; removed by the hub's republish or by `on-stop.js` |
@@ -62,7 +62,7 @@ var PROJECTS = [
 // HUB-DATA-END
 ```
 
-- A row is `[title, id, description, date]` plus an optional fifth item: a bare status (`draft`, `review`, `final`, `archived`) or an object `{ status?, kind?, by?, gone? }`.
+- A row is `[title, id, description, date]` plus an optional fifth item: a bare status (`draft`, `review`, `final`, `archived`) or an object `{ status?, kind?, by?, gone?, was? }`. `was` is the page's earlier titles; search covers them, the row says "was …" when a search matched one, and the details panel lists them under Formerly.
 - `kind` is set only when Claude knows it from the artifact type: `slides`, `design`, `designsystem`, `dashboard`, `motion`, `doc`. Otherwise `kindOf()` reads it from the title and the panel says "from the title".
 - `date` is an ISO time, a bare day `YYYY-MM-DD` (read as a local day), or `'3 Oct'` (the most recent such day).
 - A shelf path is a folder path inside the project, parts separated by ` / `; `'All pages'` is the project folder itself. Folders exist only while they hold pages.
@@ -79,7 +79,7 @@ var PROJECTS = [
 | Storage | `getRaw`, `setRaw`, `getJSON`, `setJSON`, the `K` map | every `localStorage` access is in a `try`; keys below |
 | Model | `child`, `trail`, `under`, `index`, `pathOf`, `kindOf`, `parseDate`, `age`, `rel`, `exact` | `PROJECTS` becomes a folder tree (`root`, `byKey`, `byId`, `PAGES`) once at load |
 | Edits | `noteEdit`, `movePage`, `setStatus`, `setNote`, `discardEdits`, `editsText` | kept in `project-hub.edits.v1`; an edit that matches the data is dropped at load |
-| Search | `fold`, `wordAt`, `fuzzy`, `match`, `paint`, `sections`, `cmp` | a whole word in the title beats a title tail beats fuzzy; highlights are built as DOM, never HTML |
+| Search | `fold`, `wordAt`, `fuzzy`, `match`, `paint`, `sections`, `cmp` | a whole word in the title beats a title tail beats a whole word in an earlier title (`was`) beats description beats fuzzy; highlights are built as DOM, never HTML |
 | Render | `render`, `getSec`, `getRow`, `getCard`, `fillItem`, `renderBar`, `renderEmpty`, `renderSide`, `setActive`, `move`, `jump` | `itemCache` and `secCache` keep DOM nodes across renders; `render()` only re-parents |
 | Filters | `visible`, `visibleBut`, `chipOff`, `computeDups`, `isStale`, `isNew`, `isHidden`, `shownCount` | chip counts are computed under the other active filters; All pages caps each project at `CAP` (8) only when nothing is filtered |
 | Details and menus | `inspect`, `fillInspector`, `menu`, `statusOptions`, `folderOptions`, `setField`, `renderSel` | `<dialog>` elements; the popover mounts inside the open dialog |

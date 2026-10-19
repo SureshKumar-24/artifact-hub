@@ -6,13 +6,16 @@ description: Finds one of the user's published pages by a few words and hands ba
 # Find a page
 
 The user has a list of every page they published: `~/.claude/artifact-hub/pages.json`
-(written by the plugin at each publish: `url`, `title`, `folder`, `first`, `last`, and
-`deleted` or `replacedBy` when that happened), and a Project Hub whose link is `hubUrl`
-in `~/.claude/artifact-hub/hub.json`, with a row per page (`[title, id, description,
-date]` between `HUB-DATA-START` and `HUB-DATA-END`).
+(written by the plugin at each publish: `url`, `title`, `folder`, `first`, `last`, `was`
+for the earlier titles of a renamed page, and `deleted` or `replacedBy` when that
+happened), and a Project Hub whose link is `hubUrl` in `~/.claude/artifact-hub/hub.json`,
+with a row per page (`[title, id, description, date]` between `HUB-DATA-START` and
+`HUB-DATA-END`; a fifth item may hold `was`, the earlier titles).
 
-1. Take the words the user gave. Look in `pages.json` first (titles and folders), then
-   in the hub's rows (titles and descriptions) if the hub exists. Match loosely: any of
+1. Take the words the user gave. Look in `pages.json` first (titles, earlier titles in
+   `was`, and folders), then in the hub's rows (titles, earlier titles and descriptions)
+   if the hub exists. A page found by an earlier title is the same page: answer with its
+   current title and say what it used to be called. Match loosely: any of
    the words, any case, partial words. If neither file exists, say the plugin has not
    recorded a page yet and point to the `setup` skill.
 2. Skip entries marked `deleted`. For an entry with `replacedBy`, prefer the newer page it

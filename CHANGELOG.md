@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.2.0
+
+Renamed pages are found by their old names.
+
+- A republish under a new title keeps the old one in `was` on the `pages.json` entry (newest
+  first, ten at most) and tells Claude to carry it onto the hub row's fifth item.
+- The hub page searches earlier titles: a whole word there ranks just under a hit in the
+  title and above the description. The row shows "was …" only when the search matched an old
+  name, and the details panel lists every earlier name under Formerly. Save to hub and the
+  JSON export carry them.
+- The hub skill's rebuild moves a changed title into `was` instead of dropping it, and the
+  find skill answers by the current name when the user asks with an old one.
+- The guard recognises a page by an earlier title too, so publishing a file under a name a
+  page used to have still offers to update that page.
+
 ## 2.1.1
 
 A full audit of the page, the hooks, the guard and the docs, in the browser at three widths

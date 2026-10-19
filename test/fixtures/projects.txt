@@ -3,6 +3,7 @@
       ['All pages', [
         ['Shop Launch Checklist', 'Qx7rT2mVb9KdLp4sNe8Wz1', 'Steps left before the store goes live, by stage', '4 Oct'],
         ['Shop Pricing Notes', 'Hn3YcV6uJk2PqR8tLm5Xa7', 'How the plans compare and what to test next', '10 Oct', 'draft'],
+        ['Tablevo Admin Dashboard', 'Yq4WvN8sKt2Ld7Rm1Xb9Pc', 'Orders, tables and staff on one screen', '2026-10-18T11:05:00.000Z', { status: 'review', was: ['Restaurant Dashboard', 'Shop Ops Board'] }],
         ['Shop Logo Round One', 'Mz2KpW7rTq9Ln4Xs8Vc1Bd', 'First logo directions, superseded', '1 Sep', 'archived']
       ]]
     ]},

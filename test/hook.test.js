@@ -46,6 +46,29 @@ test('republishing the same page updates its entry instead of adding one', () =>
   assert.deepStrictEqual(h.pages().map((p) => p.title), ['One, renamed']);
 });
 
+test('a rename keeps the earlier titles in `was`, newest first, without repeats, and tells Claude', () => {
+  const h = home(); h.hub(`${A}HUB000`);
+  const v = (n) => published('AAA111').replace('Version 1', `Version ${n}`);
+  h.run({ tool_input: { title: 'Restaurant Dashboard' }, tool_response: v(1) });
+  assert.strictEqual(h.pages()[0].was, undefined, 'a first publish has no earlier name');
+  const out = h.run({ tool_input: { title: 'Tablevo Admin Dashboard' }, tool_response: v(2) });
+  assert.match(out, /was called "Restaurant Dashboard" before.*was: \["Restaurant Dashboard"\]/);
+  assert.deepStrictEqual(h.pages()[0].was, ['Restaurant Dashboard']);
+  assert.strictEqual(h.run({ tool_input: { title: 'Tablevo Admin Dashboard' }, tool_response: v(3) }).includes('was called'), false, 'the same title again is not a rename');
+  assert.deepStrictEqual(h.pages()[0].was, ['Restaurant Dashboard']);
+  h.run({ tool_input: { title: 'Tablevo Admin' }, tool_response: v(4) });
+  assert.deepStrictEqual(h.pages()[0].was, ['Tablevo Admin Dashboard', 'Restaurant Dashboard'], 'newest first');
+  h.run({ tool_input: { title: 'Restaurant Dashboard' }, tool_response: v(5) });
+  assert.deepStrictEqual(h.pages()[0].was, ['Tablevo Admin', 'Tablevo Admin Dashboard'], 'a name taken back is not listed as earlier');
+  for (let i = 0; i < 12; i++) h.run({ tool_input: { title: `Name ${i}` }, tool_response: v(6 + i) });
+  assert.strictEqual(h.pages()[0].was.length, 10, 'ten at most');
+  assert.strictEqual(h.pages()[0].was[0], 'Name 10');
+  // a new page published under a name a known page used to have is most likely that page again
+  const twin = h.run({ tool_input: { title: 'Name 4' }, tool_response: published('BBB222') });
+  assert.match(twin, new RegExp(`same title as ${A}AAA111`));
+  assert.strictEqual(h.pages()[0].replacedBy, `${A}BBB222`);
+});
+
 test('with a hub, a publish asks Claude to file the page; the hub itself is ignored', () => {
   const h = home(); h.hub(`${A}HUB000`);
   assert.match(h.run({ tool_input: {}, tool_response: published('AAA111') }), /Recording one page.*Shop/);

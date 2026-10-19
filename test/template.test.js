@@ -208,10 +208,38 @@ test('a real PROJECTS array injected between the markers still parses and evalua
           if (x.status) assert.ok(['draft', 'review', 'final', 'archived'].includes(x.status), x.status);
           if (x.kind) assert.ok(['slides', 'design', 'designsystem', 'dashboard', 'doc', 'code', 'report', 'page'].includes(x.kind), x.kind);
           if (x.by) assert.strictEqual(typeof x.by, 'string');
+          if (x.was) { assert.ok(Array.isArray(x.was) && x.was.length <= 10, 'earlier titles are a short list'); assert.ok(x.was.every((t) => typeof t === 'string' && t && t !== row[0]), 'earlier titles are strings and never the current one'); }
         }
       }
     }
   }
+  assert.ok(projects[0].shelves[0][1].some((row) => row[4] && Array.isArray(row[4].was)), 'the fixture has a renamed page');
+});
+
+test('earlier titles: parsed from the row, searched between title and description, shown only on a hit, serialized back, exported', () => {
+  const js = script(TEMPLATE);
+  assert.match(js, /was: Array\.isArray\(x\.was\) \? x\.was\.map\([\s\S]*?\.slice\(0, 10\) : \[\]/, 'at most ten, strings only');
+  assert.match(js, /p\.fa = p\.was\.map\(fold\)\.join\(' \\u0001 '\)/, 'folded like the title, kept apart');
+  const chain = js.slice(js.indexOf('function match(p, words, whole)'), js.indexOf('function paint('));
+  const at = (s) => chain.indexOf(s);
+  assert.ok(at('p.ft.indexOf(w)) >= 0) { hit.score += 60') < at('wordAt(p.fa, w) >= 0) { hit.score += 50') && at('hit.score += 50') < at('wordAt(p.fd, w)) >= 0) { hit.score += 45'), 'a whole word in an earlier title ranks under the title and above the description');
+  assert.ok(at('p.fa.indexOf(w) >= 0) { hit.score += 35') > at('hit.score += 40') && at('hit.score += 35') < at('hit.score += 30'), 'inside an earlier title ranks under a folder word and above inside the description');
+  assert.match(chain, /p\.fa && p\.fa\.indexOf\(whole\) >= 0 \? 50 : 0/, 'the whole phrase in an earlier title counts too');
+  assert.match(js, /ws = el\('span', 'st s-was', 'was ' \+ p\.was\[0\]\)[^\n]*ws\.hidden = true/, 'the label starts hidden');
+  assert.match(js, /if \(r\._ws\) r\._ws\.hidden = !\(h && h\.a\)/, 'and shows only when the search matched an earlier name');
+  assert.match(TEMPLATE, /<dt id="insp-was-dt" hidden>Formerly<\/dt><dd id="insp-was" hidden><\/dd>/);
+  assert.match(js, /\$\('insp-was'\)\.textContent = p\.was\.join\(', '\)/);
+  assert.match(js, /if \(p\.was\.length\) o\.was = p\.was;/, 'Save to hub writes it back');
+  assert.match(js, /k === 'was' \? '\[' \+ o\.was\.map\(q1\)\.join\(', '\) \+ '\]'/, 'as a quoted list');
+  assert.match(js, /if \(p\.was\.length\) r\.formerly = p\.was\.slice\(\)/, 'the JSON export names them');
+  // the serializer's output for the fixture row parses back to the same list
+  const page = inject(TEMPLATE, FIXTURE);
+  const projects = vm.runInNewContext(page.match(DATA)[2] + '\nPROJECTS;');
+  const row = projects[0].shelves[0][1].find((r) => r[0] === 'Tablevo Admin Dashboard');
+  assert.deepStrictEqual(Array.from(row[4].was), ['Restaurant Dashboard', 'Shop Ops Board']);
+  const q1 = (v) => "'" + String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n') + "'";
+  const text = "[" + [q1(row[0]), q1(row[1]), q1(row[2]), q1(row[3])].join(', ') + ", { status: 'review', was: [" + row[4].was.map(q1).join(', ') + "] }]";
+  assert.strictEqual(JSON.stringify(vm.runInNewContext(text)), JSON.stringify(row), 'the row as Save to hub writes it reads back the same (compared as JSON: the two come from different vm realms)');
 });
 
 test('audit 4: dates in month-first order, projects told apart by id, gone pages marked, the fold button desktop-only', () => {
