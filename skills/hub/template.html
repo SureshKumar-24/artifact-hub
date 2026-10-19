@@ -211,6 +211,7 @@ h1 { font: var(--h1-weight) var(--h1-size)/1.2 var(--display); letter-spacing: v
 .s-unsaved { background: transparent; color: var(--c-amber); border: 1px dashed var(--c-amber); }
 .s-by { background: var(--accent-soft); color: var(--accent); text-transform: none; letter-spacing: 0; }
 .s-gone { background: transparent; color: var(--muted); border: 1px solid var(--line); } /* the link did not open at Claude's last check; the row is kept */
+.s-was { background: transparent; color: var(--muted); border: 1px dotted var(--line); font-weight: 400; text-transform: none; letter-spacing: 0; max-width: 16em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* an earlier name, shown when a search matched it */
 .s-dup { background: transparent; color: var(--c-rose); color: color-mix(in srgb, var(--c-rose) 85%, var(--ink)); border: 1px dashed currentColor; }
 .sts.care .stf[aria-pressed="true"] { border-color: var(--c-rose); background: color-mix(in srgb, var(--c-rose) 10%, var(--surface)); }
 .kinds .stf svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -621,6 +622,7 @@ button.lnk:hover { text-decoration: underline; }
       <dt>Folder</dt><dd id="insp-where"></dd>
       <dt>Updated</dt><dd id="insp-date"></dd>
       <dt>Kind</dt><dd id="insp-kind-text"></dd>
+      <dt id="insp-was-dt" hidden>Formerly</dt><dd id="insp-was" hidden></dd>
       <dt>Status</dt><dd><button class="field" type="button" id="insp-status" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span class="fl">None</span><span data-icon="chevd" class="chev"></span></button></dd>
       <dt>Move to</dt><dd><button class="field" type="button" id="insp-move" aria-haspopup="listbox" aria-expanded="false" aria-label="Move to another folder"><span data-icon="folder"></span><span class="fl"></span><span data-icon="chevd" class="chev"></span></button></dd>
       <dt>Link</dt><dd class="url"><input readonly id="insp-url" aria-label="Page link"><button class="ib" type="button" id="insp-copy" aria-label="Copy link" title="Copy link"><span data-icon="copy"></span></button></dd>
@@ -652,7 +654,8 @@ button.lnk:hover { text-decoration: underline; }
   // color: one of COLORS; otherwise it takes the colour of its place in PROJECTS.
   var COLORS = ['teal', 'indigo', 'amber', 'rose', 'green', 'violet', 'sky', 'clay'];
   // A row may carry a fifth item, its status: 'draft', 'review', 'final' or 'archived'.
-  // Archived pages stay listed but are shown only on request.
+  // Archived pages stay listed but are shown only on request. As an object the fifth item
+  // may also carry `was`: the page's earlier titles, so a search for an old name still finds it.
   var STATUSES = ['draft', 'review', 'final', 'archived'];
 
   // ---- Per-viewer memory. Every read and write is guarded: the page works with storage blocked.
@@ -809,7 +812,8 @@ button.lnk:hover { text-decoration: underline; }
         var x = pg[4] && typeof pg[4] === 'object' ? pg[4] : { status: pg[4] };
         var st = String(x.status || '').toLowerCase(), kd = String(x.kind || '').toLowerCase().replace(/[^a-z]/g, '');
         var rec = { i: PAGES.length, title: String(pg[0] || 'Untitled'), id: String(pg[1] || ''), desc: String(pg[2] || ''), date: String(pg[3] || ''),
-          status: STATUSES.indexOf(st) >= 0 ? st : '', known: KIND_LABEL[kd] ? kd : '', by: x.by ? String(x.by) : '', gone: !!x.gone, node: node, proj: pn };
+          status: STATUSES.indexOf(st) >= 0 ? st : '', known: KIND_LABEL[kd] ? kd : '', by: x.by ? String(x.by) : '', gone: !!x.gone, node: node, proj: pn,
+          was: Array.isArray(x.was) ? x.was.map(function (t) { return String(t || '').trim(); }).filter(Boolean).slice(0, 10) : [] };
         rec.home = node; rec.status0 = rec.status; // what the hub's data says, before any edit made on this page
         node.pages.push(rec); PAGES.push(rec); if (!byId[rec.id]) byId[rec.id] = rec;
       });
@@ -825,6 +829,7 @@ button.lnk:hover { text-decoration: underline; }
     p.path = trail(p.node).slice(2).map(function (x) { return x.name; }).join(' / ');
     p.where = p.proj.name + (p.path ? ' / ' + p.path : '');
     p.t = parseDate(p.date); p.ft = fold(p.title); p.fd = fold(p.desc); p.kind = kindOf(p);
+    p.fa = p.was.map(fold).join(' \u0001 '); // earlier titles, kept apart so a word cannot span two of them
     p.fw = fold(p.where + (p.status ? ' ' + p.status : '') + ' ' + kindLabel(p.kind) + (p.by ? ' ' + p.by : '') + (p.gone ? ' gone' : ''));
   }
   var kindFilter = ''; // '' = every kind
@@ -978,8 +983,10 @@ button.lnk:hover { text-decoration: underline; }
   }
 
   // ---- Search: every word must match somewhere. Ranking: title prefix > title word start >
-  // inside the title > a whole word in the description or folder > inside them > loose
-  // (fuzzy) title letters, so a real word beats scattered letters; ties by recency.
+  // inside the title > a whole word in an earlier title > a whole word in the description or
+  // folder > inside an earlier title > inside them > loose (fuzzy) title letters, so a real
+  // word beats scattered letters; ties by recency. A hit in an earlier title sets `a`, and the
+  // row then shows that name.
   var WORD = /[a-z0-9\u00C0-\uFFFF]/; // escaped, so the page is safe however it is served
   function wordAt(s, w) { var i = s.indexOf(w); while (i > 0 && WORD.test(s[i - 1])) i = s.indexOf(w, i + 1); return i; }
   function fuzzy(s, w) { // the letters of w in order and close together: their positions, or null
@@ -994,20 +1001,22 @@ button.lnk:hover { text-decoration: underline; }
     return best && best[best.length - 1] - best[0] < w.length * 3 ? best : null;
   }
   function match(p, words, whole) {
-    var hit = { t: [], d: [], w: [], score: 0 };
+    var hit = { t: [], d: [], w: [], a: false, score: 0 };
     for (var k = 0; k < words.length; k++) {
       var w = words[k], i, f;
       if (p.ft.indexOf(w) === 0) { hit.score += 100; hit.t.push([0, w.length]); }
       else if ((i = wordAt(p.ft, w)) >= 0) { hit.score += 80; hit.t.push([i, i + w.length]); }
       else if ((i = p.ft.indexOf(w)) >= 0) { hit.score += 60; hit.t.push([i, i + w.length]); }
+      else if (p.fa && wordAt(p.fa, w) >= 0) { hit.score += 50; hit.a = true; }
       else if ((i = wordAt(p.fd, w)) >= 0) { hit.score += 45; hit.d.push([i, i + w.length]); }
       else if ((i = wordAt(p.fw, w)) >= 0) { hit.score += 40; hit.w.push([i, i + w.length]); }
+      else if (p.fa && p.fa.indexOf(w) >= 0) { hit.score += 35; hit.a = true; }
       else if ((i = p.fd.indexOf(w)) >= 0) { hit.score += 30; hit.d.push([i, i + w.length]); }
       else if ((i = p.fw.indexOf(w)) >= 0) { hit.score += 25; hit.w.push([i, i + w.length]); }
       else if ((f = fuzzy(p.ft, w))) { hit.score += 20 - Math.min(10, f[f.length - 1] - f[0] + 1 - w.length); f.forEach(function (x) { hit.t.push([x, x + 1]); }); }
       else return null;
     }
-    if (words.length > 1) hit.score += p.ft.indexOf(whole) === 0 ? 200 : p.ft.indexOf(whole) > 0 ? 100 : 0;
+    if (words.length > 1) hit.score += p.ft.indexOf(whole) === 0 ? 200 : p.ft.indexOf(whole) > 0 ? 100 : p.fa && p.fa.indexOf(whole) >= 0 ? 50 : 0;
     return hit;
   }
   function paint(node, text, ranges) { // text with <mark> around matched ranges, built as DOM, never as HTML
@@ -1088,14 +1097,16 @@ button.lnk:hover { text-decoration: underline; }
     if (p.by) { var by = el('span', 'st s-by', hasOwner(p) ? p.by : 'Shared'); by.title = cap(byText(p)); tl.appendChild(by); }
     if (p.dup) { var dp = el('span', 'st s-dup', 'Duplicate?'); dp.title = 'Another page has the same title; one may be a republish without the link'; tl.appendChild(dp); }
     if (p.gone) { var gn = el('span', 'st s-gone', 'Gone?'); gn.title = 'This link did not open when Claude last checked it; the row is kept'; tl.appendChild(gn); }
+    var ws = null;
+    if (p.was.length) { ws = el('span', 'st s-was', 'was ' + p.was[0]); ws.title = 'Earlier name' + (p.was.length > 1 ? 's: ' : ': ') + p.was.join(', '); ws.hidden = true; tl.appendChild(ws); }
     if (p.unsaved) { var u = el('span', 'st s-unsaved', 'Unsaved'); u.title = 'Changed on this page, not yet written to the hub'; tl.appendChild(u); }
     d.appendChild(path); d.appendChild(dt); a.appendChild(tl); a.appendChild(d);
-    return { a: a, t: t, path: path, dt: dt };
+    return { a: a, t: t, path: path, dt: dt, ws: ws };
   }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
   function finish(r, p, kind, parts) {
     r.id = 'r-' + kind + '-' + p.i; r.setAttribute('role', 'option'); r.setAttribute('aria-selected', 'false');
-    r._p = p; r._t = parts.t; r._d = parts.dt; r._path = parts.path; r._star = r.querySelector('[data-act="pin"]'); r._sig = null;
+    r._p = p; r._t = parts.t; r._d = parts.dt; r._path = parts.path; r._ws = parts.ws; r._star = r.querySelector('[data-act="pin"]'); r._sig = null;
     var chk = el('span', 'chk'); chk.setAttribute('aria-hidden', 'true'); chk.appendChild(icon('check')); r.appendChild(chk);
     if (selected[p.id]) r.classList.add('sel');
     (itemsById[p.id] = itemsById[p.id] || []).push(r); markPin(r);
@@ -1131,6 +1142,7 @@ button.lnk:hover { text-decoration: underline; }
     if (r._sig === sig) return; r._sig = sig;
     var h = query ? p.hit : null;
     paint(r._t, p.title, h && h.t); paint(r._d, p.desc, h && h.d); paint(r._path, path, h && path === p.where ? h.w : null);
+    if (r._ws) r._ws.hidden = !(h && h.a); // the earlier name shows only when the search found it there
     if (r._where) { paint(r._where, path || p.proj.name, h && path === p.where ? h.w : null); r._where.parentNode.title = p.where; }
   }
   var CAP = 8;
@@ -1513,6 +1525,7 @@ button.lnk:hover { text-decoration: underline; }
     setField($('insp-move'), pathOf(p.node), null);
     $('insp-unsaved').hidden = !p.unsaved;
     $('insp-kind-text').textContent = kindLabel(p.kind) + (p.known ? ' (recorded by Claude)' : ' (from the title)') + (p.by ? ' · ' + byText(p) : '');
+    $('insp-was').textContent = p.was.join(', '); $('insp-was').hidden = $('insp-was-dt').hidden = !p.was.length;
     $('insp-prompt').hidden = !!p.by; $('insp-fine').hidden = !!p.by; $('insp-shared').hidden = !p.by; $('insp-gone').hidden = !p.gone; // a shared page is not the user's to republish
     $('insp-url').value = urlOf(p.id); $('insp-open').href = urlOf(p.id); $('insp-open').setAttribute('data-id', p.id);
     var on = pins.indexOf(p.id) >= 0, pb = $('insp-pin'); pb.setAttribute('aria-pressed', String(on)); pb.lastChild.textContent = on ? 'Pinned' : 'Pin';
@@ -1574,7 +1587,7 @@ button.lnk:hover { text-decoration: underline; }
       var o = { id: pn.key, name: pn.name }; if (pn.about) o.about = pn.about; if (pn.note) o.note = pn.note;
       o.pages = under(pn).map(function (p) {
         var r = { title: p.title, url: urlOf(p.id), description: p.desc, date: p.date, folder: pathOf(p.node), kind: p.kind };
-        if (p.status) r.status = p.status; if (p.by) r.by = p.by; return r;
+        if (p.status) r.status = p.status; if (p.by) r.by = p.by; if (p.was.length) r.formerly = p.was.slice(); return r;
       });
       return o;
     }) };
@@ -1685,10 +1698,10 @@ button.lnk:hover { text-decoration: underline; }
   function claudeUse(name) { try { if (typeof claude !== 'undefined' && claude && typeof claude.use === 'function') return Promise.resolve(claude.use(name)).catch(function () { return null; }); } catch (e) { /* no runtime here */ } return Promise.resolve(null); }
   function q1(v) { return "'" + String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n') + "'"; }
   function rowText(p) { // one row as the hub skill writes it: [title, id, description, date] and the fifth item only when it says something
-    var o = {}; if (p.status) o.status = p.status; if (p.known) o.kind = p.known; if (p.by) o.by = p.by; if (p.gone) o.gone = true;
+    var o = {}; if (p.status) o.status = p.status; if (p.known) o.kind = p.known; if (p.by) o.by = p.by; if (p.gone) o.gone = true; if (p.was.length) o.was = p.was;
     var keys = Object.keys(o), extra = '';
     if (keys.length === 1 && o.status) extra = q1(o.status);
-    else if (keys.length) extra = '{ ' + keys.map(function (k) { return k + ': ' + (k === 'gone' ? 'true' : q1(o[k])); }).join(', ') + ' }';
+    else if (keys.length) extra = '{ ' + keys.map(function (k) { return k + ': ' + (k === 'gone' ? 'true' : k === 'was' ? '[' + o.was.map(q1).join(', ') + ']' : q1(o[k])); }).join(', ') + ' }';
     return '[' + [q1(p.title), q1(p.id), q1(p.desc), q1(p.date)].join(', ') + (extra ? ', ' + extra : '') + ']';
   }
   function dataText() { // the PROJECTS block from what this page holds now, in the shape Claude writes

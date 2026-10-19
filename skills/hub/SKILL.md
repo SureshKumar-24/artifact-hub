@@ -70,6 +70,13 @@ or an object when more is known:
 - `by`: the owner's name, for a page shared with the user (see "Pages shared with the
   user"); when the listing gives no name, write `by: 'Shared'` and the page says only
   "shared with you". Leave it out for the user's own pages.
+- `was`: the page's earlier titles, newest first, ten at most:
+  `['Restaurant Dashboard']`. Set it whenever a row's title changes (a republish under a
+  new name, or a rebuild that finds the gallery's title differs from the row's): the old
+  title goes to the front of `was`, and a name equal to the new title is dropped. The
+  page searches these too, shows "was …" on the row when a search matched an old name,
+  and lists them under Formerly in the details panel. `pages.json` keeps the same list
+  under `was`, written by the plugin at the republish that renamed the page.
 
 Leave the fifth item out when none of these apply.
 
@@ -106,8 +113,8 @@ the hub correct on its own, without relying on any earlier step having happened.
    people shared with the user.
 3. Read `~/.claude/artifact-hub/pages.json` if it exists. The plugin writes one entry
    there for every page published while it is installed (`url`, `title`, `folder`,
-   `first`, `last`, and `deleted` once the page was deleted), so it also holds pages too
-   old to appear in the listing. An entry with `type: 'doc'` is a document made with the
+   `first`, `last`, `was` once the page was renamed, and `deleted` once the page was
+   deleted), so it also holds pages too old to appear in the listing. An entry with `type: 'doc'` is a document made with the
    Claude Docs connector; it is a row like any other. Skip entries marked `deleted`, and
    remove their rows. An entry with `replacedBy` is a page that was published again under
    the same title from a session without its link: keep one row, pointing at the newer
@@ -115,7 +122,9 @@ the hub correct on its own, without relying on any earlier step having happened.
    only if they ask.
 4. For every page in the listing or in that file that is not in `PROJECTS`, add a row.
    For pages already there (same id), update the title and date if they changed; the
-   id is what identifies a page, never its title. If the same id appears in two folders,
+   id is what identifies a page, never its title. When the title changed, put the old
+   one at the front of the row's `was` (see above), and merge in the entry's `was` from
+   `pages.json`, so no earlier name is lost. If the same id appears in two folders,
    keep the one row whose folder the rules below would choose and drop the other. An
    entry's `folder` is the folder it was published from: use it to pick the project. If
    `PROJECTS` is empty (a hub with no rows yet), build it as in the `setup` skill's step

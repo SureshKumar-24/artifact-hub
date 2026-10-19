@@ -76,7 +76,7 @@ Artifact Hub answers each one. The link is saved on your machine at publish time
 |---|---|
 | **Command palette** | `⌘K` or `Ctrl K`: one box for pages, folders and 42 actions, each action with its key. Nothing typed shows what you opened and ran last; `>` narrows to actions, `#` to folders; `Enter` opens or runs, `Shift+Enter` shows details. |
 | **Gallery or list** | Cards with a drawn cover per kind, or a dense list. One switch (`v`), remembered. Same search, folders and sorting in both. On a big hub, All pages shows eight per project with "All 64 in Fixkart →" beneath. |
-| **Search** | Titles, descriptions, folders, kinds and statuses at once. Forgives typos, puts a whole-word hit first, highlights what matched. Pick a folder to search inside it. |
+| **Search** | Titles, earlier titles, descriptions, folders, kinds and statuses at once. Forgives typos, puts a whole-word hit first, highlights what matched. A page you renamed is still found by its old name, and the row says what it was called. Pick a folder to search inside it. |
 | **Filters that never dead-end** | One chip per kind and per status, plus "Duplicates" and "Untouched 60d+" when there is something to show. Each chip counts what it would show under the other filters that are on; a chip that would show nothing is dimmed. |
 | **Details** | Everything the hub knows about a page, and nothing it does not: title, description, folder as links, exact time, kind and where it came from, status, the full link. Move it, set its status, pin it, open it. |
 | **Save to hub** | Move pages, set statuses, write project notes, then press one button: the page rewrites its own data and publishes a new version of itself inside claude.ai, with your authority. Read-only views get the older path: one message to paste into Claude Code. |
@@ -351,7 +351,13 @@ The kinds Claude records itself: Docs, Slides, Design, Design system, Dashboard 
 <details>
 <summary><b>Can I edit the saved list by hand?</b></summary>
 
-Yes. `~/.claude/artifact-hub/pages.json` is plain JSON: one entry per page with `url`, `title`, `folder`, `first`, `last`, and when they apply `type`, `typeId`, `replacedBy`, `deleted`.
+Yes. `~/.claude/artifact-hub/pages.json` is plain JSON: one entry per page with `url`, `title`, `folder`, `first`, `last`, and when they apply `type`, `typeId`, `was`, `replacedBy`, `deleted`.
+</details>
+
+<details>
+<summary><b>Does it catch renames?</b></summary>
+
+Yes. A page is tracked by its artifact id, never by its name. Renaming in Claude Code is a republish with a new `<title>`, and the hook reads that title the moment it happens, updates the entry and tells Claude to update the row. The old name is kept too, in `was` on the entry and on the row, so a search for "Restaurant Dashboard" still finds the page now called "Tablevo Admin", and the row says what it was called. A rename made from a session without the plugin is picked up by the next rebuild, which compares the gallery's titles with the rows and keeps the old name the same way.
 </details>
 
 <details>

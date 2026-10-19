@@ -149,5 +149,7 @@ describe('register', () => {
     expect(titleIn('<p>no title</p>')).toBe('')
     expect(findSaved(saved(), 'PRICING PAGE')?.url).toBe(URL)
     expect(findSaved('not a list', 'x')).toBeUndefined()
+    expect(findSaved(saved({ title: 'Plans Page', was: ['Pricing Page'] }), 'pricing page')?.url).toBe(URL)
+    expect(findSaved(saved({ title: 'Plans Page', was: 'Pricing Page' }), 'pricing page')).toBeUndefined()
   })
 })

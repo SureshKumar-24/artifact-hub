@@ -19,6 +19,7 @@ type Saved = {
   deleted?: string
   replacedBy?: string
   type?: string
+  was?: string[]
 }
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }
@@ -50,14 +51,14 @@ export function titleIn(html: string): string {
 export const basename = (filePath: string): string =>
   plain(filePath.replace(/\\/g, '/').split('/').filter(Boolean).pop()?.replace(/\.[^.]+$/, ''))
 
-/** The saved page with this title that is still current: not deleted, not replaced; the most recent when several. */
+/** The saved page with this title, now or before it was renamed, that is still current: not deleted, not replaced; the most recent when several. */
 export function findSaved(list: unknown, title: string): Saved | undefined {
   if (!Array.isArray(list) || !title) return undefined
   const want = fold(title)
   let hit: Saved | undefined
   for (const x of list as Saved[]) {
     if (!x || typeof x !== 'object' || !x.url || x.deleted || x.replacedBy) continue
-    if (fold(x.title) !== want) continue
+    if (fold(x.title) !== want && !(Array.isArray(x.was) && x.was.some((t) => fold(t) === want))) continue
     if (!hit || String(x.last ?? '') > String(hit.last ?? '')) hit = x
   }
   return hit
